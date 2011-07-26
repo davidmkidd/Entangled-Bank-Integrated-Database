@@ -6,9 +6,9 @@ include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
 include "html_utils.php";
 include "php_utils.php";
 
-$eb_path = "http://" . $config['host'] . "/" . $config['eb_path'] . '/';
-$html_path = "http://" . $config['host'] . "/" . $config['html_path'] . '/';
-$share_path = "http://" . $config['host'] . "/" . $config['share_path'] . '/';
+$eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
+$html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
+$share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 
 #HTML 
 echo '<html>';
@@ -20,7 +20,7 @@ echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_
 echo '</head>';
 #BODY
 
-html_entangled_bank_header($eb_path, $html_path, $share_path);
+html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
 $names = $_SESSION['names'];
 sort($names);

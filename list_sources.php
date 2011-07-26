@@ -8,10 +8,9 @@ include "html_utils.php";
 include "php_utils.php";
 #include "php_interface_subs.php";
 
-
-$eb_path = "http://" . $config['host'] . "/" . $config['eb_path'] . '/';
-$html_path = "http://" . $config['host'] . "/" . $config['html_path'] . '/';
-$share_path = "http://" . $config['host'] . "/" . $config['share_path'] . '/';
+$eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
+$html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
+$share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 
 #HTML 
 echo '<html>';
@@ -66,6 +65,7 @@ $s_name = array();
 $s_type = array();
 $s_n = array();
 $s_ns = array();
+$s_code = array();
 
 foreach ($sources as $source) {
 
@@ -78,6 +78,7 @@ foreach ($sources as $source) {
 	$val = "<a href= " . $source['www'] . "target=_blank> " . $source['name'] . "</a>";
 	array_push($s_name, $val);
 	array_push($s_type, $source['term']);
+	array_push($s_code, $source['code']);
 	
 		
 	switch ($source['term']) {
@@ -164,7 +165,7 @@ foreach ($sources as $source) {
 
 	}
 	
-$arr = array('id'=>$s_id, 'name'=>$s_name, 'type'=>$s_type, 'in source*'=>$s_n, 'selected*'=>$s_ns);
+$arr = array('id'=>$s_id, 'name'=>$s_name, 'code'=>$s_code, 'type'=>$s_type, 'in source*'=>$s_n, 'selected*'=>$s_ns);
 
 echo "<br>";
 html_arr_to_table($arr);

@@ -232,3 +232,11 @@
 		}
 		return classElements;
 	}
+	
+	
+	function showTitle() {
+		
+		
+		
+	}
+	

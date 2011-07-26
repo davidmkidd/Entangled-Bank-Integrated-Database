@@ -5,7 +5,7 @@
 function html_cart($db_handle, $qobjects, $sources, $names, $outputs, $cancel) {
 	
 	echo "<img src='shoppingCartIcon.gif' alt='Shopping Cart' />";
-	echo '<big>Shopping Cart</big><br>';
+	echo '<big>Shopping Cart</big>&nbsp;&nbsp;&nbsp;';
 	##print_r($names);
 	
 	# SOURCES
@@ -20,7 +20,7 @@ function html_cart($db_handle, $qobjects, $sources, $names, $outputs, $cancel) {
 	html_cart_outputs($outputs);	
 	echo "<br>";	
 	# MESSAGES
-	if ($cancel == 'yes') echo "<FONT color=red>Query Cancelled</FONT> :";
+	#if ($cancel == 'yes') echo "<FONT color=red>Query Cancelled</FONT> :";
 	# QUERY CHAIN
 	html_cart_queries($qobjects);
 
@@ -31,14 +31,14 @@ function html_cart($db_handle, $qobjects, $sources, $names, $outputs, $cancel) {
 function html_cart_series($db_handle, $qobjects) {
 
 	If ($qobjects) {
-		$mids = get_mids($qobjects);
+		$mids = query_get_mids($qobjects);
 		if (!$mids) { 
 			echo " | 0 series";
 		} else {
 			echo ' | <a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
 			echo ' <a href="table_series.php?' . SID . '"  target="_blank"> (table)</a>';
 			echo ' <a href="table_series_by_names.php?' . SID . '"  target="_blank"> (by name)</a>';
-			echo ' <a href="series_sql.php?' . SID . '"  target="_blank"> (sql)</a>';
+			echo ' <a href="sql_series.php?' . SID . '"  target="_blank"> (sql)</a>';
 		}
 		//$qobjects['series_sql'] = $total_sql;
 		//$qobjects['series'] = $mids;
@@ -65,10 +65,12 @@ function html_cart_query($qobjects, $sources) {
 			echo " | 0 queries";
 			break;
 		case 1:
-			echo  " | <a href='query_table.php?" . SID . "' target='_blank'> 1 query</a>";
+			#echo  " | <a href='query_table.php?" . SID . "' target='_blank'> 1 query</a>";
+			echo  " | 1 query";
 			break;
 		default:
-			echo " | <a href='query_table.php?" . SID . "' target='_blank'>" . $c . " queries</a>";
+			#echo " | <a href='query_table.php?" . SID . "' target='_blank'>" . $c . " queries</a>";
+			echo " | " . $c . " queries";
 			break;
 		}
 	
@@ -176,8 +178,8 @@ function html_cart_names($names) {
 			}
 		# INFO
 		if ($names) {
-			echo ' <a href="names_table.php?' . SID . '"  target="_blank"> (table)</a>';
-			echo ' <a href="names_sql.php?' . SID . '"  target="_blank"> (sql)</a> ';
+			echo ' <a href="table_names.php?' . SID . '"  target="_blank"> (table)</a>';
+			echo ' <a href="sql_names.php?' . SID . '"  target="_blank"> (sql)</a> ';
 			//echo '<a href="namestable.php?' . SID . '"  target="_blank"> (sources)</a>';
 			}
 		}

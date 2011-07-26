@@ -7,9 +7,9 @@ include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
 include "html_utils.php";
 include "php_utils.php";
 #include "php_interface_subs.php";
-$eb_path = "http://" . $config['host'] . "/" . $config['eb_path'] . '/';
-$html_path = "http://" . $config['host'] . "/" . $config['html_path'] . '/';
-$share_path = "http://" . $config['host'] . "/" . $config['share_path'] . '/';
+$eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
+$html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
+$share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 
 #HTML 
 echo '<html>';

@@ -17,10 +17,12 @@ include "php_write.php";
 include "html_cart.php";
 
 $config = parse_ini_file('../../../passwords/entangled_bank.ini');
-$eb_path = "http://" . $config['host'] . "/" . $config['eb_path'] . '/';
-$html_path = "http://" . $config['host'] . "/" . $config['html_path'] . '/';
-$share_path = "http://" . $config['host'] . "/" . $config['share_path'] . '/';
+$eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
+$html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
+$share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 $_SESSION['tmp_path'] = $config['tmp_path'];
+
+set_time_limit(1200);
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            HTML HEADERS
@@ -38,8 +40,7 @@ echo '</head>';
 
 #BODY
 #<body>
-#echo '<body onload=mapinit()>';
-
+echo '<body>';
 html_entangled_bank_header($eb_path, $html_path, $share_path, true);
 
 # BEGIN FORM
@@ -75,7 +76,7 @@ if (!$stage) $stage = 'sources';
 #echo "POST stage: $stage<br>";
 
 # SOURCES
-//$sourceids = $_SESSION['sourceids'];			//ids of the sources
+$sourceids = $_SESSION['sourceids'];			//ids of the sources
 //echo "sids: $sourceids<br>";
 $sources = $_SESSION['sources'];				//Array or sources
 
@@ -132,6 +133,13 @@ if ($output_id) $output = get_obj($outputs, $output_id);
 #echo "<br>";
 # echo "after get current qobject<br>";
 
+# NAME SEARCH
+if ($stage == 'qset' && $qterm == 'name_search') {
+	$name_search = query_name_search($db_handle, $sources);
+	$stage = 'qbegin';
+}
+
+
 # CANCELLING A QUERY
 if ($cancel == 'yes') {
 	$c = count($qobjects) - 1;
@@ -149,7 +157,7 @@ if ($qterm == 'finish') $stage = 'finish';
 if ($stage == 'getsources') {
 	#echo "Pre-form: begin getsources<br>";
 	#$sources = get_sources($db_handle, $sourceids, 'bio');
-	$sources = get_sources($db_handle, $qsources, 'bio');
+	$sources = get_sources($db_handle, $sourceids, 'bio');
 	if ($sources) {
 		$_SESSION['sources'] = $sources;
 //		echo "after get_sources";
@@ -229,7 +237,7 @@ if ($stage == 'maction') {
 				break;
 			case 'delete':
 				# DELETE A QUERY
-				echo "Delete query $qobjid<br>";
+				#echo "Delete query $qobjid<br>";
 				$idx = obj_idx($qobjects,$qobjid);
 				unset ($qobjects[$idx]);
 				array_values($qobjects);
@@ -339,7 +347,7 @@ if ($stage == 'outputset') {
 			$_SESSION['outputs'] = $outputs;
 			#echo "post outputset, output_id: $output_id<br>";
 			#print_r($outputs);
-			echo "<br>";
+			#echo "<br>";
 			break;
 			
 	}
@@ -410,7 +418,7 @@ if ($qterm == 'finish') $stage = 'finish';
 if ($stage == 'sources') {
 	# Select name source or input names
 	#$mytimes = add_key_val($mytimes, "begin_select_sources", microtime(TRUE));
-	html_select_sources($db_handle,'sourceids');
+	html_select_sources($db_handle);
 	echo "<input type = 'hidden' name ='stage' value='getsources'>";
 	#$mytimes = add_key_val($mytimes, "end_select_sources", microtime(TRUE));
 	}
@@ -423,7 +431,7 @@ if ($stage == 'manage') {
 
 # NEW QUERY
 if ($stage == 'qbegin') {
-	html_query_type($qobjects, $sources, $names);
+	html_query_type($db_handle, $qobjects, $sources, $names, $name_search);
 	echo "<input type = 'hidden' name ='stage' value='qset'>";
 	}
 	//print_r($qobjects);
@@ -472,12 +480,22 @@ if ($stage == 'finish') {
 	#echo '<input type="hidden" name=finish value="no">';
 	echo "<br>";	
 	} else {
-		if ($stage == 'qset2' || $stage == 'outputset') {
-			echo '<input id="submit-button" type="submit" value="Next >" onClick="selAll()">';
-		} else {
-			echo '<input id="submit-button" type="submit" value="Next >">';
+		switch (true) {
+			case ($stage == 'qset2' || $stage == 'outputset'):
+				echo '<input id="submit-button" type="submit" value="Next >" onClick="selAll()">';
+				break;
+			case ($stage == 'qset' && $qobject['term'] == 'biogeographic'):
+				echo '<input id="submit-button" type="submit" value="Next >" onClick="return serialize_layer();">';
+				break;
+			default:
+				echo '<input id="submit-button" type="submit" value="Next >">';
+				break;
 		}
-	
+//		if ($stage == 'qset2' || $stage == 'outputset') {
+//			echo '<input id="submit-button" type="submit" value="Next >" onClick="selAll()">';
+//		} else {
+//			echo '<input id="submit-button" type="submit" value="Next >">';
+//		}
 	}
 
 echo '</form>';
@@ -491,6 +509,6 @@ html_entangled_bank_footer();
 
 #Close db handle
 pg_close($db_handle);
-#echo "</body>";
+echo "</body>";
 
 ?>

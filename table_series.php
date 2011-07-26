@@ -5,10 +5,11 @@ include "config_setup.php";
 include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
 include "html_utils.php";
 include "php_utils.php";
+include "php_query.php";
 
-$eb_path = "http://" . $config['host'] . "/" . $config['eb_path'] . '/';
-$html_path = "http://" . $config['host'] . "/" . $config['html_path'] . '/';
-$share_path = "http://" . $config['host'] . "/" . $config['share_path'] . '/';
+$eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
+$html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
+$share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 #CONNECT TO DATABASE
 $db_handle = eb_connect_pg($config);
 
@@ -22,14 +23,14 @@ echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_
 echo '</head>';
 #BODY
 
-html_entangled_bank_header($eb_path, $html_path, $share_path);
+html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
 $qobjects = $_SESSION['qobjects'];
 #$names = $_SESSION['names'];
 //print_r($names);
 //print_r($names);
 //echo $qobjects[count($qobjects) - 1] . "<br>";
-$mids = get_mids($qobjects);
+$mids = query_get_mids($qobjects);
 $c = count($mids);
 if ($names) {
 	$nc = count($names);
@@ -40,7 +41,7 @@ if ($names) {
 
 echo "<img src='shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
-echo "- $c series<br>";
+echo "- $c time series<br>";
 
 if ($mids) $marr = array_to_postgresql($mids, 'numeric');
 #if ($names) $narr = array_to_postgresql($names, 'text');

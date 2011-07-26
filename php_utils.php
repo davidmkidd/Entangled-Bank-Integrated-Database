@@ -16,6 +16,7 @@ function add_key_val($arr, $key, $val) {
 
 function array_to_postgresql($myarray, $arrtype) {
 	
+	#print_r ($myarray);
 	
 	if (is_array($myarray)) {
 	
@@ -24,15 +25,15 @@ function array_to_postgresql($myarray, $arrtype) {
 			$type = is_numeric_array($myarray, $check_all=true);
 			if ($type == true) {
 				$arrtype = 'numeric';
-				} else {
-				$arrtype = 'text';
-				}
 			} else {
-				if ($arrtype != 'numeric' && $arrtype != 'text') {
-					echo "array_to_postgresql error: arrtype must be undef, 'text' or 'numeric'";
-				}
+				$arrtype = 'text';
 			}
-		
+		} else {
+			if ($arrtype != 'numeric' && $arrtype != 'text') {
+			echo "array_to_postgresql error: arrtype must be undef, 'text' or 'numeric'";
+			}
+		}
+		#echo " " . is_array($myarray) . "<br>";
 		#echo "arraytype is numeric : $arraytype<br>";
 		#foreach ($myarray as $item) echo "$item<br>";
 		$retval = "ARRAY[";
@@ -299,138 +300,142 @@ function eb_connect($config) {
 
 #=================================================================================================================
 
-function get_source_dtypes($db_handle, $source) {
+function get_source_field_types($db_handle, $source) {
 	
-	# Returns array of datatypes for fields in source
-	
-	$dtypes = array();
-	$ftypes = array();
-	$fnames = array();
-	$fids = array();
-	$franks = array();
-		
-	if ($source['term'] == 'biotree') return -1;
-	
+	# Returns array of field types from source.source_fields
+	if ($source['term'] == 'biotree') return false;
+	$sid = $source['id'];
 	# Fields in table
-	$str = "SELECT * FROM " . $source['dbloc'] . " LIMIT 1;";
+	$str = "SELECT f.field_name, f.field_description, t.name AS ftype 
+		FROM source.source_fields f, biosql.term t
+		WHERE f.source_id = $sid
+		AND f.term_id = t.term_id
+		ORDER by f.rank;";
+	//echo "$str<br>";
 	$res = pg_query($db_handle, $str);
-	$nf = pg_num_fields($res);
-
-	# Are early fields to be ignored (firstfield term set?) 
-	$str = "SELECT sq.* FROM 
-			source.source_qualifier_value sq,
-			source.source s
-			WHERE s.source_id = sq.source_id
-			AND s.source_id = " . $source['id']
-			. " AND sq.term_id = 21";
-			//echo "$str<br>";
-	$res2 = pg_query($db_handle, $str);
-	$row = pg_fetch_row($res2);
-	
-	if (!$row) {
-		$f = 0;
-	} else {
-	 	$f = $row[2];
-	}
-	#echo "f = $f<br>";
-	
-	for ($i = $f; $i <= $nf - 1; $i++) {	
-		# Database Field name
-		$fname = pg_field_name($res, $i);
-		# Database field type => Display ftype
-		$ftype = pg_field_type($res, $i);
-		# Default $ftype
-		switch ($ftype) {
-			case 'numeric':
-			case 'float':
-			case 'float8':
-				$ftype = 'rangefield';
-				break;
-			case (substr($ftype, 0, 3) == 'int'):
-			case (substr($ftype,-4) == 'char'):
-				$ftype = 'lookup';
-				break;
-			case 'lookup':
-			case 'text':
-			case 'geography':
-				break;
-				
-			default:
-				echo "html_table_query: unrecognised DB field type - $ftype<br>";
-				break;
-		}
-		// GPDD HARDCODE
-		if ($fname !== 'TaxonID' && $fname !== 'BiotopeID' 
-			&& $fname !== 'LocationID' && $fname !== 'DataSourceID'
-			&& $ftype !== 'geography') {
-			array_push($ftypes, $ftype);
-			array_push($fids, $i);
-			array_push($fnames, $fname);
-			array_push($franks, 999 + $i);
-			//echo "$i, add $fname with $ftype<br>";
-		}
-	}	
-	
-	# Get source_qualifier_value and extra linked fields
-	# only set up for integer rangefields
-	$str = "SELECT sq.value, t.name, sq.rank FROM 
-		source.source_qualifier_value sq,
-		source.source s,
-		biosql.term t
-		WHERE s.source_id = sq.source_id
-		AND sq.term_id = t.term_id
-		AND t.name =ANY(ARRAY['rangefield','lookup','gpdd'])
-		AND s.source_id = " . $source['id'] . 
-	 	"ORDER BY sq.rank";
-	
-	//echo "override SQL: $str<br>";
-
-	$res = pg_query($db_handle, $str);
-	
-	while ($row = pg_fetch_row($res)) {
-		$i = array_search($row[0], $fnames);
-		if ($i !== false) {
-			$ftypes[$i] = $row[1];
-			$franks[$i] = $row[2];
-			//echo "override $fnames[$i] to $row[1]<br>";
-		} else {
-			//echo "add $row[0] with $row[1]<br>";
-			array_push($ftypes, $row[1]);
-			array_push($fnames, $row[0]);
-			array_push($franks, $row[2]);
-			array_push($fids, -1);
-		} 
-	}
-	
-	for ($i = 0; $i <= count($fnames) -1; $i++) {
-		$dtype = array('fid'=>$fids[$i],'fname' => $fnames[$i], 'dtype'=>$ftypes[$i], 'frank'=>$franks[$i]);
-		array_push($dtypes, $dtype);
-	}
-	$dtypes = array_sort($dtypes,'frank') ;
-	//print_r($dtypes);
-	return $dtypes;
+	$rows = pg_fetch_all($res);
+	return $rows;
 }
 
 #=================================================================================================================
 
-function get_mids($qobjects) {
+function add_source_fields($db_handle, &$source) {
+	
+	# Adds namesfield and fields array to source
+	
+	$dtypes = array();         //display type from source.source_fields (rangefield,catagoryfield,lookupfield, lookuptable)
+	$ftypes = array();		   //field type from db (will be converted to text or numeric)
+	$fnames = array();         //field names
+	//$fids = array();           //field id
+	$franks = array();         //field rank
+	$fdescs = array();         //field description
+	$flookups = array();         //field description
+	$faliases = array();         //field description
 		
-	//if($qobjects) echo "**********<br>";
-	foreach (array_reverse($qobjects) as $qobject) {
-		switch (true) {
-			case ($qobject['status'] == 'new'):
-				break;
-			case ($qobject['status'] == 'valid'):
-				if (!$mids && $qobject['series']) $mids = $qobject['series'];
-			break;
-		}
+	if ($source['term'] == 'biotree') return false;
+
+	# GET FIELD INFO
+	$str = "SELECT s.field_name,t.name,s.rank,s.field_description, s.field_alias FROM source.source_fields s, biosql.term t 
+		WHERE s.source_id=". $source['id'] .
+		"AND t.term_id=s.term_id ORDER by s.rank;";
+	$res = pg_query($db_handle, $str);
+	while ($row = pg_fetch_row($res)) {
+		array_push($fnames,$row[0]);
+		array_push($dtypes,$row[1]);
+		array_push($franks,$row[2]);
+		array_push($fdescs,$row[3]);
+		array_push($faliases,$row[4]);
 	}
-	 if ($mids) {
-	 	return ($mids);
-	 } else {
-	 	return null;
-	 }
+	
+	# FTYPE
+	$i = 0;
+	foreach($fnames as $fname) {
+		$dtype = $dtypes[$i];
+		switch ($dtype) {
+			case 'rangefield':
+			case 'catagoryfield':
+				# FIELD IN TABLE
+				//$str = "SELECT \"$fname\" FROM " . $source['dbloc'] . " LIMIT 1;";
+				//echo "$str<br/>";
+				$res = pg_query($db_handle, $str);
+				$dbtype = pg_field_type($res, 0);
+				$ftype = get_ftype_from_dbtype($dbtype);
+				$flookup = null;
+				break;
+			case 'lookupfield':
+				$ftype = 'numeric';
+				$flookup = null;
+				break;
+			case 'lookuptable':
+				$str = "SELECT lookup_id FROM source.source_fields WHERE source_id=" . $source['id'] . " AND field_name='$fname'";
+				//echo "$str<br/>";
+				$res = pg_query($db_handle, $str);
+				if ($res) {
+					$row = pg_fetch_row($res);
+					$lookup_id = $row[0];
+					$lookup_source = get_source($db_handle, $lookup_id);
+					$str = "SELECT \"$fname\" FROM " . $lookup_source['dbloc'] . " LIMIT 1;";
+					$res = pg_query($db_handle, $str);
+					$dbtype = pg_field_type($res, 0);
+					$ftype = get_ftype_from_dbtype($dbtype);
+					$flookup = $lookup_id;
+				} else {
+					$ftype = 'not set';
+					$flookup = null;
+				}
+
+				break;
+			default:
+				$ftype = null;
+				$flookup = null;
+				break;
+		}
+		array_push($ftypes,$ftype);
+		array_push($flookups,$flookup);
+		$i++;
+	}
+
+	
+	
+	$fields = array();
+	for ($i = 0; $i <= count($fnames) -1; $i++) {
+		//echo "fname: $fnames[$i], dtype: $dtypes[$i] ftype: $ftypes[$i], ftitle: $fdescs[$i]<br/><br/>";
+		$field = array('fname' => $fnames[$i], 'ftype'=>$ftypes[$i], 
+			'dtype'=>$dtypes[$i], 'frank'=>$franks[$i], 'fdesc'=>$fdescs[$i], 'flookup'=>$flookups[$i], 'falias'=>$faliases[$i]);
+		array_push($fields, $field);
+		//echo "<br />";
+		//print_r ($field);
+		//echo "<br />";
+	}
+	$fields = array_sort($fields,'frank') ;
+	$source['fields'] = $fields;
+	
 }
+
+#=================================================================================================================
+
+function get_ftype_from_dbtype($dbtype) {
+	
+	//echo "$dbtype<br />";
+	switch ($dbtype) {
+		case 'numeric':
+		case 'float':
+		case 'float8':
+		case (substr($ftype, 0, 3) == 'int'):
+			$ftype = 'numeric';
+			break;
+		case (substr($ftype,-4) == 'char'):
+		case 'text':
+		case 'varchar':
+			$ftype = 'text';
+			break;
+		default:
+			//echo "html_table_query: unrecognised DB field type - $ftype<br>";
+			break;
+	}
+	return $ftype;
+}
+
 #=================================================================================================================
 
 function get_column_names ($db_handle, $table) {
@@ -472,10 +477,11 @@ function get_obj($objs, $id) {
 	
 function get_sources($db_handle, $ids, $type) {
 	
-//	echo "ids: $ids";
+//	echo "ids: " . empty($ids);
+//	echo print_r($ids);
 	$sources = array();
 	
-	if (!$ids) {	
+	if (!$ids || empty($ids)) {	
 		// Get all bio sources
 		# Returns an array containing details of sources
 		# $ids 			a list of source ids to limit the query to
@@ -515,12 +521,11 @@ function get_sources($db_handle, $ids, $type) {
 				break;
 		}
 		$str = $str . " AND obj.active = true";
-		//echo "$str<br>";
+		# echo "$str<br>";
 		$res = pg_query($db_handle, $str);
-		while ($row = pg_fetch_row($res)) array_push($ids,$row[0]);
+		$ids = pg_fetch_all_columns($res, 0);
 	}
 	
-
 	foreach($ids as $id) {
 		$source = get_source($db_handle, $id);
 		$sources = add_key_val($sources, $id, $source);
@@ -542,6 +547,8 @@ function get_sources($db_handle, $ids, $type) {
 	
 	function get_source($db_handle, $id) {
 		
+		# RETURNS A SOURCE OBJECT GIVEN AN ID
+		
 		$str = "SELECT s.*, t.name
 			FROM source.source s, biosql.term t
 			WHERE s.source_id = $id
@@ -560,12 +567,15 @@ function get_sources($db_handle, $ids, $type) {
 			'tablename'=>$row[4],
 			'dbloc'=>$dbloc,
 			'n'=>$row[5],
-			'term'=>$row[8],
+			'code'=>$row[8],
+			'term'=>$row[9],
 			);
 		
 		if (!empty($row[6])==1) $source = add_key_val($source, 'www', $row[6]);
-
-		# Get source_qualifiers
+		
+		
+		# GET SOURCE QUALIFIER VALUES
+		# only trees at the moment
 		$str = "SELECT sqv.value, t.name
 			 FROM source.source_qualifier_value sqv, biosql.term t, biosql.ontology ont
 			 WHERE sqv.source_id = $row[0]
@@ -578,15 +588,15 @@ function get_sources($db_handle, $ids, $type) {
 			$source = add_key_val($source, $row[1], $row[0]);
 			}
 		
-		# Get geometry column (Non-Geographic)
+		# GET GEOMETRY COLUMN (Non-Geographic)
 //		$str = "SELECT f_geometry_column 
 //			FROM public.geometry_columns 
 //			WHERE f_table_name = '" . $source['tablename'] . "'";
 //		$res = pg_query($db_handle, $str);
 //		$row = pg_fetch_row($res);
 //		if ($row) $source['spatial_column'] = $row[0];
-	
-		# Get geography column (Geographic)
+			
+		# GET GEOGRAPHY COLUMNS (Geographic)
 		$str = "SELECT f_geography_column 
 			FROM public.geography_columns 
 			WHERE f_table_name = '" . $source['tablename'] . "'";
@@ -594,6 +604,11 @@ function get_sources($db_handle, $ids, $type) {
 		$row = pg_fetch_row($res);
 		if ($row) $source['spatial_column'] = $row[0];
 		
+		# GET FIELDS
+		add_source_fields($db_handle,$source);
+	//echo "<br/>";
+	//print_r($source);
+	//echo "<br/>";
 	return($source);
 	
 	}
@@ -1180,46 +1195,6 @@ function taxa_to_names($taxa, $namesmethod, $char) {
 	return $arr;
 }
 
-# =================================================================================================================
-
-function add_taxa_to_query ($qobject) {
-	
-	$taxa = $_SESSION['taxa'];
-	unset($_SESSION['taxa']);
-//	echo 'is_array:' . is_array($taxa) . '<br>';
-//	print_r($taxa);
-//	echo '<br>';
-	
-	if ($_SESSION['taxa2']) {
-		$taxa2 = $_SESSION['taxa2'];
-		unset($_SESSION['taxa2']);
-		$taxa = array_merge($taxa, $taxa2);
-	}
-	$names = array();
-	if (!empty($taxa)) {
-		if ($qobject['term'] == 'biotree') {
-			
-			foreach ($taxa as $name) array_push($names, str_replace('.', "", $name));	
-			#Remove empty names
-			$names = remove_array_empty_values($names, true);
-		} else {
-			$names = explode("\r\n",$taxa);
-		}
-	}
-	
-//	echo 'add_taxa_to_query:';
-//	print_r($names);
-//	echo '<br>';
-
-
-	# Add to qobject
-	if ($qobject['taxa']) unset($qobject['taxa']);
-	
-	$qobject = add_key_val($qobject, 'taxa', $names);
-	
-	return $qobject;
-}
-
 
 #=================================================================================================================
 
@@ -1228,9 +1203,9 @@ function tip_names($tree, $names) {
 	#returns array of tip names
 	$tips = array();
 	$names_array = array_to_postgresql($names,'text');
-	$statement = "SELECT * FROM biosql.lca_subtree_tip_label_by_label($names_array, $tree);";
-	$result = pg_query($statement);
-	while ($row = pg_fetch_row($result)) {
+	$str = "SELECT * FROM biosql.lca_subtree_tip_label_by_label($names_array, $tree);";
+	$res = pg_query($str);
+	while ($row = pg_fetch_row($res)) {
 		array_push($tips, $row[0]);
 	}
 	return tips;
@@ -1238,6 +1213,32 @@ function tip_names($tree, $names) {
 
 #=================================================================================================================
 
- 
+
+function get_field($fname, $fields) {
+	foreach ($fields as $field) {
+		if ($field['fname'] == $fname) return $field;
+	}
+	return false;
+}
+
+
+#=================================================================================================================
+
+function get_field_title($db_handle, $source, $fname) {
+	
+	# Function returns the title of a field from source.source_fields
+	$source_id = $source['id'];
+	$str = "SELECT field_description FROM source.source_fields WHERE source_id=$source_id AND field_name=\"$fname\"";
+	echo "$str<br>";
+	$res = pg_query($str);
+	$row = pg_fetch_row($res);
+	if (!$row) {
+		return false;
+	} else {
+		return $row[0];
+	}
+}
+
+#=================================================================================================================
 
 ?>

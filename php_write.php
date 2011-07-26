@@ -4,17 +4,7 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 
 	# WRITE INDIVIDUAL DATA OUTPUT TO TEMPORARY FILE
 	
-	#$source = get_obj($sources, $output['sourceid']);
 	$term = $output['term'];
-	#$dbloc = $source['dbloc'];
-	#$namefield = $source['namefield'];
-	#$format = $output['format'];
-	#$filename = $output['filename'];	
-	#$outpath = substr($config['tmp_path'], strpos($config['tmp_path'],'/') + 1) . '/';
-	
-	if ($names) {
-		$names_arr = array_to_postgresql($names,'text');
-		}
 	
 	switch ($term) {
 		case 'biotable':
@@ -159,6 +149,7 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 	
 	function write_biorelational($db_handle, $config, $qobjects, $output, $sources, $names) {
 		
+		$oid = $_SESSION['oid'];
 		$source = get_obj($sources, $output['sourceid']);
 		$mids = get_mids($qobjects);
 		$midsarr = array_to_postgresql($mids, 'numeric');
@@ -180,7 +171,7 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 		$str = "SELECT * FROM gpdd.main WHERE \"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.main');
-		$filename = $config['out_path'] . substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_", $output['name']) . "_gpdd_main" . "$db_ext";
+		$filename = $config['out_path'] . str_replace(" ","_", $output['name']) . "_gpdd_main_$oid$db_ext";
 		$c = write_csv($res, $filename, $cols);
 		array_push($outfiles, $filename);
 		
@@ -190,17 +181,7 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 			AND m.\"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.taxon');
-		$filename = $config['out_path'] . substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']) . "_gpdd_taxon" . "$db_ext";
-		$c = write_csv($res, $filename, $cols);
-		array_push($outfiles, $filename);
-		
-		# BIOTOPE
-		$str = "SELECT b.* FROM gpdd.main m, gpdd.biotope b
-			WHERE m.\"BiotopeID\" = b.\"BiotopeID\"
-			AND m.\"MainID\" = ANY($midsarr)";
-		$res = pg_query($db_handle, $str);
-		$cols = get_column_names ($db_handle, 'gpdd.biotope');
-		$filename = $config['out_path'] . substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']) . "_gpdd_biotope" . "$db_ext";
+		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_taxon_$oid$db_ext";
 		$c = write_csv($res, $filename, $cols);
 		array_push($outfiles, $filename);
 		
@@ -210,7 +191,7 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 			AND m.\"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.datasource');
-		$filename = $config['out_path'] . substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']) . "_gpdd_datasource" . "$db_ext";
+		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_datasource_$oid$db_ext";
 		$c = write_csv($res, $filename, $cols);
 		array_push($outfiles, $filename);
 		
@@ -220,7 +201,7 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 			AND m.\"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.location');
-		$filename = $config['out_path'] . substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']) . "_gpdd_location" . "$db_ext";
+		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_location_$oid$db_ext";
 		$c = write_csv($res, $filename, $cols);
 		array_push($outfiles, $filename);
 		
@@ -244,13 +225,13 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 		$res = pg_query($db_handle, $str);
 		$cols = array('DataID',"MainID", "Populations","PopulationUntransformed","SampleYear","TimePeriod",
 			"Generation","SeriesStep","DecimalYearBegin","DecimalYearEnd");
-		$filename = $config['out_path'] . substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']) . "_gpdd_data" . "$db_ext";
+		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_data_$oid$db_ext";
 		$c = write_csv($res, $filename, $cols);
 		array_push($outfiles, $filename);
 		
 		# LOCATION GEOGRAPHIC
-		$filename_pt = substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']) . "_gpdd_location_pt";
-		$filename_bbox = substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']). "_gpdd_location_bbox";
+		$filename_pt = str_replace(" ","_",$output['name']) . "_gpdd_location_pt$oid";
+		$filename_bbox = str_replace(" ","_",$output['name']). "_gpdd_location_bbox$oid";
 		#$outfilename_pt = $filename_pt ;
 		#$outfilename_bbox = $filename_bbox ;
 		
@@ -470,10 +451,10 @@ function write_biotable ($db_handle, $config, $output, $sources, $names) {
 	#echo "<br>*** Before PERL ***<br>";
 	//$spath = $spath . "/" . $filename;
 	$str = $config['perl_path'] . "/perl " . $config['write_tree_path'];
-	$str = $str . "write_tree.pl $sid $spath 2>&1";
+	$str = $str . "eb_write_tree.pl $sid $spath 2>&1";
 	#echo "<br>PERL: $str<br>";
 	$out = shell_exec($str);
-	#echo "$out<br>";
+	echo "$out<br>";
 	#echo "<br>*** After PERL ***<br>";
 	$outfiles = array($filename);
  	
@@ -556,70 +537,101 @@ function write_csv($result, $file, $columns) {
 	
 	function write_readme($qobjects, $outputs) {
 		
-		# Writes readme file
+	# Writes readme file
+	
+	$dul = "================================================================\r\n";
+	$sul = "----------------------------------------------------------------\r\n";
+	#BEGIN README
+	$readme = "Entangled Bank Output " . strftime('%c') . "\r\n$dul\r\n";
+
+	
+	# ADD QUERIES TO README
+	if ($qobjects) {
+		$c = count($qobjects);
+	} else {
+		$c = 0;
+	}
+	
+	
+	switch ($c) {
+		case 0 :
+			$readme =  "$readme 0 queries, all data returned from sources";
+			break;
+		case 1:
+			$readme = "$readme 1 query";
+		default:
+			$readme = "$readme $c queries";
+			break;
+	}
 		
-		#BEGIN README
-		$readme = "Entangled Bank Output " . strftime('%c') . "\r\n\r\n";
-			
-		# ADD QUERIES TO README
-		if ($qobjects) {
-			$c = count($qobjects);
-			} else {
-			$c = 0;
-			}
-		
-		switch ($c) {
-			case 0 :
-				$readme =  "$readme 0 queries, all data returned from sources\r\n";
-				break;
-			case 1:
-				$readme = "$readme 1 query:\r\n";
-			default:
-				$readme = "$readme $c queries:\r\n";
-				break;
-			}	
-			
-		if ($qobjects) {
-			foreach ($qobjects as $qobj) {
-				$readme = $readme . $qobj['name'] . ": ";
-				$readme = $readme . $qobj['sql'] . "\r\n";
-			}			
+	$readme = "$readme\r\n\r\n";
+	#$readme = $readme . "Query: ";
+	$c = 0;
+	$qstack = array();
+	$i = 0;
+	if ($qobjects) {
+		foreach ($qobjects as $qobj) {
+			$str = '';
+			if ($i > 0) $str = "$str ";
+			$str = $str . $qobj['name'];
+			if ($i > 0) $str = "$str " . $qobj['queryoperator'];
+			array_unshift($qstack,$str);
+			$i++;
+			$readme = $readme. " $str";
 		}
-		
-		# ADD OUTPUTS TO README AND FILES_TO_ZIP
-	$readme = $readme . count($outputs) . " Outputs:\r\n";
-	#echo "add outputs to readme and files to zip<br>";
+	}
+	
+	# OUTPUTS
+	$readme =  "$readme\r\n\r\n";
+	$readme = $readme . count($outputs) . " outputs\r\n\r\n";
+	$i = 0;
 	foreach ($outputs as $output) {
-		#print_r($output);
-		#echo "<br>";
+		$i++;
 		$readme = $readme . $output['name'] . ": ";
-		$readme = $readme . $output['as_string'] . "\r\n";
+
+		$readme = $readme . $output['as_string'] . "\r\n";			
+		$readme = $readme . "files: \r\n";
+		$j = 0;
 		$outfiles = $output['outfiles'];
-		//print_r($outfiles);
-		//echo count($outfiles) . "<br>";
 		foreach ($outfiles as $outfile) {
-			//echo "outfile $outfile<br>";
-			$readme = $readme . $outfile . "\r\n";
+			#if ($j > 0) $readme = $readme . "\r\n";
+			$str = substr($outfile, strrpos($outfile,"/"));
+			#echo "$outfile ".strrpos("/",$outfile)." $str<br>";
+			$readme = "$readme $str\r\n";
+			$j++;
 		}
 		#echo "outfiles: " . print_r($outfiles) . '<br><br>';
-		$readme = $readme . "\r\n";
-		#add output files to zip list
+	}
+	$readme = "$readme\r\n\r\n";	
+	
+	# SQL
+	$readme = $readme . "SQL\r\n$dul\r\n";
+	$i = 0;
+	foreach (array_reverse($qobjects) as $qobj) {
+		$readme = $readme . $qobj['name'] . " ";
+		#$readme = $readme . $qstack[$i] . $sul;
+		$readme = $readme . "Names SQL:\r\n" . $qobj['sql_names'] . "\r\n\r\n";
+		if ($qobj['sql_series']) {
+			$readme = $readme . $qobj['name'] . "Series SQL:\r\n" . $qobj['sql_series'] . "\r\n\r\n";
 		}
-
+		$i++;
+		$readme = "$readme \r\n$sul\r\n";
+	}
+	
 	return $readme;
 		
 	}
 	
 #=================================================================================================================
 
-function write($db_handle, $config, $qobjects, $names, $outputs, $sources) {
+function write($db_handle, $config, $qobjects, $names, $outputs, $sources, $oid) {
 
 	#Writes all data output 
 	#echo "begin write_outputs<br>";
 	
 	foreach ($outputs as $output) {
 		# add output file name to outputs
-		$filename = substr(md5(uniqid()),0,4) . "_" . str_replace(" ","_",$output['name']);
+		$filename = str_replace(" ","_",$output['name']) . "_$oid";
 		#echo 'write: ' . $output['name']. " to " . $filename;
 		$output['filename'] = $filename;
 		$outputs = save_obj($outputs, $output);
