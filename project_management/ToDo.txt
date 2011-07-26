@@ -1,0 +1,55 @@
+New functionality
+	- Single names search to find out which sources names are in
+	- If only one query type possible go direct, e.g a table
+
+Configuration 
+	- Windows and LINUX
+
+Main
+	- Tool tips showing sources available for each query type
+	- Query by geography and time offered when only tree selected
+
+Validation
+	Suggestions for invlaid names
+	
+Info-Windows
+	Fix css
+
+Query
+	General
+	- edit mode
+	- NULLs and NOT
+	- htmlspecialchars on database text fields in select boxes
+	- tool tips
+	- validation
+	- remove reset
+	Get sources
+	 - sort list_sources by (table, geographic, tree, relational)
+	Cart
+	- petty format SQL
+	- SQL for UDig/J
+	- Hyperlinks from query name to query
+	Geography
+	- delete features
+	- Generalised range maps
+	- what happens when features cross a boundary?
+	
+Output
+	General
+	- delete created files/create temporary files
+	- extract write from html_write
+	- quick search using && only
+	Geography
+	- OGR2OGR shell escapes for GPDD
+	Tree
+	- pruned tree loses names of internal nodes in Bio::Tree > Bio::Phylo
+	- migrate subtree extraction to SQL
+	
+CSS Styling
+
+
+
+Mus famulus
+Glis glis
+Peromyscus leucopus
+Castor canadensis
