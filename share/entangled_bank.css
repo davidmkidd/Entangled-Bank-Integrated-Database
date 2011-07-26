@@ -1,0 +1,31 @@
+@CHARSET "ISO-8859-1";
+  body { 
+	background-color: rgb(204, 204, 204);
+	font-family: Trebuchet MS, sans-serif;
+	margin-left: 10%;
+	margin-right: 10%; 
+	}
+
+	img { max-height: 100%;
+	}
+		 
+	hr {
+		margin-left: auto;
+ 		margin-right: auto;
+		height: 2px;
+	}
+	
+	.ebwidth {
+		width: 500px;
+	}
+	
+	#name_search_div{
+		border-width: 1px; 
+		boder-style: solid;
+		border-color: black; 
+	}
+	
+	.smallmap {
+		width: 700px;
+		height: 350px;
+	}
