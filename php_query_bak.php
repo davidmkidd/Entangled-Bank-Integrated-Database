@@ -1,325 +1,268 @@
 <?php
 
-	function query($db_handle, $qobject, $qobjects, $names, $sources) {
+function query($db_handle, $qobject, $qobjects, $names, $sources) {
 	
-		# RUNS AN ENTANGLED BANK QUERY
-		
-		#echo "Begin query<br>";
-		//print_r($qobject);
-		
-		if ($names && !$queryop) {
-			echo "query: if names passed queryoperators must be set";
-			exit;
-			}
-		
-		# QUERY PARAMETERS
-		$qterm = $qobject['term'];
-		$queryop = $qobject['queryoperator'];
-		$qsources = $qobject['sources'];
-		$nsources = $qobject['nsources'];
-		$nop = $qobject['noperator'];
-		$allnames = $qobject['allnames'];
-		//$not = $qobject['querynot'];
-		//$qnull = $qobject['querynull'];
-		//	print_r ($qsources);
-		//	echo "<br>";
-		
-		# SINGLE OR MULTISOURCE?
-		if (count($qsources) == 1) {
-			$single_source = true;
-		} else {
-			$single_source = false;
+	# Returns names matching the query
+	#echo "Begin query<br>";
+	//print_r($qobject);
+	$qterm = $qobject['term'];
+	$queryop = $qobject['queryoperator'];
+	
+	if ($names && !$queryop) {
+		echo "query: if names passed queryoperators must be set";
+		exit;
 		}
+		
+	//$not = $qobject['querynot'];
+	//$qnull = $qobject['querynull'];
+	$qsources = $qobject['sources'];
+	$nsources = $qobject['nsources'];
+	$nop = $qobject['noperator'];
+	$allnames = $qobject['allnames'];
+//	print_r ($qsources);
+//	echo "<br>";
+	if ($qobject['validnames']) $vtaxa_array = array_to_postgresql($qobject['validnames'], 'text');
+	if ($names) $taxa_array = array_to_postgresql($names, 'text');
 	
-		# TAXA IN QUERY
-		if ($qobject['taxa']) $taxa_array = array_to_postgresql($qobject['taxa'], 'text');
-		# TAXA FROM PREVIOUS QUERY IN STACK
-		if ($names) $names_array = array_to_postgresql($names, 'text');
-		
-		$n = 1;
-		$str = '';
-		# OPEN MULTISOURCE WRAPPER
-		if ($single_source == false) $str = "SELECT DISTINCT bioname FROM (";
-		
-		
-		# NAMES QUERY
-		# ===========
+	$str = '';
+	
+	# GPDD
+	foreach ($sources as $source) {
+		if ($source['id'] == 23) $mids = get_mids($qobjects);
+	}
+	
+	
+	# OPEN MULTISOURCE WRAPPER
+	//$qnames = array(); 
+	if ($nsources) {
+		#echo "nsources: $nsources<br>";
+		$str = $str . "SELECT bioname FROM (";
+		}
 			
-		foreach ($qsources as $sid) {
-			
-			#  GET SOURCE FOR SID (GPDD HARDCODE)
-			if($sid == 26 || $sid == 27) {
-				$source = get_source($db_handle, $sid, null);
-			} else {
-				$source = get_obj($sources, $sid);
-			}
+	$n = 1;
+	
+	foreach ($qsources as $sid) {
 		
-			$sterm = $source['term'];
-			#echo "Building query on $sterm " . $source['name'] . " (" . $source['id'] . ") with $qterm<br>";
+		// GPDD HARDCODE
+		if($sid == 26 || $sid == 27) {
+			$source = get_source($db_handle, $sid, null);
+			//echo "GPDD source $sid " . $source['name'] . "<br>";
+		} else {
+			$source = get_obj($sources, $sid);
+		}
 			
-			# ADD NAMES QUERY BY TYPE
-			Switch (true) {	
-				case (($qterm == 'bionames' && $sterm == 'biotable')
-					|| ($qterm == 'bionames' && $sterm == 'biogeographic')):
-					$str = query_bionames_table($source, $str);
-					break;
-				case ($qterm == 'biotable'):
-					$str = query_biotable(db_handle, $qobject, $source, $str);
+		// print_r($source);
+		// echo "<br>";
+	
+		$sterm = $source['term'];
+		#print_r($source);
+		#echo "<br>";
+		//echo "Building query on $sterm " . $source['name'] . " (" . $source['id'] . ") with $qterm<br>";
+		
+		Switch (true) {	
+			case (($qterm == 'bionames' && $sterm == 'biotable')
+				|| ($qterm == 'bionames' && $sterm == 'biogeographic')):
+				$str = query_bionames_table($source, $str);
 				break;
+			case ($qterm == 'biotable'):
+				$str = query_biotable($qobject, $source, $str);
+			break;
+			case ($qterm == 'bionames' && $sterm == 'biotree'):
+				$str = query_bionames_tree($qobject, $source, $str);
+				break;
+			case ($sterm =='biotree' && $qterm <> 'bionames'):
+				$str = query_biotree($qobject, $source, $str, $mids);
+				break;		
+			case ($qterm == 'biogeographic' || $qterm == 'geographic' 
+				|| ($qterm == 'biogeographic' && $sterm == 'biogeographic')):
+				$str = query_biogeographic($qobject, $source, $str);
+				break;
+			case ($qterm == 'bionames' && $sterm == 'biorelational'):
+				//GPDD HARDCODE
+				$str = query_bionames_relational($str);
+				break;	
+			case ($qterm == 'biotemporal' && $sterm == 'biorelational'):
+				//GPDD HARDCODE
+				$str = query_biotemporal($qobject, $qobjects, $str);
+				break;
+			default:
+				break;
+			} # switch
+			
+		
+		if ($vtaxa_array) {
+			switch (true) {
 				case ($qterm == 'bionames' && $sterm == 'biotree'):
-					$str = query_bionames_tree($qobject, $source, $str);
-					break;
-				case ($qterm <> 'bionames' && $sterm =='biotree'):
-					$str = query_biotree($qobject, $source, $str);
-					break;		
-				case ($qterm == 'biogeographic' || $qterm == 'geographic' 
-					|| ($qterm == 'biogeographic' && $sterm == 'biogeographic')):
-					$str = query_biogeographic($qobject, $source, $str);
+					$str = $str . " AND label = ANY($vtaxa_array)";
 					break;
 				case ($qterm == 'bionames' && $sterm == 'biorelational'):
-					//GPDD HARDCODE
-					$str = query_bionames_relational($str);
-					break;	
-				case ($qterm == 'biotemporal' && $sterm == 'biorelational'):
-					//GPDD HARDCODE
-					$str = query_biotemporal($qobject, $qobjects, $str);
+					$str = $str . " WHERE binomial = ANY($vtaxa_array) AND t.binomial IS NOT NULL";
+					break;
+				case $qterm == 'biotree':
+					break;
+				case ($qterm == 'biotable' && $sterm == 'biorelational'):
+					$str = $str . " AND t.binomial = ANY($vtaxa_array)";
 					break;
 				default:
+					$str = $str . " WHERE ". $source['namefield'] . " = ANY($vtaxa_array)";
 					break;
-				} # switch
-				
-			# ADD CONDITIONAL QUERY TAXA CLAUSE
-			if ($taxa_array) {
+				}
+			} else {
 				switch (true) {
-					case ($qterm == 'bionames' && $sterm == 'biotree'):
-						$str = $str . " AND label = ANY($taxa_array)";
-						break;
 					case ($qterm == 'bionames' && $sterm == 'biorelational'):
-						$str = $str . " WHERE binomial = ANY($taxa_array)";
+						$str = $str . " WHERE t.binomial IS NOT NULL";
 						break;
-					case $qterm == 'biotree':
-						break;
-					case ($qterm == 'biotable' && $sterm == 'biorelational'):
-						$str = $str . " AND t.binomial = ANY($taxa_array)";
-						break;
-					default:
-						$str = $str . " WHERE ". $source['namefield'] . " = ANY($taxa_array)";
-						break;
-					}
+				}
+			}
+			
+		if ($n != count($qsources)) {
+			if ($nsources) {
+				$str = $str . " UNION ALL ";
 				} else {
-					switch (true) {
-						case ($qterm == 'bionames' && $sterm == 'biorelational'):
-							$str = $str . " WHERE t.binomial IS NOT NULL";
-							break;
-					}
+				$str = $str . " UNION ";
 				}
-			
-			# ADD INTERSOURCE SET OPERATOR
-			if ($n != count($qsources)) {
-				if ($nsources) {
-					$str = $str . " UNION ALL ";
-					} else {
-					$str = $str . " UNION ";
-					}
-				}
-			$n++;	
-			#echo "str: $str<br><br>";
-		} # qsources
-		
-		# CLOSE MULTISOURCE WRAPPER
-		if ($single_source == false) {
-			$str = $str . ") AS bioname";
-			# GROUP BY 
-			$str = $str . " GROUP BY bioname HAVING COUNT(*) $nop $nsources";
-		}
-		
-		# COPY QUERY FOR SAVING IN QOBJECT
-		$qstr = $str;
-		
-		# ADD INTERQUERY OPERATOR
-		if ($names_array) {
-			if ($qterm == 'biotable' && $sterm == 'biorelational') {
-				$str = "$str $queryop SELECT UNNEST($names_array) AS bioname, NULL AS n";
-			} else {
-				$str = "$str $queryop SELECT UNNEST($names_array) AS bioname";
 			}
+		$n++;	
+		#echo "str: $str<br><br>";
+	} # qsources
+	
+	# CLOSE MULTISOURCE WRAPPER
+	if ($nsources) $str = $str . ") as bioname";
+	
+	# GROUP BY 
+	if ($nsources) $str = $str . " GROUP BY bioname HAVING COUNT(*) $nop $nsources";
+	$qstr = $str;
+	
+	# INTERQUERY OPERATOR
+	if ($taxa_array) $str = "$str $queryop SELECT UNNEST($taxa_array) AS bioname";
+		
+	# SUBMIT QUERY
+	//echo "query: $str<br>";
+	$res = pg_query($db_handle, $str);
+	$outnames = pg_fetch_all_columns($res, 0);
+	
+	# ADD SQL
+	//echo "query: $qstr<br>";
+	$qobject = query_add_names_sql($qobject, $qobjects, $qstr);
+	$qobjects = save_obj($qobjects, $qobject);
+	#echo "post query_add_names_sql " . count($qobjects) . "<br>";
+	//print_r($qobjects);
+	
+	# SQL GPDD
+	$qobject = query_series($db_handle, $qobject, $qobjects, $outnames, $sources);
+	$qobjects = save_obj($qobjects, $qobject);
+	#echo "post query_series " . count($qobjects) . "<br>";
+
+	$outnames = query_series_names($db_handle, $qobjects, $outnames, $sources);
+	#echo "post query_series_names" . count($out[0]) . "<br>";
+	$qobjects = save_obj($qobjects, $qobject);
+	//print_r($out[0]) ;
+//	echo count($qobject['series']) . "<br>";
+	
+	if ($outnames) {
+		return array($qobject, array_filter($outnames));
+		} else {
+		return array($qobject, array());
 		}
-			
-		# RUN NAMES QUERY
-		//echo "query: $str<br>";
-		$res = pg_query($db_handle, $str);
-		$outnames = pg_fetch_all_columns($res, 0);
-		
-		# ADD SQL TO QOBJECT
-		//echo "query: $qstr<br>";
-		$qobject = query_add_names_sql($qobject, $qobjects, $qstr);
-		$qobjects = save_obj($qobjects, $qobject);
-		
-		# GPDD SERIES QUERY
-		# =================
-		
-		if (!empty($outnames)) {
-			# RUN GPDD SERIES QUERY
-			$qobject = query_series($db_handle, $qobject, $qobjects, $outnames, $sources);
-			$qobjects = save_obj($qobjects, $qobject);
-			# RUN NAMES QUERY
-			$outnames = query_series_names($db_handle, $qobjects, $outnames, $sources);
-			$qobjects = save_obj($qobjects, $qobject);
-		}
-		
-		# RETURN QOBJECT AND NAMES
-		if ($outnames) {
-			return array($qobject, array_filter($outnames));
-			} else {
-			return array($qobject, array());
-			}
-		return ($out);
+	return ($out);
 	}
 
-# ----------------------------------------------------------------------
+	# ----------------------------------------------------------------------
 	
 	function query_bionames_table ($source, $str) {
 		$str = $str . "SELECT " . $source['namefield'] . " AS bioname "
 				. " FROM " . $source['dbloc'];
-		return($str);
+	return($str);
 	}
 	
 # ----------------------------------------------------------------------
 	
-	function query_biotable($db_handle,$qobject, $source, $str) {
+	function query_biotable($qobject, $source, $str) {
 		
 		$qterm = $qobject['term'];
 		$queries = $qobject['queries'];
-		$fields = $source['fields'];
 		$not = $qobject['querynot'];
 		$null = $qobject['querynull'];
 		$sterm = $source['term'];
-		//$nseries = -1;
+		$nseries = -1;
 		$nseries_op = "";
 		
-		echo "Begin biotable query " . $source['id'] . "<br>";
-		echo print_r($queries) . "<br>";
+		//echo "Begin biotable query " . $source['id'] . "<br>";
+		//echo print_r($queries) . "<br>";
 		
-		# SELECT CLAUSE
+		# SELECT FROM CLAUSES
 		if ($source['id'] !== '23') {
 			$str = $str . "SELECT d." . $source['namefield'] . " AS bioname "
 				. " FROM " . $source['dbloc']
 				. " d WHERE";
 			$first = true;
 		} else {
-			# Get tables
-			$tables = array();				
+			
 			$str = $str . "SELECT t.binomial AS bioname, COUNT(*) AS n
-				 FROM gpdd.main m";
-			foreach ($queries as $query) {
-				if ($query['dtype'] == 'lookuptable') {
-					switch($query['lookup_id']) {
-						case 24:
-							$str = $str . ", gpdd.taxon t";
-							break;
-						case 25:
-							$str = $str . ", gpdd.location l";
-							break;
-						case 28:
-							$str = $str . ", gpdd.biotope b";
-							break;
-						case 31:
-							$str = $str . ", gpdd.datasource d";
-							break;
-					}	
-				}
-			}
-			# WHERE JOINS
-			$str = $str . " WHERE";
-			$first = true;
-			foreach ($queries as $query) {
-				if ($query['dtype'] == 'lookuptable') {
-					if ($first == false) $str = $str . " AND";
-					switch ($query['lookup_id']) {
-						case 24:
-							$str = $str . " m.\"TaxonID\" = t.\"TaxonID\"";
-							break;
-						case 25:
-							$str = $str . " m.\"LocationID\" = l.\"LocationID\"";
-							break;
-						case 28:
-							$str = $str . " m.\"BiotopeID\" =  b.\"BiotopeID\"";
-							break;
-						case 31:
-							$str = $str . " m.\"DataSourceID\" = d.\"DataSourceID\"";
-							break;						
-					}
-				$first = false;
-				}
-			}			
+				 FROM gpdd.main m, gpdd.taxon t, gpdd.location l, gpdd.biotope b, gpdd.datasource s
+				 WHERE m.\"TaxonID\" = t.\"TaxonID\"
+				 AND m.\"LocationID\" = l.\"LocationID\"
+				 AND m.\"DataSourceID\" = s.\"DataSourceID\"
+				 AND m.\"BiotopeID\" = b.\"BiotopeID\"
+				 ";	
+			$first = false;	
 		}
 		
-		# NOT
-		if ($not == 'NOT') {
-			if ($first == true) {
-				$str = $str . " NOT (";
+		// test for nseries
+		if ($queries[0]['field'] == 'NSeries') {
+			if (count($queries) == 1) {
+				$nseries_type = 'only';
 			} else {
-				$str = $str . " AND NOT (";
+				$nseries_type = 'yes';
 			}
+		} else {
+			$nseries_type = 'no';
+		}
+		
+		if ($not == 'NOT' && $nseries_type !== 'only') {
+			$str = $str . " AND NOT (";
 			$first = true;
 		}
-
-//		// NSERIES?
-//		if ($queries[0]['field'] == 'NSeries') {
-//			if (count($queries) == 1) {
-//				$nseries_type = 'only';
-//			} else {
-//				$nseries_type = 'yes';
-//			}
-//		} else {
-//			$nseries_type = 'no';
-//		}
-		
-
 		# QUERIES 
-		//$nf = 0;
+		$nf = 0;
 		
-		
-		# WHERE CONDTIONS
-		# nseries?
-		$nseries_type = 'no';
 		foreach ($queries as $query) {
-			$qfname = $query['field'];
-			echo "qfname: $qfname";
-			$qfield = get_field($qfname,$fields);
-			$dtype = $qfield['dtype'];
-			echo ", dtype: $dtype<br />";
+			$field = $query['field'];
+			$dtype = $query['dtype'];
+			
+			if ($first == false && $field !== 'NSeries') {
+				$str = $str . " AND";
+			} else {
+				$first = false;
+			}
+			//echo "$str<br>";
+			
 			# WHERE CLAUSES
 			switch ($dtype) {
 				case 'rangefield':
-					$str = query_biotable_rangefield($query, $str, $source['id']);
+					$str = query_biotable_rangefield ($query, $str, $source['id']);
 					break;
 				case 'lookup':
 					$str = query_biotable_lookup($query, $str, $source['id']);
 					break;
-				case 'groupfield':
-					if (count($queries) == 1) {
-						$nseries_type = 'only';
-					} else {
-						$nseries_type = 'yes';
+				case 'gpdd':
+					switch ($field) {
+						case 'NSeries': 
+							$nseries = $query['value'];
+							$nseries_op = $query['operator'];
+							break;
+						case 'MainID':
+							$str = query_biotable_lookup($query, $str, $source['id']);
+							break;
+						default:
+							//look up
+							$str = query_biotable_gpdd($query, $str);
+							break;
 					}
-					$nseries = $query['value'];
-					$nseries_op = $query['operator'];
-					break;
-				case 'lookupfield':
-					query_biotable_lookupfield($query, $str, $source['id']);
-					break;
-				case 'lookuptable':
-					# GPDD HARDCODE
-					query_biotable_lookuptable($query, $str);
-					break;
-				default:
-					//look up
-					//$str = query_biotable_gpdd($query, $str);
 					break;
 			}
+			$nf++;
 		}
-			//$nf++;
 
 		#NOT END
 		if ($not == 'NOT' && $nseries_only == 'only') $str = $str . ")";
@@ -439,7 +382,7 @@
 	}
 	
 	# --------------------------------------------------------------------------------
-	function query_biotable_lookuptable($query, &$str) {
+	function query_biotable_gpdd($query, $str) {
 		
 		$field = $query['field'];
 		$ftype = $query['ftype'];
@@ -480,13 +423,13 @@
 		}
 		$arr = array_to_postgresql($values, $ftype);
 		$str = $str . " $letter.\"$field\" = ANY ($arr)";
-		//return $str;
+		return $str;
 	}
 
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotable_lookupfield($query, &$str, $source) {
+	function query_biotable_lookup($query, $str, $source) {
 		if ($source['id'] == 23) {
 			$s = 'm';
 		} else {
@@ -495,10 +438,9 @@
 		$field = $query['field'];
 		$ftype = $query['ftype'];
 		$values = $query['value'];
-		echo "$field; $ftype; " . implode(", ",$values) . "<br />";
 		$arr = array_to_postgresql($values, $ftype);
 		$str = $str . " $s.\"$field\" = ANY ($arr)";
-		//return $str;
+		return $str;
 	}
 	
 	
@@ -529,7 +471,7 @@
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotree($qobject, $source, $str) {
+	function query_biotree($qobject, $source, $str, $mids) {
 			
 		//echo "Begin biotree query<br>";
 					
@@ -540,7 +482,7 @@
 		$tree_id = $source['tree_id'];
 		
 		#echo "tree: $tree_id, $subtree<br>";
-		if ($qobject['taxa']) $names_array = array_to_postgresql($qobject['taxa'], 'text');
+		if ($qobject['validnames']) $taxa_array = array_to_postgresql($qobject['validnames'], 'text');
 		
 		switch ($subtree) {
 			
@@ -561,14 +503,13 @@
 				if (!$not) {
 					switch ($treenodes) {
 						case 'all':
-
-							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
+							$str = $str . " SELECT * FROM biosql.lca_subtree_label_by_label($taxa_array, $tree_id) AS bioname";									
 							break;
 						case 'tip':
-							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_tip_label($tree_id, $names_array) AS bioname";
+							$str = $str . " SELECT * FROM biosql.lca_subtree_tip_label_by_label($taxa_array, $tree_id) AS bioname";
 							break;
 						case 'internal':
-							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_internal_label($tree_id, $names_array) AS bioname";
+							$str = $str . " SELECT * FROM biosql.lca_subtree_internal_label_by_label($taxa_array, $tree_id) AS bioname";
 							break;
 						}
 					} else {
@@ -576,17 +517,17 @@
 						case 'all':
 							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
 							$str = $str . " EXCEPT SELECT * FROM";
-							$str = $str . " biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
+							$str = $str . " biosql.lca_subtree_label_by_label($taxa_array, $tree_id) AS bioname";									
 							break;
 						case 'tip':
 							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx = right_idx - 1";
-							$str = $str . " AND NOT label = ANY ($names_array)";
+							$str = $str . " AND NOT label = ANY ($taxa_array)";
 							break;
 						case 'internal':
 							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx <> right_idx - 1";
-							$str = $str . " AND NOT label = ANY ($names_array)";
+							$str = $str . " AND NOT label = ANY ($taxa_array)";
 							break;
 						}
 					}
@@ -596,19 +537,19 @@
 					switch ($treenodes) {
 						case 'all':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";	
+							$str = $str . " WHERE tree_id = $tree_id AND label IN ($taxa_array)";	
 							break;
 						case 'tip':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx = right_idx - 1";
-							$str = $str . " AND label IN ($names_array)";
+							$str = $str . " AND label IN ($taxa_array)";
 							break;
 						case 'internal':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx <> right_idx - 1";
-							$str = $str . " AND label IN ($names_array)";
+							$str = $str . " AND label IN ($taxa_array)";
 							break;
 						}
 					} else {
@@ -617,21 +558,21 @@
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";	
+							$str = $str . " WHERE tree_id = $tree_id AND label IN ($taxa_array)";	
 							break;
 						case 'tip':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx = right_idx - 1";
 							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";
+							$str = $str . " WHERE tree_id = $tree_id AND label IN ($taxa_array)";
 							break;
 						case 'internal':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx <> right_idx - 1";
 							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";
+							$str = $str . " WHERE tree_id = $tree_id AND label IN ($taxa_array)";
 							break;
 						}								
 					}
@@ -687,29 +628,23 @@ function query_add_series_sql($qobject, $qobjects, $sources) {
 			$sql = $sql . " AND m.\"MainID\" IN (";
 			foreach ($qobjects as $q) {
 				$term = $q['term'];
-				//echo "adding " . $q['name'] . ", $term to sql<br>";
+				echo "adding " . $q['name'] . ", $term to sql<br>";
 				switch ($term) {
-					case 'biotable':
-						if (in_array(23,$q['sources'])) {
-							if ($first == false) {
-								$sql = "$sql " . $q['queryoperator'] . " ";
-							} else {
-								$first = false;
-							}
-							$sql = query_biotable_series($q, $sources, $sql);
+					case 'biotable':				
+						if ($first == false) {
+							$sql = "$sql " . $q['queryoperator'] . " ";
+						} else {
+							$first = false;
 						}
-
+						$sql = query_biotable_series($q, $sources, $sql);
 						break;
 					case 'biogeographic':
-						if (in_array(26,$q['sources']) || in_array(27,$q['sources'])) {
-							if ($first == false) {
-								$sql = "$sql " . $q['queryoperator'] . " ";
-							} else {
-								$first = false;
-							}
-							$sql =  query_biogeographic_series ($q, $sql);
+						if ($first == false) {
+							$sql = "$sql " . $q['queryoperator'] . " ";
+						} else {
+							$first = false;
 						}
-
+						$sql =  query_biogeographic_series ($q, $sql);
 						break;
 					case 'biotemporal':
 						if ($first == false) {
@@ -736,111 +671,165 @@ return $qobject;
 	
 	function query_biogeographic($qobject, $source, $str){
 		#echo "Begin biogeographic query<br>";
-
+		#Spatial subset by bounding box
+		// print_r($qobject);
+		// print "<br>";
+		//echo "start query_biogeographic: source<br>";
+		
 		// SRID HARDCODED TO GPS84
-
-		$s_operator = $qobject['s_operator'];
-		$s_col = $source['spatial_column'];
-		$q_geometry = $qobject['q_geometry'];
-		$dbloc = $source['dbloc'];
-			
-		# POSTGIS FUNCTION
-		switch ($s_operator) {
-			case 'overlap':
-				$s_op = "ST_Intersects";
-				break;
-			case 'within':
-				$s_op = "ST_Contains";
-				break;
-			default:
-				echo "php_query: spatial operator $s_operator not supported";
-				break;
-		}
+		$bbox = $qobject['bbox'];
+		$north = $bbox['bbnorth'];
+		$south = $bbox['bbsouth'];
+		$east = $bbox['bbeast'];
+		$west = $bbox['bbwest'];
+		$s_overlay = $bbox['s_overlay'];
 		
-		# Query
-		if ($source['id'] == 26 || $source['id'] == 27) {
-			$str = $str . "SELECT DISTINCT t.binomial AS bioname";
-			$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l ";
-			$str = $str . " INNER JOIN (";
-			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
-			$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
-			$str = $str . " WHERE t.\"TaxonID\" = m.\"TaxonID\"";
-			$str = $str . "AND m.\"LocationID\" = l.\"LocationID\"";
-			$str = $str . "AND t.binomial IS NOT NULL";
+		if ($west <= $east) {
+			$polygon = "'srid=4326;POLYGON(($west $south, $west $north, $east $north, $east $south, $west $south))'::geometry";
 		} else {
-			$str = $str . "SELECT " . $source['namefield'] . " AS bioname";
-			$str = $str . " FROM " . $source['dbloc'] . " s INNER JOIN (";
-			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
-			$str = $str . " ON $s_op(v::geometry, s.$s_col::geometry)";
-			$str = $str . " WHERE s." . $source['namefield'] . " IS NOT NULL";
+			$polygon = "'srid=4326;POLYGON(($west $south, $west $north, 180 $north, 180 $south, $west $south),
+				(-180 $south, -180 $north, $east $north, $east $south, -180, $south))'::geometry";
+		}
+		$s_col = $source['spatial_column'];
+		
+		if ($source['id'] == 26 || $source['id'] == 27) {
+//			print_r($source);
+//			print "<br>";
+			$str = $str . "SELECT DISTINCT t.binomial AS bioname FROM
+				 gpdd.taxon t,
+				 gpdd.main m," .
+				 $source['dbloc'] . " l
+				 WHERE t.\"TaxonID\" = m.\"TaxonID\"
+				 AND m.\"LocationID\" = l.\"LocationID\"
+				 AND t.binomial IS NOT NULL
+				 AND";
+		} else {
+			$str = $str . "SELECT " . $source['namefield'] . " AS bioname FROM " . $source['dbloc']
+			. " WHERE";
+		}
+			
+		if ($not) $str = $str . " NOT (";			
+		
+		$str = $str . " ST_Intersects($s_col::geometry, $polygon)";
+		
+		# Within
+		switch ($s_overlay) {
+			
+			case 'within':
+				$str = $str . " AND NOT ST_Intersects($s_col::geometry,";
+				if ($west <= $east) {
+					$str = $str . "'srid=4326;LINESTRING($west $south, $west $north, $east $north, $east $south, $west $south)'::geometry";
+				} else {
+					$str = $str . "'srid=4326;MULTILINESTRING(($west $south, $west $north, 180 $north, 180 $south, $west $south),
+						(-180 $south, -180 $north, $east $north, $east $south, -180, $south))'::geometry";
+				}
+				$str = $str . ")";
+				break;
+			
 		}
 		
-		#if ($not) $str = $str . ")";
+		if ($not) $str = $str . ")";
 
 		#echo "End biogeographic query: $str<br>";
 	return ($str);
 	}
 	
-
+	
+		
 	# ====================================================================================================
 	
-	function query_biogeographic_series($qobject, $sql) {
+	function query_biogeographic_series($qobject, $sql){
 		
-		#echo "Begin biogeographic_series query<br>";
-
+		#echo "Begin biogeographic query<br>";
+		#Spatial subset by bounding box
+		// print_r($qobject);
+		// print "<br>";
+		//echo "start query_biogeographic: source<br>";
 		$qsources = $qobject['sources'];
-		$s_operator = $qobject['s_operator'];
-		$s_col = $source['spatial_column'];
-		$q_geometry = $qobject['q_geometry'];
-		$dbloc = $source['dbloc'];
 		
+		if (in_array(26, $qsources) || in_array(27, $qsources)) {
+			
+			//$sql = "$sql AND m.\"MainID\" IN (";
+			//$sql = $sql . " " . $q['queryoperator'];
+			#$first = false;
+			
+			// SRID HARDCODED TO GPS84
+			$bbox = $qobject['bbox'];
+			$north = $bbox['bbnorth'];
+			$south = $bbox['bbsouth'];
+			$east = $bbox['bbeast'];
+			$west = $bbox['bbwest'];
+			$s_overlay = $bbox['s_overlay'];
+			
+			if ($west <= $east) {
+				$polygon = "'srid=4326;POLYGON(($west $south, $west $north, $east $north, $east $south, $west $south))'::geometry";
+			} else {
+				$polygon = "'srid=4326;POLYGON(($west $south, $west $north, 180 $north, 180 $south, $west $south),
+					(-180 $south, -180 $north, $east $north, $east $south, -180, $south))'::geometry";
+			}
+			$s_col = $source['spatial_column'];
+			
+			$sql = $sql . "SELECT mid FROM
+					 (";
+			
+			if (in_array(26, $qsources)) {
+				$sql = $sql . " SELECT m.\"MainID\" AS mid 
+					FROM gpdd.main m, gpdd.location_pt l, gpdd.taxon t
+					WHERE m.\"LocationID\" = l.\"LocationID\"
+					AND m.\"TaxonID\" = t.\"TaxonID\"
+					AND t.binomial IS NOT NULL
+					AND";
+				#if ($not) $sql = $sql . " NOT (";	
+				$sql = $sql . " ST_Intersects(the_geom::geometry, $polygon)";
+				if ($s_overlay == 'WITHIN') {
+					$sql = $sql . " AND NOT ST_Intersects(l.the_geom::geometry,";
+					if ($west <= $east) {
+						$sql = $sql . "'srid=4326;LINESTRING($west $south, $west $north, $east $north, $east $south, $west $south)'::geometry";
+					} else {
+						$sql = $sql . "'srid=4326;MULTILINESTRING(($west $south, $west $north, 180 $north, 180 $south, $west $south),
+							(-180 $south, -180 $north, $east $north, $east $south, -180, $south))'::geometry";
+					}
+					$sql = $sql . ")";
+				}
+				#if ($not) $sql = $sql . ")";
+			}
+			
+			if (in_array(26, $qsources) && in_array(27, $qsources)) $sql = $sql . " UNION ALL";
+			
+			if (in_array(27, $qsources)) {
+				$sql = $sql . " SELECT m.\"MainID\" AS mid FROM
+					gpdd.main m, gpdd.location_bbox l, gpdd.taxon t
+					WHERE m.\"LocationID\" = l.\"LocationID\"
+					AND m.\"TaxonID\" = t.\"TaxonID\"
+					AND t.binomial IS NOT NULL
+					AND ";
+				#if ($not) $str = $str . " NOT (";	
+				$sql = $sql . " ST_Intersects(l.the_geom::geometry, $polygon)";
+				if ($s_overlay == 'WITHIN') {
+					$sql = $sql . " AND NOT ST_Intersects(l.the_geom::geometry,";
+					if ($west <= $east) {
+						$sql = $sql . "'srid=4326;LINESTRING($west $south, $west $north, $east $north, $east $south, $west $south)'::geometry";
+					} else {
+						$sql = $sql . "'srid=4326;MULTILINESTRING(($west $south, $west $north, 180 $north, 180 $south, $west $south),
+							(-180 $south, -180 $north, $east $north, $east $south, -180, $south))'::geometry";
+					}
+					#$sql = $sql . ")";
+				}
+				#if ($not) $sql = $sql . ")";
+			}
+			
+		$sql = "$sql GROUP BY mid HAVING COUNT(*) = ";
 		if (in_array(26, $qsources) && in_array(27, $qsources)) {
-			$both = true;
+			$sql = "$sql 2"; 
 		} else {
-			$false = true;
-		}
-		
-		if ($both == true) $str = $str . " SELECT DISTINCT mid FROM (";
-		
-		# POSTGIS FUNCTION
-		switch ($s_operator) {
-			case 'overlap':
-				$s_op = "ST_Intersects";
-				break;
-			case 'within':
-				$s_op = "ST_Contains";
-				break;
-			default:
-				echo "php_query: spatial operator $s_operator not supported";
-				break;
+			$sql = "$sql 1";
 		}
 			
-		if (in_array(26, $qsources)) {
-			$sql = $sql . " SELECT m.\"MainID\" AS mid";
-			$str = $str . "	FROM gpdd.main m, gpdd.location_pt l, gpdd.taxon t";
-			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
-			$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
-			$str = $str . "	WHERE m.\"LocationID\" = l.\"LocationID\"";
-			$str = $str . "	AND m.\"TaxonID\" = t.\"TaxonID\"";
-			$str = $str . "	AND t.binomial IS NOT NULL";
+		$sql = "$sql ) AS mid ";
+				
 		}
-
-			
-		if ($both == true) $sql = $sql . " UNION ALL";
-			
-		if (in_array(27, $qsources)) {
-			$sql = $sql . " SELECT m.\"MainID\" AS mid";
-			$str = $str . "	FROM gpdd.main m, gpdd.location_bbox l, gpdd.taxon t";
-			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
-			$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
-			$str = $str . "	WHERE m.\"LocationID\" = l.\"LocationID\"";
-			$str = $str . "	AND m.\"TaxonID\" = t.\"TaxonID\"";
-			$str = $str . "	AND t.binomial IS NOT NULL";
-		}
-		
-		if ($both == true) $sql = "$sql GROUP BY mid HAVING COUNT(*) = 2) AS mid ";
-		
-		return $sql;
+		#echo "query_biogeographic_series sql: $sql";
+	return $sql;
 		
 	}
 	
@@ -970,7 +959,7 @@ return $qobject;
 	
 	# ====================================================================================================
 	
-	function query_series ($db_handle, $qobject, $qobjects, $names, $sources){
+	function query_series ($db_handle, $qobject,$qobjects, $names, $sources){
 	
 		#echo "begin query series<br>";
 		
@@ -990,9 +979,9 @@ return $qobject;
 		//echo "run series query<br>";
 		//$npts = 0;           // number of series points
 		//echo "<br>running" . $qobject['name'] . ": " . $qobject['status'] . "<br>";
-		//print_r($qobject);
+		//print_r($qobjects);
 		
-		$mids = query_get_mids($qobjects);
+		$mids = get_mids($qobjects);
 		#echo "get-mids " . count($mids) . "<br>";
 		# REPOST
 		#echo "get-mids " . count($mids) . "<br>";
@@ -1016,7 +1005,6 @@ return $qobject;
 			if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 		} else {
 			$term = $qobject['term'];
-			#echo $qobject['term'] . "<br>";
 			switch ($term){
 				case 'biotree':
 				case 'biotable':
@@ -1027,7 +1015,7 @@ return $qobject;
 					WHERE m.\"TaxonID\" = t.\"TaxonID\"";
 					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 					# MainIDs
-					#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
+					if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
 					break;
 				case 'biogeographic':
 					$qsources = $qobject['sources'];
@@ -1038,7 +1026,7 @@ return $qobject;
 					$south = $bbox['bbsouth'];
 					$east = $bbox['bbeast'];
 					$west = $bbox['bbwest'];
-					# if(in_array(26, $qsources) || in_array(27, $qsources)) {
+					 if(in_array(26, $qsources) || in_array(27, $qsources)) {
 						 if ($west <= $east) {
 							$polygon = "'srid=4326;POLYGON(($west $south, $west $north, $east $north, $east $south, $west $south))'::geometry";
 						} else {
@@ -1062,9 +1050,9 @@ return $qobject;
 							}
 						}	
 						# MainIDs
-						#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
+						if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
 						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-					# }
+					 }
 					break;
 				case 'biotemporal':
 					$t_overlay = $qobject['t_overlay'];
@@ -1073,7 +1061,7 @@ return $qobject;
 					# echo "$from_dtime - $to_dtime : $t_overlay<br>";
 		
 					switch ($t_overlay) {
-						case 'OVERLAP':
+						case 'overlap':
 							$str = $str . "SELECT mid
 							FROM ( 
 								SELECT m.\"MainID\" AS mid,
@@ -1086,7 +1074,7 @@ return $qobject;
 								AND m.\"TaxonID\" = t.\"TaxonID\"
 								AND t.binomial IS NOT NULL ";
 							
-							#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
+							if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
 							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 							
 							$str = $str . " GROUP BY m.\"MainID\"
@@ -1094,7 +1082,7 @@ return $qobject;
 								AND (MIN(d.\"DecimalYearEnd\") >= $from_dtime AND MAX(d.\"DecimalYearBegin\") <= $to_dtime)
 								) AS foo";
 							break;
-						case 'WITHIN':
+						case 'within':
 							$str = $str . "SELECT mid
 								FROM ( 
 								SELECT m.\"MainID\" AS mid,
@@ -1106,7 +1094,7 @@ return $qobject;
 								WHERE m.\"MainID\" = d.\"MainID\"
 								AND m.\"TaxonID\" = t.\"TaxonID\"";
 							
-							#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
+							if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
 							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 							
 							$str = $str . " GROUP m.\"MainID\"
@@ -1119,7 +1107,7 @@ return $qobject;
 				break;
 			}   #term
 		}
-		//echo "$str<br>";
+		#echo "$str<br>";
 		$res = pg_query($str);
 		$ids = pg_fetch_all_columns($res, 0);
 		#echo count($ids) . " ids<br>";
@@ -1175,10 +1163,10 @@ return $qobject;
 		
 		# STRIPS $names without mids
 		#echo "begin query_series_names<br>";
-		$mids = query_get_mids($qobjects);
+		$mids = get_mids($qobjects);
 		# REPOST FIX
 		if ($mids && ($_SESSION['token'] == $_POST['token'])) unset ($mids);
-		print_r($mids);
+		//print_r($mids);
 		if ($mids && !empty($mids)) {
 			$mids_arr = array_to_postgresql($mids, 'numeric');
 			if ($names) $names_arr = array_to_postgresql($names, 'text');
@@ -1206,84 +1194,8 @@ return $qobject;
 		#echo "end query_series_names<br>";
 		return ($outnames);
 	}
-	#=================================================================================================================
-
-function query_get_mids($qobjects) {
-		
-	//if($qobjects) echo "**********<br>";
-	foreach (array_reverse($qobjects) as $qobject) {
-		switch (true) {
-			case ($qobject['status'] == 'new'):
-				break;
-			case ($qobject['status'] == 'valid'):
-				if (!$mids && $qobject['series']) $mids = $qobject['series'];
-			break;
-		}
-	}
-	 if ($mids && !empty($mids)) {
-	 	return ($mids);
-	 } else {
-	 	return null;
-	 }
-}
-
-# ====================================================================================================
-
-function query_name_search($db_handle, $sources) {
 	
-	# returns information on which sources names are in
-	$input = $_SESSION['name_search'];
-	$out = array();
-	$taxa = explode(",",$input);
-	
-	# trim whitespace
-	$taxa = array_map('trim', $taxa);
-	
-	foreach ($taxa as $taxon) {
-		if (strlen($taxon) > 0) {
-			$sin = array(); 	//sources name is in
-			foreach ($sources as $source) {
-				$sid = $source['id'];
-				$scode = $source['code'];
-				
-				switch ($source['term']) {
-					case "biotable" :
-					case "biogeographic" :
-						$str = "SELECT " . $source['namefield'] . 
-							" FROM " . $source['dbloc'] .
-							" WHERE " . $source['namefield'] . " = '$taxon';";
-						break;	
-					case "biotree":
-						$str = "SELECT * FROM biosql.node WHERE label = '$taxon' AND tree_id = " . $source['tree_id'] .";";
-						break;
-					case 'biorelational':
-						# GPDD HARDCODE
-						$str = "SELECT binomial FROM gpdd.taxon WHERE binomial='$taxon'";
-						break;
-					default :
-						echo "$source is not a source.<br>";
-						return;
-				}
-				#echo "$scode: $str<br>";
-				$res = pg_query($db_handle, $str);
-				$row = pg_fetch_row($res);
-				if ($row) array_push($sin, trim($scode));
-			}
-		if (empty($sin)) {
-			array_push($out, array($taxon,"not found"));	
-		} else {
-			array_push($out, array($taxon,implode(", ",$sin)));	
-		}
-			
-		}
-					
-	}
-	#print_r($out);
-	#echo "<br>";
-	return $out;
-}
-
-# ====================================================================================================
+	# ====================================================================================================
 	
 	
 	
