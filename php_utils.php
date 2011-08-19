@@ -903,7 +903,7 @@ function names_check($table, $column, $names) {
 
 function nodes_array_to_labels_array($node_array) {
 
-	$statement = "SELECT biosql.id_to_label($node_array);";
+	$statement = "SELECT biosql.pdb_node_id_to_label($node_array);";
 	$result = pg_query($statement);
 	
 	if (!$result) {
@@ -1203,7 +1203,7 @@ function tip_names($tree, $names) {
 	#returns array of tip names
 	$tips = array();
 	$names_array = array_to_postgresql($names,'text');
-	$str = "SELECT * FROM biosql.lca_subtree_tip_label_by_label($names_array, $tree);";
+	$str = "SELECT * FROM biosql.pdb_lca_subtree_tip_label($tree, $names_array);";
 	$res = pg_query($str);
 	while ($row = pg_fetch_row($res)) {
 		array_push($tips, $row[0]);

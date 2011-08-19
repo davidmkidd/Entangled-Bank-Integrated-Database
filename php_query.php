@@ -561,13 +561,13 @@
 				if (!$not) {
 					switch ($treenodes) {
 						case 'all':
-							$str = $str . " SELECT * FROM biosql.lca_subtree_label_by_label($names_array, $tree_id) AS bioname";									
+							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
 							break;
 						case 'tip':
-							$str = $str . " SELECT * FROM biosql.lca_subtree_tip_label_by_label($names_array, $tree_id) AS bioname";
+							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_tip_label($tree_id, $names_array) AS bioname";
 							break;
 						case 'internal':
-							$str = $str . " SELECT * FROM biosql.lca_subtree_internal_label_by_label($names_array, $tree_id) AS bioname";
+							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_internal_label($tree_id, $names_array) AS bioname";
 							break;
 						}
 					} else {
@@ -575,7 +575,7 @@
 						case 'all':
 							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
 							$str = $str . " EXCEPT SELECT * FROM";
-							$str = $str . " biosql.lca_subtree_label_by_label($names_array, $tree_id) AS bioname";									
+							$str = $str . " biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
 							break;
 						case 'tip':
 							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
