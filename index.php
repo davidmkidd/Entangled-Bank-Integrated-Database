@@ -8,25 +8,29 @@ session_start();
 $mytimes = array("page_begin" => microtime(True));
 
 include "config_setup.php";
+#$config = parse_ini_file('../../passwords/entangled_bank.ini');
+
 include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
+
 include "html_utils.php";
 include "php_utils.php";
 include "php_query.php";
 include "php_validate.php";
 include "php_write.php";
 include "html_cart.php";
+#include "../../passwords/eb_connect_pg.php";
 
-$config = parse_ini_file('../../passwords/entangled_bank.ini');
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
 $html_path = "http://" . $config['htmlhost'] . "/";
 if($config['html_path']) $html_path = $html_path . $config['html_path'] . '/';
 $share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 $_SESSION['tmp_path'] = $config['tmp_path'];
 
-/*echo "eb_path: $eb_path<br>";
+/*
+echo "eb_path: $eb_path<br>";
 echo "html_path: $html_path<br>";
-echo "share_path: $share_path<br>";*/
-
+echo "share_path: $share_path<br>";
+*/
 set_time_limit(1200);
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
