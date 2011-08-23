@@ -16,11 +16,16 @@ include "php_validate.php";
 include "php_write.php";
 include "html_cart.php";
 
-$config = parse_ini_file('../../../passwords/entangled_bank.ini');
+$config = parse_ini_file('../../passwords/entangled_bank.ini');
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
-$html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
+$html_path = "http://" . $config['htmlhost'] . "/";
+if($config['html_path']) $html_path = $html_path . $config['html_path'] . '/';
 $share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 $_SESSION['tmp_path'] = $config['tmp_path'];
+
+/*echo "eb_path: $eb_path<br>";
+echo "html_path: $html_path<br>";
+echo "share_path: $share_path<br>";*/
 
 set_time_limit(1200);
 
@@ -54,7 +59,7 @@ echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php"
 
 #CONNECT TO DATABASE
 $db_handle = eb_connect_pg($config);
-
+##echo "$db_handle<br>";
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            _POST AND SESSION
 # ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -62,7 +67,7 @@ $db_handle = eb_connect_pg($config);
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
-#echo "old: $oldtoken, new: $newtoken<br>";
+//echo "old: $oldtoken, new: $newtoken<br>";
 
 # Save submitted data to session variables
 foreach ($_POST as $key =>$value) {
@@ -411,7 +416,7 @@ if ($stage != 'finish') {
 #                                                                                 FORM
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
-#echo "html stage: $stage<br>";
+//echo "html stage: $stage<br>";
 	
 if ($qterm == 'finish') $stage = 'finish';
 
