@@ -146,7 +146,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		//echo "query: $str<br>";
+		echo "query: $str<br>";
 		$res = pg_query($db_handle, $str);
 		$outnames = pg_fetch_all_columns($res, 0);
 		

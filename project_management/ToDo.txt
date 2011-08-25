@@ -33,6 +33,8 @@ Query
 	- delete features
 	- Generalised range maps
 	- what happens when features cross a boundary?
+	Tree
+	- < IE7 XMLHttpRequest
 	
 Output
 	General

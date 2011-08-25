@@ -532,9 +532,11 @@ function validate_names($db_handle, $qobject, $sources) {
 				
 			case 'biotree':
 				# ADD KEYS
+				$output['tree_id'] = $source['tree_id'];
 				$format = $_SESSION['format'];
 				$brqual = $_SESSION['brqual'];
 				$outsubtree = $_SESSION['outsubtree'];
+		
 				if ($format) {
 					$output['format'] = $format;
 					$output['subtree'] = $outsubtree;
@@ -542,6 +544,7 @@ function validate_names($db_handle, $qobject, $sources) {
 				if ($brqual) {
 					$output['brqual'] = $brqual;
 					}
+					
 				// ADD STRING
 				if (array_key_exists('format', $output)) {
 					if (array_key_exists('brqual', $output)) {

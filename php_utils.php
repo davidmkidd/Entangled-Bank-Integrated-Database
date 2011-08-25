@@ -605,7 +605,7 @@ function get_sources($db_handle, $ids, $type) {
 		if ($row) $source['spatial_column'] = $row[0];
 		
 		# GET FIELDS
-		add_source_fields($db_handle,$source);
+		add_source_fields($db_handle, $source);
 	//echo "<br/>";
 	//print_r($source);
 	//echo "<br/>";

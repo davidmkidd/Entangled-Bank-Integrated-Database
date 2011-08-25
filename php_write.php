@@ -14,7 +14,7 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 			$outfiles = write_biogeographic($db_handle, $config, $qobjects, $output, $sources, $names);
 			break;	
 		case 'biotree':
-			$outfiles = write_biotree($config, $output);
+			$outfiles = write_biotree($db_handle, $config, $output, $sources, $names);
 			break;
 		case 'biorelational' :
 			$outfiles = write_biorelational($db_handle, $config, $qobjects, $output, $sources, $names);
@@ -412,7 +412,7 @@ function write_biotable ($db_handle, $config, $output, $sources, $names) {
 
 #=================================================================================================================
 
- function write_biotree($config, $output) {
+ function write_biotree_old($config, $output) {
  	
  	// Get session variables
 	$sid = session_id();
@@ -460,6 +460,100 @@ function write_biotable ($db_handle, $config, $output, $sources, $names) {
  	
  	return $outfiles;
  }
+ 
+ #=================================================================================================================
+
+ function write_biotree($db_handle, $config, $output, $sources, $names) {
+ 	
+ 	# Get session variables
+	$sid = session_id();
+	$spath = $config['out_tree_path'];
+	$spath = session_save_path();
+	#echo "spath $spath<br>";
+	
+	# LINUX HARDCODE
+	//if (strpos ($spath, ";") !== FALSE)
+	#$spath = substr ($spath, strpos ($spath, ";")+1);
+	#echo "spath $spath<br>";
+	
+	
+	#$source = get_obj($sources, $output_sid);
+	#echo "source: <br>";
+	#print_r($output);
+	echo "<br>";
+	$tree_id = $output['tree_id'];	
+	$filename = $output['filename'];
+	$output_sid = $output['sourceid']; 
+	$brqual = $output['brqual'];
+	echo "output: <br>";
+	print_r($output);
+	echo "<br>";
+
+	
+	switch ($output['format']) {
+		case 'newick':
+			$filename = $outpath . $filename . '.tre';
+			$outfiles = array($filename);
+			break;
+		case 'nhx':
+			$filename = $outpath . $filename . '.nhx';
+			$outfiles = array($filename);
+			break;
+		case 'tabtree':
+			$filename = $outpath . $filename . '.tab';
+			$outfiles = array($filename);
+			break;
+		case 'linree':
+			$filename = $outpath . $filename . '.lin';
+			$outfiles = array($filename);
+			break;
+		default;
+		}
+	
+	# Get LCA tree
+	if ($names) {
+		$names_arr = array_to_postgresql($names,'text');
+		$str = "SELECT biosql.pdb_lca($tree_id, $names_arr)";
+	} else {
+		$str = "SELECT node_id FROM biosql.tree WHERE tree_id = $tree_id";
+	}
+
+	$res = pg_query($str);
+	$row = pg_fetch_row($res);
+	$lca = $row[0];
+	
+	# Get NEWICK string for lca
+	if ($output['brqual' == 'none']) {
+		$str = "SELECT biosql.pdb_as_newick_label($lca)";
+	} else {
+		$str = "SELECT biosql.pdb_as_newick_label($lca, $brqual, FALSE)";
+	}
+	#echo "str: $str<br>";
+	$res = pg_query($str);
+	$row = pg_fetch_row($res);
+	$newick = $row[0];	
+	
+	#echo "lca newick from DB: $newick<BR>";
+	
+	# Convert and/or prune
+	$subtree = $output['subtree'];
+	$format = $output['format'];
+	
+	if ($output['format'] != 'newick' || $subtree == 'pruned') {
+		$str = "$eb_path/perl/output_tree.pl $sid $spath $newick $subtree $format 2>&1";
+		echo "<br>*** BEGIN PERL: $str *** <br>";
+		$out = shell_exec($str);
+		echo "$out<br>";
+		echo "<br>*** END PERL ***<br>";
+	}
+	
+	# Write to file...
+
+	$outfiles = array($filename);
+ 	
+ 	return $outfiles;
+ }
+ 
 
 #=================================================================================================================
 

@@ -262,7 +262,6 @@ function html_output_biotree($db_handle, $output, $outputs, $sources) {
 	$subtree_formname = 'outsubtree';
 	$format_formname = 'format';
 	$branch_formname = 'brqual';
-	$form_objname = 'objname';
 	 	
 	//$output = get_obj($outputs, $outputid);
 	$source = get_obj($sources, $output['sourceid']);
@@ -273,15 +272,13 @@ function html_output_biotree($db_handle, $output, $outputs, $sources) {
 	$brqual = $output['brqual'];
 	$outname = $output['name'];
 	
-	
-	echo "<h3>Tree output - ".$source['name']."</h3>";
-	
 	if (!$outname) {
 		$outname = get_next_name($outputs, $source['term']);
+		//echo "outname: $outname";
 		$output['name'] = $outname;
 	}
 	echo "Name ";
-	html_obj_name($form_objname, $output);
+	html_obj_name($output);
 	echo "<BR>";
 	
 	#Select subtree type
@@ -1528,7 +1525,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 #=================================================================================================================
 
-function html_query_biotree($db_handle, $qobject, $sources, $indentchar, $indentlimit) {
+function html_query_biotree_old($db_handle, $qobject, $sources, $indentchar, $indentlimit) {
 	
 	echo '<script src="./scripts/tree_utils.js" type="text/javascript"></script>';
 
@@ -1600,7 +1597,86 @@ function html_query_biotree($db_handle, $qobject, $sources, $indentchar, $indent
 		}
 	echo "<br>";
 }
+
+
+#=================================================================================================================
+
+function html_query_biotree($db_handle, $qobject, $sources, $indentchar, $indentlimit) {
 	
+	echo '<script src="./scripts/tree_utils.js" type="text/javascript"></script>';
+
+	$source = get_obj($sources, $qobject['sources'][0]);
+	$tree_id = $source['tree_id'];
+	$width = 250;
+	echo "<h3>Tree Query - ".$source['name']."</h3>";
+	
+	html_query_errs($qobject);
+	html_query_heading($qobject);
+	echo '<br>';
+
+	$qnames = $qobject['taxa'];
+	if (!$qnames) $qnames = array();
+	//print_r($source);
+	$tree_id = $source['tree_id'];
+	echo "Operator ";
+	html_query_subtree_method();
+	# Internal/tip nodes
+	html_query_tree_nodes($qobject['treenodes']);
+	echo "<br>";
+	
+	# Find Box
+	echo "<INPUT type='text' id = 'findval' name='findval' value='' style='width:300px'>";
+	echo "<BUTTON type='button' id='findbtn' name='findbtn' onClick='findNodes()' onChange='clear()'>Find</BUTTON><br>";
+	echo "<INPUT type='hidden' id='tree_id' value='$tree_id' />";
+	#echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+	#echo "<INPUT type='text' id ='treeval' name='treeval' value='' style='width:300px' DISABLED>";
+	#echo "<BUTTON type='button' id='addbtn' name='addbtn' onClick='add()'>Add</BUTTON><br>";
+	
+	#Add root node to text SELECT box
+/*	$str = "SELECT *
+		FROM biosql.node
+		WHERE node.left_idx = 1
+		AND node.tree_id = $tree_id;";
+	//echo "$str<br>";
+	$res = pg_query($db_handle,$str);
+	$row = pg_fetch_row($res);
+	$name = $row[1];*/
+	echo "<SELECT name='tree' id='tree_items' MULTIPLE SIZE=15 style='width:300px'>";
+/*	if (in_array($row[1], $qnames)) {
+		echo "<OPTION SELECTED>$name</OPTION>";
+		} else {
+		echo "<OPTION>$name</OPTION>";
+		}
+	# Add other values
+	html_tree_level_options($db_handle, $tree_id, $row[0], $qnames, $indentchar, 1, $indentlimit);*/
+	echo "</SELECT>";
+	
+	# Add Buttons
+	echo "<BUTTON type='button' id='tree_add' name='tree_add' onClick='treeAdd()'>></BUTTON>";
+	echo "<BUTTON type='button' id='tree_all' name='tree_all' onClick='treeAll()'>>></BUTTON>";
+	# Delete Buttons
+	echo "<BUTTON type='button' id='tree_del' name='tree_del' onClick='treeDel()'><</BUTTON>";
+	echo "<BUTTON type='button' id='tree_delall' name='tree_delall' onClick='treeDelall()'><<</BUTTON>";
+	
+	# Taxa area
+	echo "<SELECT name='taxa[]' id='taxa_items' MULTIPLE SIZE=15 style='width:300px'>";
+	if (!empty($qnames)) {
+		foreach ($qnames as $qname) echo "<OPTION>$qname</OPTION>";
+	}
+
+	echo "</SELECT>";
+	
+
+	echo "<BR>... hierarchical depth";
+	
+	if ($qobject['errs']) {
+		$errs = $qobject['errs'];
+		unset($qobject['errs']);
+		}
+	echo "<br>";
+}
+	
+
 #=======================================================================================================================
 
 function html_name_search($db_handle, $name_search, $sources) {
@@ -2087,8 +2163,9 @@ function html_output_set($db_handle, $output, $outputs, $qobjects, $sources) {
 	$source = get_obj($sources, $output['sourceid']);
 	//print_r($source);
 	
+	$sterm = $source['term'];
 	# Header
-	echo "<h3>Output " . $source['name'] . "</h3>";
+	echo "<h3>Output $sterm - " . $source['name'] . "</h3>";
 	
 	#echo $str; 
 	
@@ -2097,8 +2174,6 @@ function html_output_set($db_handle, $output, $outputs, $qobjects, $sources) {
 //		echo "<a href='" . trim($source['www']) . "' target='_blank'>";
 //		echo "Click for information on " . $source['name'] . "</a><br><br>";
 //		}
-		
-	$sterm = $source['term'];
 		
 	switch ($sterm) {
 		case "biotable" :

@@ -2,6 +2,78 @@
  * Utilities for html_query_tree
  */
 
+/*HTTP._factories = [
+      function(){return new XMLHttpRequest(); },
+      function(){return new ActiveXObject("Msxml2.XMLHTTP"); },
+      function(){return new ActiveXObject("Microsoft.XMLHTTP"); }
+];
+
+HTTP._factory = null;
+
+HTTP.newRequest = function() {
+	alert("!");
+    if (HTTP._factory != null) return HTTP._factory();
+
+    for(var i = 0; i < HTTP._factories.length; i++) {
+        try {
+            var factory = HTTP._factories[i];
+            var request = factory();
+            if (request != null) {
+                HTTP._factory = factory;
+                return request;
+            }
+        }
+        catch(e) {
+            continue;
+        }
+    }
+
+    // If we get here, none of the factory candidates succeeded,
+    // so throw an exception now and for all future calls.
+    HTTP._factory = function() {
+        throw new Error("XMLHttpRequest not supported");
+    }
+    HTTP._factory(); // Throw an error
+}*/
+
+
+
+function findNodes() {
+	// Adds search returns to tree select box
+	
+	var treeitems = document.getElementById('tree_items');
+	var findval = document.getElementById('findval');
+	var tree_id = document.getElementById('tree_id');
+	//alert("tree: " + tree_id.value + " findval: " + findval.value);
+	url = "http://localhost/entangled-bank/api/treelabels.php?tree=" + tree_id.value + "&query=" + findval.value;
+	//alert(url);
+	//var xmldoc = XML.newDocument();
+	//xmldoc.async = false;
+	//xmldoc.load(url);
+	
+	var request = new XMLHttpRequest();
+	request.open("GET", url , false);
+	request.send(null);
+	
+	//alert(request.status);
+	if (request.status != 200) {
+		alert("Error " + request.status + ": " + request.statusText);
+	} else {
+		var xmldoc = request.responseXML;
+		alert(request.responseXML);
+		var labels = xmldoc.getElementsByTagName("label");
+	
+		for (var i = 0; i <= labels.length - 1; i++) {
+			//alert(treeval.value);
+			tree_items.options[i] = labels[i].value;
+		}
+		//alert(request.responseText);
+		
+	}
+	
+}
+
+
 function findNode(){
 	
 	// Finds values in tree select box

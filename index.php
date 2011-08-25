@@ -226,7 +226,7 @@ if ($stage == 'qset') {
 if ($stage == 'qset2') {
 	$qobject = get_obj($qobjects,$qobjid);
 	//echo "qset2: adding " . $qsources[0] . "<br>";
-	$qobject = add_key_val($qobject,'sources', $qsources);
+	$qobject['sources'] = $qsources;
 	$qobjects = save_obj($qobjects, $qobject);
 	$_SESSION['qobjects'] = $qobjects;
 	#$stage = $qobject['term'];
@@ -342,9 +342,9 @@ if ($stage == 'outputset') {
 				default;
 					if (!$outputs) $outputs = array();
 					$output = array();
-					$output = add_key_val($output, 'sourceid', $output_sid);
-					$output = add_key_val($output, 'id', md5(uniqid()));
-					$output = add_key_val($output, 'status', 'new');
+					$output['sourceid'] = $output_sid;
+					$output['id'] =  md5(uniqid());
+					$output['status'] = 'new';
 					$source = get_obj($sources, $output_sid);
 					$output['term'] = $source['term'];
 					$output_id = $output['id'];
@@ -421,7 +421,11 @@ if ($stage != 'finish') {
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
 //echo "html stage: $stage<br>";
-	
+
+/*echo "sources:<br>";
+print_r($sources);
+echo "<BR>";*/
+
 if ($qterm == 'finish') $stage = 'finish';
 
 if ($stage == 'sources') {
