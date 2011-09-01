@@ -132,7 +132,7 @@ $files_to_delete = $_SESSION['files_to_delete'];
 
 #echo "Pre-processing<br>";
 #if ($outputs) print_r($outputs);
-#echo "<br>";
+#echo "$stage, $qterm<br>";
 
 # Get Current qobjects
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
@@ -143,7 +143,7 @@ if ($output_id) $output = get_obj($outputs, $output_id);
 # echo "after get current qobject<br>";
 
 # NAME SEARCH
-if ($stage == 'qset' && $qterm == 'name_search') {
+if ($stage == 'qset' && $qterm == 'find') {
 	$name_search = query_name_search($db_handle, $sources);
 	$stage = 'qbegin';
 }
@@ -411,7 +411,7 @@ if ($outputs) $_SESSION['outputs'] = $outputs;
 #                                                                            SHOPPING CART
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
-if ($stage != 'finish') { 
+if ($stage != 'finish' && $stage != 'sources') { 
 	//print_r($names);
 	html_cart($db_handle, $qobjects, $sources, $names, $outputs, $cancel);
 	}	
@@ -480,8 +480,8 @@ if ($stage == 'write') {
 echo '<input type ="hidden" name="token" value=' . md5(uniqid()) .'>';
 
 //echo "end form n qobjects " . count($qobjects) . "<br>";
-
 if ($stage == 'finish') {
+	
 	# clean up
 	if ($files_to_delete) {
 		foreach ($files_to_delete as $file) unlink($file);
@@ -493,23 +493,20 @@ if ($stage == 'finish') {
 	#echo '<input type="hidden" name=finish value="no">';
 	echo "<br>";	
 	} else {
-		switch (true) {
-			case ($stage == 'qset2' || $stage == 'outputset'):
-				echo '<input id="submit-button" type="submit" value="Next >" onClick="selAll()">';
-				break;
-			case ($stage == 'qset' && $qobject['term'] == 'biogeographic'):
-				echo '<input id="submit-button" type="submit" value="Next >" onClick="return serialize_layer();">';
-				break;
-			default:
-				echo '<input id="submit-button" type="submit" value="Next >">';
-				break;
-		}
-//		if ($stage == 'qset2' || $stage == 'outputset') {
-//			echo '<input id="submit-button" type="submit" value="Next >" onClick="selAll()">';
-//		} else {
-//			echo '<input id="submit-button" type="submit" value="Next >">';
+//		switch (true) {
+//			case ($stage == 'qset2' || $stage == 'outputset'):
+//				echo '<input id="submit-button" type="submit" value="Next >" onClick="selAll()">';
+//				break;
+//			case ($stage == 'qset' && $qobject['term'] == 'biogeographic'):
+//				echo '<input id="submit-button" type="submit" value="Next >" onClick="return serialize_layer();">';
+//				break;
+//			default:
+//				echo '<input id="submit-button" type="submit" value="Next >">';
+//				break;
 //		}
+	
 	}
+echo "</div>";
 
 echo '</form>';
 #Print mytimes array

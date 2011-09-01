@@ -146,7 +146,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		echo "query: $str<br>";
+		//echo "query: $str<br>";
 		$res = pg_query($db_handle, $str);
 		$outnames = pg_fetch_all_columns($res, 0);
 		
@@ -1233,6 +1233,7 @@ function query_name_search($db_handle, $sources) {
 	
 	# returns information on which sources names are in
 	$input = $_SESSION['name_search'];
+	#echo "$input<br>";
 	$out = array();
 	$taxa = explode(",",$input);
 	
@@ -1244,7 +1245,7 @@ function query_name_search($db_handle, $sources) {
 			$sin = array(); 	//sources name is in
 			foreach ($sources as $source) {
 				$sid = $source['id'];
-				$scode = $source['code'];
+				//$scode = $source['code'];
 				
 				switch ($source['term']) {
 					case "biotable" :
@@ -1267,10 +1268,10 @@ function query_name_search($db_handle, $sources) {
 				#echo "$scode: $str<br>";
 				$res = pg_query($db_handle, $str);
 				$row = pg_fetch_row($res);
-				if ($row) array_push($sin, trim($scode));
+				if ($row) array_push($sin, $sid);
 			}
 		if (empty($sin)) {
-			array_push($out, array($taxon,"not found"));	
+			array_push($out, array($taxon, null));	
 		} else {
 			array_push($out, array($taxon,implode(", ",$sin)));	
 		}

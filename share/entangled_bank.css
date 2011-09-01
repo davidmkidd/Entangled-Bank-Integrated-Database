@@ -12,11 +12,27 @@
 	hr {
 		margin-left: auto;
  		margin-right: auto;
-		height: 2px;
+		height: 1px;
+	}
+	
+	p.ebheader {
+		margin-top: 4px;
+	}
+	
+	p.ebtitle {
+		font-size: larger;
 	}
 	
 	.ebwidth {
-		width: 500px;
+		width: 630px;
+	}
+	
+	.ebtext {
+		width: 340px;
+	}
+	
+	#name_search {
+		width: 520px;
 	}
 	
 	#name_search_div{
@@ -28,4 +44,124 @@
 	.smallmap {
 		width: 700px;
 		height: 350px;
+	}
+	
+	.query_type_button {
+		border: 1px solid;
+		border-color: rgb(104, 104, 104);
+	}
+	
+	td.qtype {
+		width: 120px;
+		vertical-align: top;
+	}
+	
+	td.qtype_text {
+		width: 120px;
+		text-align: center;
+		vertical-align: top;
+	}
+	
+	td.quicksearch {
+		width: 650px;
+		padding-left: 10px;
+	
+	}
+	
+	td img {
+		vertical-align: middle;
+	}
+	
+	td.option_title {
+		width: 55px;
+		vertical-align: middle;
+	}
+	
+/*	td.find_table {*/
+/*		width: 525px;*/
+/*	}*/
+	
+	td.option_title_plus {
+		width: 65px;
+		vertical-align: middle;
+	}
+	
+	td.find_c2 {
+		width: 515px;
+	}
+	
+	.find_name {
+		width: 250px;
+		text-align: left;
+	}
+	
+	.find_n {
+		width: 30px;
+		text-align: center;
+	}
+	
+	.find_source {
+		width: 30px;
+		text-align: center;
+	}
+	
+	#find_hide {
+		float: left;
+	}
+	
+	#find_msg {
+		display: none;
+		font-style: italic;
+		border: 1px gray solid;
+		padding:1px;
+		margin-left:2px;
+	}
+	
+	#find_div {
+		overflow: auto;
+		width: 517px;
+		height: 80px; 
+        border: 1px gray solid; 
+        padding:0px; 
+        margin: 0px;
+	}
+	
+	table thread {
+		cursor: pointer;
+	}
+	
+	#imgcolumn {
+		float: left;
+		width: 70px;
+	}
+	
+	#toolcolumn {
+		float: left;
+		margin-left: 0px;
+	}
+	
+	#footer {
+		clear: both;
+	}
+	
+	#ebheader {
+		text-align: left;
+	}
+	
+	#queryheader {
+		width: 300px;
+	}
+	
+	#queryfooter {
+		margin-left: 620px;
+	}
+
+
+	
+	input.singlesource {
+		width: 232px;
+	}
+	
+	.button-standard {
+		width: 60px;
 	}

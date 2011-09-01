@@ -13,10 +13,21 @@ $str = "SELECT label
 	AND label LIKE '%$qstr%'";
 $res = pg_query($db_handle, $str);
 $labels = pg_fetch_all_columns($res);
+$first = true;
 
-print "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
+echo json_encode($labels);
+
+
+/*echo "{";
+foreach ($labels as $label) {
+	if ($first == false) echo ",";
+	echo "\n\t\"label\": \"$label\"";
+	$first = false;
+}
+echo "\n}"*/
+/*print "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
 print "<labels>\n\t";
 foreach ($labels as $label) print "<label>$label</label>\n\t";
-print "</labels>\n\t";
+print "</labels>\n\t";*/
 
 ?>

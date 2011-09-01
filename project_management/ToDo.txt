@@ -23,6 +23,7 @@ Query
 	- tool tips
 	- validation
 	- remove reset
+	- errs objects v javascript
 	Get sources
 	 - sort list_sources by (table, geographic, tree, relational)
 	Cart

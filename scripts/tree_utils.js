@@ -59,13 +59,19 @@ function findNodes() {
 	if (request.status != 200) {
 		alert("Error " + request.status + ": " + request.statusText);
 	} else {
-		var xmldoc = request.responseXML;
-		alert(request.responseXML);
-		var labels = xmldoc.getElementsByTagName("label");
-	
+		//alert(eval(request.responseText));
+		//var myObj = JSON.parse()
+		var data = request.responseText;
+		//alert(data.substring(1));
+		data = data.substring(1);
+		data = data.substring(1, data.length - 1);
+		var labels = data.split(',');
+		alert(labels.length);
 		for (var i = 0; i <= labels.length - 1; i++) {
-			//alert(treeval.value);
-			tree_items.options[i] = labels[i].value;
+			//alert(labels[i]);
+			label = labels[i].replace(/["']{1}/gi,"");
+			//alert(label);
+			tree_items.options[i] = new Option(label, label);
 		}
 		//alert(request.responseText);
 		
