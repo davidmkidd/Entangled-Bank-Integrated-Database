@@ -75,7 +75,7 @@ $newtoken = $_POST['token'];
 
 # Save submitted data to session variables
 foreach ($_POST as $key =>$value) {
-	#echo "$key => $value<br>";
+	//echo "$key => $value<br>";
 	$_SESSION[$key] = $value;
 	}
 
@@ -95,11 +95,14 @@ $qobjects = $_SESSION['qobjects'];           			// Array of query objects
 # echo "session n qobjects " . count($qobjects) . "<br>";
 $qobjid = $_SESSION['qobjid'];							// The qobj to process. Is null if new query or repost				
 
-
 $qterm = $_SESSION['qterm'];               // the type of query
 $qset = $_SESSION['qset'];
 $qsources = $_SESSION['qsources'];         // the sources the query applies to
 if (!is_array($qsources)) $qsources = array($qsources);
+
+//print_r($qsources);
+//echo "<br>";
+
 $qsources_mode = $_SESSION['qsources_mode'];
 $cancel = $_SESSION['cancel'];
 unset ($_SESSION['cancel']);
@@ -210,12 +213,22 @@ if ($stage == 'qset') {
 				'name' => $qname,
 				'status' => 'new'
 				);
+			
+			# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
+			//echo $SESSION['biotree_sid'] . "<br>";
+			if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
+			if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
+			
+			//print_r($qobject);
+			//echo "<br>";
+			
 			array_push($qobjects, $qobject);
 			$_SESSION['qobjects'] = $qobjects;
 			#echo "new qobjid $qobjid<br>";
 			break;
 			}
 	}
+	
 }
 
 //if ($qobjects) foreach ($qobjects as $obj) echo $obj['id'] . "; ";
@@ -223,14 +236,14 @@ if ($stage == 'qset') {
 
 # QSET2 - ADD SOURCE TO QUERY
 # Only for biotree and biotables as must be selected query interface
-if ($stage == 'qset2') {
+/*if ($stage == 'qset2') {
 	$qobject = get_obj($qobjects,$qobjid);
 	//echo "qset2: adding " . $qsources[0] . "<br>";
 	$qobject['sources'] = $qsources;
 	$qobjects = save_obj($qobjects, $qobject);
 	$_SESSION['qobjects'] = $qobjects;
 	#$stage = $qobject['term'];
-	}
+	}*/
 	
 	
 # MANAGE - MANAGEMENT

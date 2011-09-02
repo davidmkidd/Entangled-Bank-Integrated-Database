@@ -454,15 +454,23 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 		
 		case 'bionames' :
 			html_query_bionames($db_handle, $qobject, $qobjects, $sources);
-			echo "<input type = 'hidden' name ='stage' value='qverify'>";
+			//echo "<input type = 'hidden' name ='stage' value='qverify'>";
 			break;
 			
 		case 'biogeographic':			
 			html_query_biogeographic($db_handle, $qobject, $qobjects, $sources);
-			echo "<input type='hidden' name='stage' value='qverify'>";
+			//echo "<input type='hidden' name='stage' value='qverify'>";
 			break;
 
 		case 'biotree':
+			html_query_biotree($db_handle, $qobject, $qobjects, $sources);
+			break;
+			
+		case 'biotable':
+			html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names);
+			break;
+			
+/*		case 'biotree':
 		case 'biotable':
 			if ($term == 'biotree') {
 				echo "<h3>Query Tree</h3>";
@@ -476,7 +484,7 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 			echo " | ";
 			html_cancel_select('cancel');
 			echo "<input type='hidden' name='stage' value='qset2'>";
-			break;
+			break;	*/		
 
 		case 'biotemporal':
 			html_query_biotemporal($db_handle, $qobject, $qobjects, $sources, $names);
@@ -488,6 +496,8 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 			break;
 				
 		}
+		
+	echo "<input type='hidden' name='stage' value='qverify'>";
 	echo "<input type = 'hidden' name ='qobjid' value=$qobjid>";
 }
 
@@ -1668,10 +1678,10 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 #=================================================================================================================
 
-function html_query_biotree($db_handle, $qobject, $qobjects, $sources, $indentchar, $indentlimit) {
+function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	
 	echo '<script src="./scripts/tree_utils.js" type="text/javascript"></script>';
-
+	
 	$source = get_obj($sources, $qobject['sources'][0]);
 	$tree_id = $source['tree_id'];
 	$qnames = $qobject['taxa'];
@@ -1703,6 +1713,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources, $indentch
 		biosql.term tm
 		WHERE tr.tree_id = $tree_id
 		AND tm.term_id = tr.term_id";
+	//echo "$str<br>";
 	$res = pg_query($db_handle, $str);
 	$row = pg_fetch_row($res);
 	$treetype = $row[0];
@@ -1937,7 +1948,7 @@ function html_find($db_handle, $name_search, $sources) {
 		}
 		if (!empty($biotable)) {
 			$title = "Query the attributes of a source";
-			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"biotable\")'><img src='./image/haekel_bug.gif' class='query_type_button' /> </a></td>" ;
+			echo "<td class='qtype' title='$title' align='center'><a href='javascript: openSelect(\"attribute\")'><img src='./image/haekel_bug.gif' class='query_type_button' /> </a></td>" ;
 		}
 		if (!empty($biogeographic)) {
 			$title = "For which names is there data here?";
@@ -2001,7 +2012,7 @@ function html_find($db_handle, $name_search, $sources) {
 #=======================================================================================================================
 	
 	function html_select_source_table ($sources, $term) {
-		echo "<div id='$term" , "_select_div'>";
+		echo "<div id='$term" , "_select_div' style='display: none;'>";
 		echo "<table border='0'>";
 		echo "<tr>";
 		if ($term == 'biotree') {
@@ -2014,6 +2025,7 @@ function html_find($db_handle, $name_search, $sources) {
 		html_select_source($sources, $term);
 		echo "</td>";
 		echo "<td>";
+		if ($term == 'attribute') $term = 'biotable';
 		echo "<input type='button' class='button-standard' value='Go' id='$term", "_submit' onClick='submitform(\"$term\")' />";
 		echo "</td>";
 		echo "</tr>";
@@ -2408,7 +2420,7 @@ function html_select_sources($db_handle) {
 	
 	$result = pg_query($db_handle,$str);
 
-	echo "<SELECT id='select_sources' class='ebtext' name='sourceids[]' MULTIPLE SIZE=7>";
+	echo "<SELECT id='select_sources' class='ebtext' name='qsources' SIZE=7>";
 	if(!$result) {
 		echo "<OPTION>No Data Sets Available</OPTION>";
 	} else {
