@@ -29,6 +29,15 @@
 
 	}
 	
+	function openSelect(entry) {
+		div_id = entry + '_select_div';
+		var div = document.getElementById(div_id);
+		if (div.style.display == 'none') {
+			div.style.display = 'block';
+		} else {
+			div.style.display = 'none';
+		}
+	}
 	
 	function submitform(entry)
 	{

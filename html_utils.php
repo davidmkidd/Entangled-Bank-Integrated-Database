@@ -1933,7 +1933,7 @@ function html_find($db_handle, $name_search, $sources) {
 	
 		if (!empty($biotree)) {
 			$title = "Are these names in this tree? What is the least common ancestor? What names descend from the least common ancestor?";
-			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"biotree\")'><img src='./image/tree.gif' class='query_type_button' /> </a></td>" ;
+			echo "<td class='qtype' title='$title' align='center'><a href='javascript: openSelect(\"biotree\")'><img src='./image/tree.gif' class='query_type_button' /> </a></td>" ;
 		}
 		if (!empty($biotable)) {
 			$title = "Query the attributes of a source";
@@ -1965,8 +1965,9 @@ function html_find($db_handle, $name_search, $sources) {
 		# QTYPE HIDDEN INPUT
 		echo "<INPUT type='hidden' name='qterm' id = 'qterm' value='none' />";
 		
-		# SEPERATOR
-		//echo "<hr>";
+		# SOURCE SELECTOR
+		html_select_source_table ($sources,'biotree');
+		html_select_source_table ($sources,'attribute');
 		
 		# OTHER ACTIONS
 		echo "<table border='0'>";
@@ -1997,7 +1998,29 @@ function html_find($db_handle, $name_search, $sources) {
 	
 	}
 
-
+#=======================================================================================================================
+	
+	function html_select_source_table ($sources, $term) {
+		echo "<div id='$term" , "_select_div'>";
+		echo "<table border='0'>";
+		echo "<tr>";
+		if ($term == 'biotree') {
+			$width = 190;
+		} else {
+			$width = 310;
+		}
+		echo "<td style='width: $width px'></td>";
+		echo "<td>";
+		html_select_source($sources, $term);
+		echo "</td>";
+		echo "<td>";
+		echo "<input type='button' class='button-standard' value='Go' id='$term", "_submit' onClick='submitform(\"$term\")' />";
+		echo "</td>";
+		echo "</tr>";
+		echo "</table>";
+		echo "</div>";
+	}
+	
 #=======================================================================================================================
 	
 function html_reset_form(){
@@ -2232,7 +2255,24 @@ function html_output_biotable($db_handle, $output, $outputs, $sources) {
 	html_cancel_select();
 }
 
+#================================================================================================================
 
+	function html_select_source($sources, $term) {
+		
+		echo "<select name='$term", "_sid' class='sourceselect'>";
+		foreach ($sources as $source) {
+			if ($term == 'attribute') {
+				if ($source['term'] == 'biotable' || $source['term'] == 'biogeographic' || $source['term'] == 'biorelational') 
+					echo "<option value='", $source['id'] ,"'>", $source['name'], "</option>";
+			} else {
+				if ($source['term'] == $term) echo "<option value='", $source['id'] ,"'>", $source['name'], "</option>";
+			}
+			
+		}
+		echo "</select>";
+		
+	}
+	
 #================================================================================================================
 
 function html_output_source($sources, $outputs) {

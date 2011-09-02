@@ -23,6 +23,22 @@
 		font-size: larger;
 	}
 	
+	#biotree_select_div {
+		display: 'none';
+		border-width: 1px; 
+		boder-style: solid;
+		border-color: black;
+	}
+	
+	#attribute_select_div {
+		display: 'none';
+	}
+	
+	select.sourceselect {
+		width: 280px;
+	}
+	
+	
 	.ebwidth {
 		width: 630px;
 	}
