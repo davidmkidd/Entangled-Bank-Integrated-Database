@@ -66,7 +66,7 @@ function findNodes() {
 		data = data.substring(1);
 		data = data.substring(1, data.length - 1);
 		var labels = data.split(',');
-		alert(labels.length);
+		//alert(labels.length);
 		for (var i = 0; i <= labels.length - 1; i++) {
 			//alert(labels[i]);
 			label = labels[i].replace(/["']{1}/gi,"");

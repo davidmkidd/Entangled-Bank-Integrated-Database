@@ -2,7 +2,7 @@
  * Query_sources utils
  */
 	function checkAll(field) {
-		//alert('Hi!');	
+		//alert("!!!");	
 		for (i = 0; i < field.length; i++)
 			field[i].checked = true;
 		document.getElementById("nsources").value = i;
