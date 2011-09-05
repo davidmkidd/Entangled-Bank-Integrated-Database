@@ -97,7 +97,7 @@ function html_entangled_bank_header($eb_path, $html_path, $share_path, $restart)
 	if($restart) $restart = true;
 
 	echo "<div id='ebheader'>";
-	echo "<img src='" , $share_path , "Entangled-Bank_small.gif' alt='Banner'><br>";
+	echo "<img src='" , $share_path , "Entangled-Bank_small.gif' alt='Banner' style='border: grey 1px solid;'><br>";
 	echo "<p class='ebheader'><a href='" , $html_path , "index.php' target='_blank'>Home</a>";
 	echo " | ";
 	echo "<a href='" , $html_path , "help.php' target='_blank'>Help</a>";
@@ -107,27 +107,22 @@ function html_entangled_bank_header($eb_path, $html_path, $share_path, $restart)
 		echo " | ";
 		echo "<a href='" , $eb_path , "restart.php'> New Session</a>";
 	}
-	echo ' | v0.4 (23 May 2011)</p>';
+	echo ' | v0.5 (Sept 2011)</p>';
 	echo "</div>";
-	echo '<hr>';
+	//echo '<hr>';
 }
 
 #=======================================================================================================================
 
 function html_entangled_bank_footer() {
 
-	echo "<div id='footer'>";
-	echo '<hr />';
-	echo '&copy NERC Center for Population Biology & Division of Biology, Imperial College London, 2011.<br>';
-	//echo 'Serving linked phylogenetic, spatial, trait and ecological data since 2010<br>';
-	echo '<i>Open source powered using BioPerl, BioSQL, PhyloDB, PostrgreSQL, PostGIS, OGR, PHP and Apache.</a></i><br>';
-	echo "<i><a href='mailto:d.kidd@imperial.ac.uk'> email David Kidd.</a></i>";
-	echo '<hr />';
-	echo '<body/>';
-	echo '</html>';
+	echo "<div id='ebfooter'>";
+	echo '<i>Open source powered: PostrgreSQL, PostGIS, BioSQL/PhyloDB, PHP/Javascript, BioPerl/Bio::Phylo, GDAL/OGR2 and Apache.</a></i><br>';
+	echo '&copy NERC Center for Population Biology & Division of Biology, Imperial College London, 2011.';
+	echo " <i><a href='mailto:d.kidd@imperial.ac.uk'>Contact: David Kidd</a></i>";
 	echo "</div>";
-	}
-
+	
+}
 	
 #=================================================================================================================
 
@@ -150,6 +145,7 @@ function html_input_tree_names ($db_handle, $form_subtree, $form_inames_taxa, $f
 		$form_nsources, $form_noperator, $form_nnames, $form_objname, $form_not, $form_qoperator, $form_qjoin, $form_cancel,
 		$qobjects, $qobjid, $sources, 'none');
 	echo "<br>";
+	
 	}
 
 	
@@ -672,7 +668,7 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 
 #=======================================================================================================================	
 
-	function html_query_image($qobject, $size) {
+	function html_query_image($qobject, $size, $title = null) {
 		
 		$size = $size . 'px';
 		
@@ -680,23 +676,23 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 		
 		switch ($qobject['term']) {
 			case 'bionames' : 
-				$title = 'Names query';
+				if (!$title) $title = 'Names query';
 				$img = 'systema.gif';
 				break;
 			case 'biotree' : 
-				$title = 'Tree query';
+				if (!$title) $title = 'Tree query';
 				$img = 'tree.gif';
 				break;
 			case 'biogeographic' : 
-				$title = 'Geographic query';
+				if (!$title) $title = 'Geographic query';
 				$img = 'blue-planet.gif';
 				break;
 			case 'biotable' : 
-				$title = 'Attributes query';
+				if (!$title) $title = 'Attributes query';
 				$img = 'haekel_bug.gif';
 				break;
 			case 'biotemporal' : 
-				$title = 'Temporal query';
+				if (!$title) $title = 'Temporal query';
 				$img = 'clock.gif';
 				break;
 		}
@@ -714,7 +710,7 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 		//html_obj_name($qobject);
 		echo "<table>";
 		echo "<tr>";
-		echo "<td class='query_title' title='$title' >Name</td>";
+		echo "<td class='query_title' title='$title' >Query Name</td>";
 		echo "<td>";
 		echo "<INPUT type='text' id='objname' name='objname' class='ebtext' value=$objname onChange='checkObjName()'>";
 		if ($not !== false) {
@@ -765,21 +761,23 @@ function html_query_join($formname, $qobj) {
 
 function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 
+	//print_r($qobjects[1]);
+	
 	echo '<script src="./scripts/names_utils.js" type="text/javascript"></script>';
 	
 	html_query_header($qobject, $sources);
 
+	html_query_name($qobject);
 	echo "<table border = '0'>";
 	echo "<tr>";
 	$title = "One name on each line or select all names.";
-	echo "<td class='query_title' title='$title'>Names";
-	echo "</td>";
+	echo "<td class='query_title' title='$title'>Names</td>";
 	
 	# Get valid names and errors
 	
 	if ($qobject['taxa']) $taxa = $qobject['taxa'];
 	if ($qobject['invalid_taxa']) $invalid = $qobject['invalid_taxa'];
-		
+	
 	# Empty text area
 	
 	if (empty($taxa) && empty($invalid)) {
@@ -788,20 +786,11 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 		echo "</td>";
 	} else {
 		echo "<td>";
-		if ($taxa) echo "<label for='taxa'>valid taxa<label>";
+/*		if ($taxa) echo "<label for='taxa'>valid taxa<label>";
 		if ($invalid) echo "<label id='invalid_taxa_label' for='invalid_taxa'>unrecognised taxa<label>";
-		if ($taxa || $invalid) echo "<br>";
-		echo "</td>";
-		if ($taxa) {
-			#write list of validnames
-			//echo "Valid Names<br>";
-			$mystr = "";
-			foreach ($taxa as $name) $mystr = $mystr . "$name\n";
-			echo "<td>";
-			echo "<textarea id='taxa' name='taxa' class='taxa' rows='7' cols='35' wrap='soft'>" . chop($mystr, "\n") . "</textarea>";
-			echo "</td>";
-			}
-	
+		if ($taxa || $invalid) echo "<br>";*/
+		//echo "</td>";
+		
 		if ($invalid) {
 			#write list of invalidnames
 			//echo "Invalid Names<br>";
@@ -809,12 +798,22 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 			foreach ($invalid as $name) {
 				$mystr = $mystr . "$name\n";
 				}
-			echo "<FONT color=red><textarea id='invalid_taxa' name='invalid_taxa' class='taxa' rows='7' cols='35' wrap='soft' style='color:#FF0000'>"
-				. chop($mystr, "\n") . "</textarea></FONT><br>";
-			echo "Input is case-sensitive<br>Edit or delete invalid names<br>";
-			echo " Valid names can be edited or deleted<br>";
+			echo "<textarea id='invalid_taxa' name='invalid_taxa' class='taxa' rows='7' cols='35' wrap='soft' style='color:#FF0000'>"
+				. chop($mystr, "\n") . "</textarea>";
+			
+			$mystr = "";
+			foreach ($taxa as $name) $mystr = $mystr . "$name\n";
+			//echo "<td>";
+			echo "<textarea id='taxa' name='taxa' class='taxa' rows='7' cols='35' wrap='soft'>" . chop($mystr, "\n") . "</textarea>";
 			}
+		echo "</td>";
+
 	}
+	
+	echo "</tr>";
+	echo "<tr>";
+	echo "<td class='query_title'></td>";
+	echo "<td>One name on each line. Case-sensitive. Names in red are not recognised</td>";
 	echo "</tr>";
 
 	echo "<tr>";
@@ -1454,11 +1453,10 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	        12 => 'December'
 	    );
 	    
-	    echo "<h3>Temporal query</h3>";
-	    html_query_errs ($qobject);
-	    html_query_heading($qobject);
+	    html_query_header($qobject, $sources);
 	    echo "<BR>";
 		html_query_sources($db_handle, $qobject, $sources);
+		
 		// Get range of dates
 		$str = "SELECT MIN(d.\"SampleYear\"), MAX(d.\"SampleYear\")
 			 FROM gpdd.data d
@@ -1497,8 +1495,10 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		$to_month = 12;
 		$to_year = $maxyear;
 		
-		echo "From ";
-		
+		echo "<table>";
+		echo "<tr>";
+		echo "<td class='query_title'>From</td>";
+		echo "<td>";
 		// From Day
 		echo "<SELECT NAME='from_day' id='from_day'>";
 		for ($i = 1; $i <= 31; $i++) {
@@ -1530,9 +1530,14 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 				echo "<OPTION VALUE='$i' SELECTED>$i";
 			}
 		}
-		echo "</SELECT> ";
-		echo " to ";
+		echo "</SELECT>";
+		echo "</td>";
+		echo "</tr>";
 		
+		echo "<tr>";
+		echo "<td class='query_title'>To</td>";
+		
+		echo "<td>";
 		// To Day
 		echo "<SELECT NAME='to_day' id='to_day'>";
 		for ($i = 1; $i <= 31; $i++) {
@@ -1565,12 +1570,13 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			}
 		}
 		echo "</SELECT> ";
-		echo "<br>";
+		echo "</td>";
+		echo "</tr>";
 		
-		echo $msg;
-		
-		// Overlay
-		echo "Temporal intersection";
+		echo "<tr>";
+		echo "<td class='query_title'>Temporal operation</td>";
+
+		echo "<td class='query_c2_footer'>";
 		if (!$t_overlay || ($t_overlay && $t_overlay == 'OVERLAP')) {
 			echo " <input type='radio' name='t_overlay' CHECKED value='OVERLAP'> OVERLAP";
 			echo " <input type='radio' name='t_overlay' value='WITHIN'> WITHIN";
@@ -1578,9 +1584,21 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			echo " <input type='radio' name='t_overlay'  value='OVERLAP'> OVERLAP";
 			echo " <input type='radio' name='t_overlay' CHECKED value='WITHIN'> WITHIN";
 		}
-		echo "<br>";
+		echo "</td>";
 		
-		html_query_footer($qobject, $qobjects);
+		if (count($qobjects == 1 && $qobjects['status'] == 'new')) {
+			echo "<td>";
+			echo "<input type='button' name='cancel' class='cancel' value='Cancel' />";
+			echo '<input id="submit-button" type="submit" value="Next >" />';
+			echo "</td>";
+			echo "</tr>";
+			echo "</table>";
+		} else {
+			echo "</tr>";
+			echo "</table>";
+			html_query_footer($qobject, $qobjects);
+		}	
+	
 	}
 
 	
@@ -1666,7 +1684,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		
 		$qterm = $qobject['term'];
 		
-		echo "<table border='0'>";
+		echo "<table>";
 		
 		echo "<tr>";
 		echo "<td class='query_image' align='left'>";
@@ -1674,20 +1692,19 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</td>";
 		if ($qobject['term'] == 'biotree' || $qobject['term'] == 'biotable') {
 			$source = get_obj($sources, $qobject['sources'][0]);
-			echo "<td class='ebtext'>";
+			echo "<td class='query_field'>";
 			echo "<input type='text' id='queryheader' class='ebtext' disabled='disabled' value='", $source['name'], "'></input><br>";
 		} else {
-			echo "<td class='query_c2'>";
+			echo "<td class='query_field''>";
 			html_query_sources($qobject, $sources);
 		}
 		echo "</td>";
-		echo "</tr>";
+		//echo "</tr>";
 		
 
 		if ($qterm == 'biogeographic' || $qterm == 'bionames' || $qterm == 'biotemporal') {
-			# N SOURCES
-			echo "<tr>";
-			echo "<td class='query_title'></td>";
+			//echo "<tr>";
+			//echo "<td class='query_title'></td>";
 			echo "<td>";
 			echo "<input type=button name='allbtn' value='all' onClick='checkAll(document.ebankform.qsources)'> ";
 			echo "<input type=button name='clearbtn' value='clear' onClick='uncheckAll(document.ebankform.qsources)'>";
@@ -1695,7 +1712,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			echo "</tr>";		
 		} 
 
-		
+		# N SOURCES
 		echo "<tr>";
 		echo "<td class='query_title'>N Sources</td>";
 		echo "<td>";
@@ -1791,7 +1808,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo "<tr>";
 	echo "<td>";
 	$title ='Names found';
-	echo "<SELECT name='tree' id='tree_items' MULTIPLE SIZE=15 class='ebtext' title='$title'>";
+	echo "<SELECT name='tree' id='tree_items' MULTIPLE SIZE=8 class='ebtext' title='$title'>";
 	echo "</SELECT>";
 	echo "</td>";
 	
@@ -1807,7 +1824,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	# Taxa area
 	echo "<td>";
 	$title ='Names in query';
-	echo "<SELECT name='taxa[]' id='taxa_items' MULTIPLE SIZE=15 class='ebtext' title='$title'>";
+	echo "<SELECT name='taxa[]' id='taxa_items' MULTIPLE SIZE=8 class='ebtext' title='$title'>";
 	if (!empty($qnames)) {
 		foreach ($qnames as $qname) echo "<OPTION>$qname</OPTION>";
 	}
@@ -1958,6 +1975,8 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 			$val = implode(", ",$arr);
 			//html_name_search($db_handle, $name_search, $sources);
 		}
+		
+		echo "<div class='margin5px'>";
 
 		# FIND
 		$title = "Quick find for which sources names are in. Comma seperate names.";
@@ -2005,7 +2024,7 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		echo "</tr>";
 		echo "<tr>";
 		echo "<td></td>
-			<td class='qtype_text'>Names in Sources </td>
+			<td class='qtype_text'>Names in Sources</td>
 			<td class='qtype_text'>Names in a Tree</td>
 			<td class='qtype_text'>Attributes of a Source</td>
 			<td class='qtype_text'>Geography</td>
@@ -2046,7 +2065,7 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"finish\")'><img src='./image/exit.gif' class='query_type_button'/> </a></td>" ;
 		echo "</tr>";
 		echo "</table>";
-	
+		echo "</div>";
 	}
 
 #=======================================================================================================================
@@ -2403,7 +2422,7 @@ function html_output_set($db_handle, $output, $outputs, $qobjects, $sources) {
 
 function html_select_sources($db_handle) {
 
-	echo "<p class='ebtitle'>Select sources</p>";
+	echo "<div class='margin5px'>";
 	
 	#ADD DESCRIPTION TO SOURCES, THEN EDIT get_sources
 	
@@ -2414,10 +2433,15 @@ function html_select_sources($db_handle) {
 		AND t.name like 'bio%'
 		AND obj.active = TRUE
 		ORDER BY t.name";
-	
 	$result = pg_query($db_handle,$str);
-
-	echo "<SELECT id='select_sources' class='ebtext' name='qsources' SIZE=7>";
+	
+	$title = 'Select one or more sources to work with. Hover over names to see data type.';
+	
+	echo "<table>";
+	echo "<tr>";
+	echo "<td class='query_title' title='$title'>Sources</td>";
+	echo "<td class='query_form'>";
+	echo "<SELECT id='select_sources' class='eb' name='qsources' SIZE=7>";
 	if(!$result) {
 		echo "<OPTION>No Data Sets Available</OPTION>";
 	} else {
@@ -2440,12 +2464,14 @@ function html_select_sources($db_handle) {
 			echo "<OPTION value=$row[0] title='$title'>$row[1]</OPTION>";
 		}
 	}
-	echo "</SELECT><br>";
-
+	echo "</SELECT>";
+	echo "</td>";
+	echo "</tr>";
+	echo "</table>";
 	
 	echo "<table>";
 	echo "<tr>";
-	echo "<td style='width: 275px'>";
+	echo "<td style='width: 390px'>";
 	echo "Just press 'Next >' to select all";
 	echo "</td>";
 	echo "<td>";
@@ -2453,7 +2479,7 @@ function html_select_sources($db_handle) {
 	echo "</td>";
 	echo "</tr>";
 	echo "</table>";
-	
+	echo "</div>";
 	
 	}
 	

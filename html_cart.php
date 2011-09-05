@@ -2,15 +2,20 @@
 
 # ------------------------------------------------------------------------------------------------------------
 
-function html_cart($db_handle, $qobjects, $sources, $names, $outputs, $cancel) {
-	
+function html_cart($db_handle, $qobjects, $sources, $names, $outputs, $stage) {
 	
 	# CART
-	echo "<table border='0'>";
-	
+	echo "<div id='cart'>";
+	echo "<table>";
 	echo "<tr>";
-	echo "<td class='option_title_plus'>";
-	echo "<img src='./image/shoppingCartIcon.gif' alt='Cart' height='35px'/>";
+	$title = "Data Cart";
+	if ($stage == 'qbegin') {
+		$class = 'option_title_plus';
+	} else {
+		$class = 'query_title';
+	}
+	echo "<td class='$class' title='$title'>";
+	echo "<img src='./image/shoppingCartIcon.gif' alt='Cart' height='50px'/>";
 	echo "</td>";
 	echo "<td>";
 	# SOURCES
@@ -27,18 +32,20 @@ function html_cart($db_handle, $qobjects, $sources, $names, $outputs, $cancel) {
 	echo "</tr>";
 	echo "</table>";
 	
-	if (! isset($qobjects) && ! empty($qobjects)) {
+	if (isset($qobjects) && ! empty($qobjects) && $qobjects[0]['status'] != 'new') {
 	# QUERY CHAIN
-		echo "<table border='0'>";
+		$title = "Queries";
+		echo "<table>";
 		echo "<tr>";
-		echo "<td class='querycart'>&nbsp;";
+		echo "<td class='$class' title='$title'><img src='./image/queryicon.gif' alt='queryicon.gif'></td>";
+		echo "<td class='querycart'>";
 		html_cart_queries($qobjects);
 		echo "</td>";
 		echo "</tr>";
 		echo "</table>";
 	}
-	
-	echo "<hr>";
+	echo "</div>";
+	;
 }
 # ------------------------------------------------------------------------------------------------------------
 
@@ -100,28 +107,16 @@ function html_cart_query($qobjects, $sources) {
 			foreach ($qobjects as $qobject) {
 				if ($c == 0) {
 					# FIRST QUERY
-					html_query_image($qobject,30);
 					if ($qobject['status'] !== 'new') {
 						$name = $qobject['name'];
-						if (strlen($name) > 10) {
-							$str = substr($name, 0, 8) . "..";
-						} else {
-							$str = $name;
-						}
-					echo "&nbsp;<span title='$name'>" , $str , "</span>&nbsp;";
+						html_query_image($qobject,50, $name);
 					}
 				} else {
 					# SUBSEQUENT QUERY
-					if ($qobject['status'] !== 'new') {
+					if ($qobject['status'] == 'valid') {
 						echo "&nbsp;", $qobject['queryoperator'], "&nbsp;";
-						html_query_image($qobject,30);
 						$name = $qobject['name'];
-						if (strlen($name) > 10) {
-							$str = substr($name, 0, 8) . "..";
-						} else {
-							$str = $name;
-						}
-						echo "&nbsp;<span title='$name'>" , $str , "</span>&nbsp;";
+						html_query_image($qobject,50, $name);
 					}
 				}
 			$c++;

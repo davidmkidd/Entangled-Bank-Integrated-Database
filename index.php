@@ -42,14 +42,15 @@ echo '<html>';
 
 #HEAD includes Javascript
 echo '<head>';
-echo "<title>Entangled Bank</title>";
+echo "<title>Entangled Bank Integrated dDatabase</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #END HEAD
 
 #BODY
-#<body>
+
 echo '<body>';
+echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, true);
 
 # BEGIN FORM
@@ -426,7 +427,7 @@ if ($outputs) $_SESSION['outputs'] = $outputs;
 
 if ($stage != 'finish' && $stage != 'sources') { 
 	//print_r($names);
-	html_cart($db_handle, $qobjects, $sources, $names, $outputs, $cancel);
+	html_cart($db_handle, $qobjects, $sources, $names, $outputs, $stage);
 	}	
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -465,7 +466,7 @@ if ($stage == 'qbegin') {
 if ($stage == 'qset') html_query_set($db_handle, $qobjid, $qobjects, $sources, $names);
 
 # QUERY SETUP2 FOR BIOTREE AND BIOTABLE
-if ($stage == 'qset2') html_query_set2($db_handle, $qobjid, $qobjects, $sources, $names);
+//if ($stage == 'qset2') html_query_set2($db_handle, $qobjid, $qobjects, $sources, $names);
 	
 # SELECT SOURCE TO OUTPUT
 if ($stage == 'outputs') html_output_source($sources, $outputs);
@@ -519,8 +520,7 @@ if ($stage == 'finish') {
 //		}
 	
 	}
-echo "</div>";
-
+//echo "</div>";
 echo '</form>';
 #Print mytimes array
 $mytimes = add_key_val($mytimes, "end_page", microtime(TRUE));
@@ -532,6 +532,10 @@ html_entangled_bank_footer();
 
 #Close db handle
 pg_close($db_handle);
+
+#CLOSE MAIN DIV
+echo "</div>";
 echo "</body>";
+echo '</html>';
 
 ?>

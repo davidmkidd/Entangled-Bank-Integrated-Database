@@ -1,4 +1,5 @@
 @CHARSET "ISO-8859-1";
+  
   body { 
 	background-color: rgb(204, 204, 204);
 	font-family: Trebuchet MS, sans-serif;
@@ -6,7 +7,48 @@
 	margin-right: 10%; 
 	}
 
-	img { max-height: 100%;
+	div.main {
+		border: 3px groove;
+		width: 853 px;
+		padding: 5px;
+	}
+
+	#ebheader {
+		text-align: left;
+		padding: 3px;
+		border-bottom: 3px groove;
+	}
+	
+	#ebfooter {
+		clear: both;
+		border-top: 3px groove;
+		padding: 3px;
+		font-size: smaller;
+	}
+	
+	#cart {
+		padding-left: 3px;
+		border-bottom: 3px groove;
+		padding-top: 6px;
+		padding-bottom: 6px;
+	}
+	
+	div.margin5px {
+		padding-left: 3px;
+		padding-top: 6px;
+		padding-bottom: 6px;
+	}
+	
+	select.eb {
+		width: 340px;
+	}
+	
+	#invalid_taxa {
+		text-color: red;
+	}
+
+	img { 
+		max-height: 100%;
 	}
 		 
 	hr {
@@ -49,7 +91,7 @@
 	
 	
 	#name_search {
-		width: 520px;
+		width: 530px;
 	}
 	
 	#name_search_div{
@@ -77,6 +119,7 @@
 		width: 120px;
 		text-align: center;
 		vertical-align: top;
+		font-size: 14px;
 	}
 	
 	td.quicksearch {
@@ -94,12 +137,21 @@
 		vertical-align: middle;
 	}
 	
+	td.option_title_plus {
+		width: 65px;
+		vertical-align: middle;
+	}
+	
 /*	td.find_table {*/
 /*		width: 525px;*/
 /*	}*/
 	
-	td.option_title_plus {
-		width: 65px;
+	table.query_header {
+		border-bottom: 1px solid grey;
+	}
+	
+	td.query_title_plus {
+		width: 115px;
 		vertical-align: middle;
 	}
 	
@@ -110,7 +162,7 @@
 	
 	td.query_field {
 		vertical-align: middle;
-		width: 600px;
+		width: 350px;
 	}
 	
 	td.query_image {
@@ -193,13 +245,6 @@
 		width: 250px;
 	}
 	
-	#footer {
-		clear: both;
-	}
-	
-	#ebheader {
-		text-align: left;
-	}
 	
 	#queryfooter {
 		margin-left: 620px;
