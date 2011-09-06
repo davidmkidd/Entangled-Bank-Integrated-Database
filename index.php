@@ -83,7 +83,7 @@ foreach ($_POST as $key =>$value) {
 # Recover SESSION variables
 $stage = $_SESSION['stage'];					// Form Stage
 if (!$stage) $stage = 'sources';
-#echo "POST stage: $stage<br>";
+//echo "POST stage: $stage<br>";
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
@@ -94,7 +94,9 @@ $sources = $_SESSION['sources'];				//Array or sources
 if ($_SESSION['names']) $names = $_SESSION['names'];	//currently selected names
 $qobjects = $_SESSION['qobjects'];           			// Array of query objects
 # echo "session n qobjects " . count($qobjects) . "<br>";
-$qobjid = $_SESSION['qobjid'];							// The qobj to process. Is null if new query or repost				
+$qobjid = $_SESSION['qobjid'];				// The qobj to process. Is null if new query or repost				
+//echo "qobjid: " , !$qobjid, "<br>";
+$qedit_objid = $_SESSION['qedit_objid'];    // Query to be edited
 
 $qterm = $_SESSION['qterm'];               // the type of query
 $qset = $_SESSION['qset'];
@@ -122,24 +124,19 @@ $output_sid = $_SESSION['output_sid'];        // OUTPUT SOURCE
 $output_id = $_SESSION['output_id'];          // OUTPUT ID
 if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
 if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
-
-//echo "<br>";
-
 $files_to_delete = $_SESSION['files_to_delete'];
-#unset($_SESSION['format']);
-#unset($_SESSION['$outsubtree']);
-
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            PRE-FORM PROCESSING
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
-#echo "Pre-processing<br>";
-#if ($outputs) print_r($outputs);
-#echo "$stage, $qterm<br>";
+//echo "Pre-form processing: ";
+//if ($qobjects) print_r($qobjects);
+//echo "$stage, $qterm<br>";
 
-# Get Current qobjects
+# Get Current qobject
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
+//echo "***********<br>";
 #echo "output_id: $output_id, output:";
 if ($output_id) $output = get_obj($outputs, $output_id);
 #if ($output) print_r($output);
@@ -151,7 +148,6 @@ if ($stage == 'qset' && $qterm == 'find') {
 	$name_search = query_name_search($db_handle, $sources);
 	$stage = 'qbegin';
 }
-
 
 # CANCELLING A QUERY
 if ($cancel == 'yes') {
@@ -185,67 +181,39 @@ if ($stage == 'getsources') {
 
 
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
-//echo "qobjid: $qobjid<br>";
-//if ($qobjects) foreach ($qobjects as $obj) echo $obj['id'] . "; ";
-//echo "<BR>";
-if ($stage == 'qset') {
-	//echo "Old qobjid: $qobjid<br>";
-	switch (true) {
-		case ($qterm == 'qend'):
-			$stage = 'outputs';
-			break;
-		case ($qterm == 'manage'):
-			$stage = 'manage';
-			break;
-		default :
-			# GET EXISTING QOBJECT	
-			if (($qobjects && ($qobjects[count($qobjects) - 1]['status'] == 'new') || 
-				($qobjects[count($qobjects) - 1]['status'] == 'new') && $newtoken == $oldtoken)) {
-				$qobject = $qobjects[count($qobjects) - 1];
-				$qobjid = $qobject['id'];
-			}  else {
-			if (!$qobjects) $qobjects = array();
-			# CREATE NEW QOBJECT
-			$qname = get_next_name($qobjects, $qterm);
-			$qobjid = md5(uniqid());
-			$qobject = array(
-				'id' => $qobjid,
-				'term' => $qterm,
-				'name' => $qname,
-				'status' => 'new'
-				);
-			
-			# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
-			//echo $SESSION['biotree_sid'] . "<br>";
-			if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
-			if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
-			
-			//print_r($qobject);
-			//echo "<br>";
-			
-			array_push($qobjects, $qobject);
-			$_SESSION['qobjects'] = $qobjects;
-			#echo "new qobjid $qobjid<br>";
-			break;
-			}
+if ($stage == 'qset' && !$qobjid) {
+	if ($oldtoken == $newtoken) {
+		$qobject = $qobjects[count($qobjects) - 1];
+		$qobjid = $qobject['id'];
+	} else {
+		if (!$qobjects) $qobjects = array();
+		//echo "Creating new qobject<br>";
+		
+		# CREATE NEW QOBJECT
+		$qname = get_next_name($qobjects, $qterm);
+		$qobjid = md5(uniqid());
+		$qobject = array(
+			'id' => $qobjid,
+			'term' => $qterm,
+			'name' => $qname,
+			'status' => 'new'
+			);
+		
+		# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
+		if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
+		if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
+		
+		array_push($qobjects, $qobject);
+		$_SESSION['qobjects'] = $qobjects;
 	}
-	
+
 }
 
-//if ($qobjects) foreach ($qobjects as $obj) echo $obj['id'] . "; ";
-//echo "<BR>";
-
-# QSET2 - ADD SOURCE TO QUERY
-# Only for biotree and biotables as must be selected query interface
-/*if ($stage == 'qset2') {
-	$qobject = get_obj($qobjects,$qobjid);
-	//echo "qset2: adding " . $qsources[0] . "<br>";
-	$qobject['sources'] = $qsources;
-	$qobjects = save_obj($qobjects, $qobject);
-	$_SESSION['qobjects'] = $qobjects;
-	#$stage = $qobject['term'];
-	}*/
-	
+# EDIT QUERY
+if ($stage == 'qedit') {
+	$stage = 'qset';
+	$qobjid = $qedit_objid;
+}
 	
 # MANAGE - MANAGEMENT
 if ($stage == 'maction') {
@@ -290,7 +258,7 @@ if ($stage == 'maction') {
 # QVERIFY - VERIFY QUERY
 if ($stage == 'qverify') {
 	# fix for resubmission
-	#echo "Begin qverify: $qobjid<br>";
+	echo "Begin qverify: $qobjid<br>";
 	if ($qobjid && $newtoken == $oldtoken) $qobject = get_obj($qobjects, $qobjid);
 	//echo "pre-validate n qobjects " . count($qobjects) . "<br>";
 	$qobject = validate_query($db_handle, $qobject, $sources, $qsources, $names);
@@ -311,14 +279,8 @@ if ($stage == 'qverify') {
 	
 # PREPARE AND EXECUTE A QUERY
 if ($stage == 'query') {
-	//$qobjects = $_SESSION['qobjects'];
-	//$qobject = get_obj($qobjects, $qobjid);
-	# FIX for resubmission of first query
-	//echo count($names) . ", " . count($qobjects) . " before fix<br>";
+	//echo "Begin query<br>";
 	if (count($qobjects) == 1) $names = null;
-	//echo count($names) . " after fix<br>";
-	# QUERY
-	//echo "pre-query n qobjects " . count($qobjects) . "<br>";
 	$out = query($db_handle, $qobject, $qobjects, $names, $sources);
 	//print_r($out);
 	$qobject = $out[0];
@@ -331,6 +293,7 @@ if ($stage == 'query') {
 	unset ($_SESSION['qobjid']);
 	#echo "post-query n qobjects " . count($qobjects) . "<br>";
 	//echo count($_SESSION['mids']) . " mids<br>";
+	//echo "End query<br>";
 	}
 	
 # NEW OUTPUT
@@ -424,7 +387,7 @@ if ($outputs) $_SESSION['outputs'] = $outputs;
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            SHOPPING CART
 # ---------------------------------------------------------------------------------------------------------------------------------------------
-
+//echo "pre-cart stage: $stage<br>";
 if ($stage != 'finish' && $stage != 'sources') { 
 	//print_r($names);
 	html_cart($db_handle, $qobjects, $sources, $names, $outputs, $stage);
@@ -453,18 +416,21 @@ if ($stage == 'sources') {
 #MANAGE QUERIES
 if ($stage == 'manage') {
 	$stage = html_manage($qobjects, $qmanage_err);
-	echo "<input type = 'hidden' name ='stage' value='maction'>";
+	echo "<input id='stage' type='hidden' name ='stage' value='maction'>";
 }	
 
 # NEW QUERY
 if ($stage == 'qbegin') {
 	html_query_type($db_handle, $qobjects, $sources, $names, $name_search);
-	echo "<input type = 'hidden' name ='stage' value='qset'>";
+	echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
 	}
 	//print_r($qobjects);
 # QUERY SETUP
-if ($stage == 'qset') html_query_set($db_handle, $qobjid, $qobjects, $sources, $names);
-
+if ($stage == 'qset') {
+	echo "<div id='ebtool'>";
+	html_query_set($db_handle, $qobjid, $qobjects, $sources, $names);
+	echo "</div>";
+}
 # QUERY SETUP2 FOR BIOTREE AND BIOTABLE
 //if ($stage == 'qset2') html_query_set2($db_handle, $qobjid, $qobjects, $sources, $names);
 	

@@ -41,42 +41,59 @@ HTTP.newRequest = function() {
 function findNodes() {
 	// Adds search returns to tree select box
 	
-	var treeitems = document.getElementById('tree_items');
+	var tree_items = document.getElementById('tree_items');
 	var findval = document.getElementById('findval');
 	var tree_id = document.getElementById('tree_id');
-	//alert("tree: " + tree_id.value + " findval: " + findval.value);
-	url = "http://localhost/entangled-bank/api/treelabels.php?tree=" + tree_id.value + "&query=" + findval.value;
-	//alert(url);
-	//var xmldoc = XML.newDocument();
-	//xmldoc.async = false;
-	//xmldoc.load(url);
+	var nodefilter = document.getElementsByName('nodefilter');
 	
-	var request = new XMLHttpRequest();
-	request.open("GET", url , false);
-	request.send(null);
+	var str = '';
 	
-	//alert(request.status);
-	if (request.status != 200) {
-		alert("Error " + request.status + ": " + request.statusText);
-	} else {
-		//alert(eval(request.responseText));
-		//var myObj = JSON.parse()
-		var data = request.responseText;
-		//alert(data.substring(1));
-		data = data.substring(1);
-		data = data.substring(1, data.length - 1);
-		var labels = data.split(',');
-		//alert(labels.length);
-		for (var i = 0; i <= labels.length - 1; i++) {
-			//alert(labels[i]);
-			label = labels[i].replace(/["']{1}/gi,"");
-			//alert(label);
-			tree_items.options[i] = new Option(label, label);
+	var n = 0;
+	for (var i = 0; i <= nodefilter.length - 1; i++) {
+		if (nodefilter[i].checked == true) {
+			str = str + nodefilter[i].value + '+';
+			n++;
 		}
-		//alert(request.responseText);
-		
 	}
 	
+	//alert(n);
+	
+	if (n == 0) {
+		alert('Find filter excluding all node type! Check one type at least.');
+	} else {
+		var str2 = str.substring(0, str.length-1);	
+		url = "http://localhost/entangled-bank/api/treelabels.php?tree=" + tree_id.value + 
+		"&query=" + findval.value + "&filter=" + str2;
+	
+		//alert(url);
+		
+		var request = new XMLHttpRequest();
+		request.open("GET", url , false);
+		request.send(null);
+		
+		//alert(request.status);
+		if (request.status != 200) {
+			alert("Error " + request.status + ": " + request.statusText);
+		} else {
+			tree_items.options.length = 0;
+			//alert(eval(request.responseText));
+			//var myObj = JSON.parse()
+			var data = request.responseText;
+			//alert(data.substring(1));
+			data = data.substring(1);
+			data = data.substring(1, data.length - 1);
+			var labels = data.split(',');
+			//alert(labels.length);
+			for (var i = 0; i <= labels.length - 1; i++) {
+				//alert(labels[i]);
+				label = labels[i].replace(/["']{1}/gi,"");
+				//alert(label);
+				tree_items.options[i] = new Option(label, label);
+			}
+			
+		}
+	}
+
 }
 
 

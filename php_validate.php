@@ -6,7 +6,7 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 	
 	unset ($qobject['errs']);
 	$term = $qobject['term'];
-	#echo "Validate, term = $term<br>";
+	//echo "Validate, term = $term<br>";
 //	echo print_r($qobject) . "<br>";
 	# NUMBER OF SOURCES
 	//print_r($qsources);
@@ -45,8 +45,8 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
     
 	# NAMES QUERY
 	if ($term == 'bionames' || $term == 'biotree') {
-//		echo "taxa:<br>";
-//		print_r($_SESSION['taxa']);
+		//echo "taxa: " , $_SESSION['taxa'] , "<br>";
+		//print_r($_SESSION['taxa']);
 		$qobject = add_taxa_to_query($qobject);
 		if ($_SESSION['allnames']) {
 			if ($_SESSION['allnames'] == 'on') {
@@ -69,15 +69,27 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 	# Tree keys
 	if ($term == 'biotree') {
 		$qobject = add_key_val($qobject, 'subtree', $_SESSION['subtree']);
-		$qobject = add_key_val($qobject, 'treenodes', $_SESSION['treenodes']);
+//		print_r($_SESSION['treenodes']);
+//		echo "<br>";
+		switch (true) {
+			case ($_SESSION['treenodes'][0] == 'tip' && $_SESSION['treenodes'][1] == 'internal'):
+				$qobject['treenodes'] = 'all';
+				break;
+			case ($_SESSION['treenodes'][0] == 'tip'):
+				$qobject['treenodes'] = 'tip';
+				break;
+			case ($_SESSION['treenodes'][0] == 'internal'):
+				$qobject['treenodes'] = 'internal';
+				break;
+		}
 	}
 
-	
 	# Geographic keys
 	if ($term == 'biogeographic') {
 		$qobject['s_operator'] = $_SESSION['s_operator'];
 		$qobject['q_geometry'] = $_SESSION['q_geometry'];
 		}
+		
 	#Temporal keys
 	if ($term == 'biotemporal') {
 		$qobject = add_key_val($qobject, 't_overlay', $_SESSION['t_overlay']);
@@ -130,9 +142,9 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 		$qobject['status'] = 'invalid';
 	}
 	
-/*	echo " - validation finished<br>";;
-	print_r($qobject);
-	echo "<br>";*/
+	//echo " - validation finished<br>";;
+	//print_r($qobject);
+	//echo "<br>";
 	
 	return $qobject;
 	

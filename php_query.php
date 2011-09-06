@@ -536,6 +536,7 @@
 		$subtree = $qobject['subtree'];
 		# There is no subtree in a names query
 		If (!$subtree) $subtree = 'all';
+		//print_r($qobject['treenodes']);
 		$treenodes = $qobject['treenodes'];
 		$tree_id = $source['tree_id'];
 		
@@ -561,7 +562,6 @@
 				if (!$not) {
 					switch ($treenodes) {
 						case 'all':
-
 							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
 							break;
 						case 'tip':
@@ -591,6 +591,11 @@
 						}
 					}
 				break;
+				
+			case 'lca':
+				$str = $str . " SELECT biosql.pdb_lca($tree_id, $names_array) AS bioname";
+				break;
+				
 			case "selected":
 				if (!$not) {
 					switch ($treenodes) {

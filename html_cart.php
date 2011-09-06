@@ -101,6 +101,10 @@ function html_cart_query($qobjects, $sources) {
 	
 	function html_cart_queries($qobjects) {
 		
+		echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
+		
+		echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
+		
 		$c = 0;
 		//print_r($qobjects);
 		if ($qobjects) {
@@ -109,14 +113,17 @@ function html_cart_query($qobjects, $sources) {
 					# FIRST QUERY
 					if ($qobject['status'] !== 'new') {
 						$name = $qobject['name'];
-						html_query_image($qobject,50, $name);
+						$id = $qobject['id'];
+						echo "<a href='javascript: editQuery(\"$id\")'>";
+						html_query_image($qobject,40, $name);
+						echo "</a>";
 					}
 				} else {
 					# SUBSEQUENT QUERY
 					if ($qobject['status'] == 'valid') {
 						echo "&nbsp;", $qobject['queryoperator'], "&nbsp;";
 						$name = $qobject['name'];
-						html_query_image($qobject,50, $name);
+						html_query_image($qobject,40, $name);
 					}
 				}
 			$c++;
