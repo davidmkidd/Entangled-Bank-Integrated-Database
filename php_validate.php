@@ -6,7 +6,7 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 	
 	unset ($qobject['errs']);
 	$term = $qobject['term'];
-	//echo "Validate, term = $term<br>";
+	#echo "Validate, term = $term<br>";
 //	echo print_r($qobject) . "<br>";
 	# NUMBER OF SOURCES
 	//print_r($qsources);
@@ -142,7 +142,7 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 		$qobject['status'] = 'invalid';
 	}
 	
-	//echo " - validation finished<br>";;
+	#echo " - validation finished<br>";;
 	//print_r($qobject);
 	//echo "<br>";
 	
@@ -253,7 +253,7 @@ function validate_bionames($db_handle, $qobject, $sources) {
 	
 function validate_biotable($db_handle, $qobject, $sources, $names)  {
 	
-	echo "begin validate table<br>";
+	//echo "begin validate table<br>";
 
 	// Generates query from html_table_query entrie
 	if ($qobject['errs']) unset ($qobject['errs']);
@@ -264,6 +264,10 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 	$queries = array();
 	$qfields = array();            //fields in query
 	$fnames = array();
+	
+	//print_r($fields);
+	//echo "<br>;";
+	
 	
 	foreach($fields as $field) array_push($fnames, $field['fname']);
 	
@@ -276,14 +280,18 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 		$val = in_array($keyfield, $fnames);
 		if ($keysuffix == 'query' && $value == 'on' && $val == 1) array_push($qfields, $keyfield);
 	}
-		
+	
+	
 	// Process qfields
 	if (!empty($qfields)) {
 		foreach ($qfields as $qfield) {
-			//echo "field $qfield<br>";
+			
 			//$i = array_search($qfield, $fields);
-			$field = get_field($qfield,$fields);
+			$field = get_field($qfield, $fields);
 			$dtype = $field['dtype'];
+			$lookup = $field['flookup'];
+			
+			///echo "field: $qfield, $dtype<br>";
 			
 			switch ($dtype) {
 				case 'rangefield':
@@ -302,6 +310,7 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 					break;
 				case 'lookupfield':
 				case 'namefield':
+				case 'catagoryfield':
 					$field = $qfield . "_add";
 					$values = $_SESSION[$field];
 					$ops = array_fill(0, count($values), '=');
@@ -311,8 +320,8 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 				case 'lookuptable':
 					$field = $qfield . "_add";
 					$values = $_SESSION[$field];
-					$ops = array_fill(0, count($values) - 1, '=');
-					$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values);
+					$ops = array_fill(0, count($values), '=');
+					$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'lookup'=>$lookup);
 					array_push($queries, $query);
 					break;
 				case 'groupfield':
@@ -323,6 +332,7 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 					array_push($queries, $query);				
 					break;
 			}
+		
 		}
 		$qobject['queries'] = $queries;	
 	} else {
@@ -331,9 +341,11 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 		$qobject = add_key_val($qobject, 'errs', $errs);
 		return $qobject;
 	}
-	echo "End table validate<br>";
-//	print_r($qobject);
-//	echo "<br>";
+	
+	//print_r($queries);
+	//echo "<br>";
+	//echo "End table validate<br>";
+
 	return $qobject;
 	
 }
@@ -588,7 +600,8 @@ function add_taxa_to_query ($qobject) {
 	
 	//echo "SESSION['taxa']" .  $_SESSION['taxa'] . "<br>";
 	$taxa = $_SESSION['taxa'];
-	unset($_SESSION['taxa']);
+	//unset($_SESSION['taxa']);
+	//print_r($taxa);
 	$names = array();
 	
 	if (!empty($taxa)) {
@@ -611,7 +624,7 @@ function add_taxa_to_query ($qobject) {
 	$names = remove_array_empty_values($names, true);
 	
 	# Add to qobject
-	if ($qobject['taxa']) unset($qobject['taxa']);
+	//if ($qobject['taxa']) unset($qobject['taxa']);
 	$qobject['taxa'] = $names;
 	return $qobject;
 }

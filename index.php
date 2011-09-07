@@ -48,8 +48,8 @@ echo '</head>';
 #END HEAD
 
 #BODY
-
-echo '<body>';
+echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
+echo "<body onload='loadScript()'>";
 echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, true);
 
@@ -136,12 +136,11 @@ $files_to_delete = $_SESSION['files_to_delete'];
 
 # Get Current qobject
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
-//echo "***********<br>";
-#echo "output_id: $output_id, output:";
 if ($output_id) $output = get_obj($outputs, $output_id);
-#if ($output) print_r($output);
+
+#echo "output_id: $output_id, output:";#if ($output) print_r($output);
 #echo "<br>";
-# echo "after get current qobject<br>";
+#echo "after get current qobject<br>";
 
 # NAME SEARCH
 if ($stage == 'qset' && $qterm == 'find') {
@@ -258,7 +257,7 @@ if ($stage == 'maction') {
 # QVERIFY - VERIFY QUERY
 if ($stage == 'qverify') {
 	# fix for resubmission
-	echo "Begin qverify: $qobjid<br>";
+	//echo "Begin qverify: $qobjid<br>";
 	if ($qobjid && $newtoken == $oldtoken) $qobject = get_obj($qobjects, $qobjid);
 	//echo "pre-validate n qobjects " . count($qobjects) . "<br>";
 	$qobject = validate_query($db_handle, $qobject, $sources, $qsources, $names);
@@ -266,13 +265,11 @@ if ($stage == 'qverify') {
 	if ($qobject['status'] == 'valid') {
 		$stage = 'query';
 	} else {
-		if ($qobject['term'] == 'biotree' || $qobject['term'] == 'biotable')  {
-			$stage = 'qset2';
-		} else {
-			$stage = 'qset';
-		}
+		$stage = 'qset';
 	}
 	$qobjects = save_obj($qobjects, $qobject);
+	//print_r($qobjects);
+	//echo "<br>";
 	$_SESSION['qobjects'] = $qobjects;
 }
 

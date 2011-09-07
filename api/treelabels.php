@@ -16,13 +16,16 @@
 			AND label LIKE '%$qstr%'";
 	} else {	
 		
-		$filters = explode('+', $filter);
+		$filters = explode(' ', $filter);
 		$arr = array_to_postgresql($filters, 'text');
 		$str = "SELECT biosql.pdb_tree_type($tree_id)";
 		$res = pg_query($db_handle, $str);
 		$row = pg_fetch_row($res);
-		//echo "$row[0]<br>";
-		switch ($row[0]) {
+		$type = $row[0];
+		//echo "$filter<br>";
+		//print_r($filters);
+		//echo in_array('tip', $filters) && in_array('internal', $filters), "<br>";
+		switch ($type) {
 			case 'phylogeny':
 				switch (true) {
 					case (in_array('tip', $filters) && in_array('internal', $filters)):
@@ -31,6 +34,7 @@
 							WHERE tree_id = $tree_id
 							AND label LIKE '%$qstr%'";
 						break;
+						
 					case (in_array('tip', $filters)):
 						$str = "SELECT label
 							FROM biosql.node 
@@ -46,6 +50,7 @@
 							AND label LIKE '%$qstr%'
 							AND right_idx-left_idx <> 1";
 						break;
+					
 				}
 				break;
 				
@@ -58,15 +63,15 @@
 					AND label LIKE '%$qstr%'
 					AND tm.name = ANY($arr)";
 				break;
+				
+				default: $str = "Unknown type";
 		}
 		
 	}
 
-	
 	$res = pg_query($db_handle, $str);
 	$labels = pg_fetch_all_columns($res);
-	$first = true;
-	
+	//echo "$labels<br>";
 	echo json_encode($labels);
 
 

@@ -115,7 +115,7 @@ function html_cart_query($qobjects, $sources) {
 						$name = $qobject['name'];
 						$id = $qobject['id'];
 						echo "<a href='javascript: editQuery(\"$id\")'>";
-						html_query_image($qobject,40, $name);
+						html_query_image($qobject, 40 , $name);
 						echo "</a>";
 					}
 				} else {

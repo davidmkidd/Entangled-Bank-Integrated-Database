@@ -54,10 +54,11 @@
         map.zoomToExtent(bounds.transform(wgs84, map.getProjectionObject()));
     }
     
-    function serialize_layer() {
+    function serializeLayer() {
     	// checks form validity and if OK serialises geometries
     	//alert(document.getElementById('cancel_yes').checked);
-    	if (document.getElementById('cancel_yes').checked == true) return true;
+    	//alert("!");
+    	//if (document.getElementById('cancel_yes').checked == true) return true;
     	
     	// Have any geometries been added?
     	if (vectors.features.length == 0) {

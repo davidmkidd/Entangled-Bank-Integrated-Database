@@ -76,20 +76,21 @@ function findNodes() {
 			alert("Error " + request.status + ": " + request.statusText);
 		} else {
 			tree_items.options.length = 0;
-			//alert(eval(request.responseText));
-			//var myObj = JSON.parse()
 			var data = request.responseText;
 			//alert(data.substring(1));
-			data = data.substring(1);
-			data = data.substring(1, data.length - 1);
-			var labels = data.split(',');
-			//alert(labels.length);
-			for (var i = 0; i <= labels.length - 1; i++) {
-				//alert(labels[i]);
-				label = labels[i].replace(/["']{1}/gi,"");
-				//alert(label);
-				tree_items.options[i] = new Option(label, label);
+			if (data !== '[]') {		
+				data = data.substring(1);
+				data = data.substring(1, data.length - 1);
+				var labels = data.split(',');
+				//alert(labels.length);
+				for (var i = 0; i <= labels.length - 1; i++) {
+					//alert(labels[i]);
+					label = labels[i].replace(/["']{1}/gi,"");
+					//alert(label);
+					tree_items.options[i] = new Option(label, label);
+				}
 			}
+
 			
 		}
 	}

@@ -17,13 +17,13 @@ Info-Windows
 
 Query
 	General
-	- edit mode
 	- NULLs and NOT
 	- htmlspecialchars on database text fields in select boxes
 	- tool tips
 	- validation
 	- remove reset
 	- errs objects v javascript
+	- query types clean up
 	Get sources
 	 - sort list_sources by (table, geographic, tree, relational)
 	Cart
@@ -36,6 +36,8 @@ Query
 	- what happens when features cross a boundary?
 	Tree
 	- < IE7 XMLHttpRequest
+	Table
+	- Set query in edit mode
 	
 Output
 	General
