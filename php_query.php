@@ -146,7 +146,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		echo "query: $str<br>";
+		//echo "query: $str<br>";
 		$res = pg_query($db_handle, $str);
 		$outnames = pg_fetch_all_columns($res, 0);
 		
@@ -748,56 +748,56 @@ return $qobject;
 		$s_col = $source['spatial_column'];
 		$q_geometry = $qobject['q_geometry'];
 		$dbloc = $source['dbloc'];
-			
 		# POSTGIS FUNCTION
-		switch ($s_operator) {
-			case 'quickoverlap':
-				$s_op = "&&";
-				break;
-			case 'overlap':
-				$s_op = "ST_Intersects";
-				break;
-			case 'within':
-				$s_op = "ST_Contains";
-				break;
-			default:
-				echo "php_query: spatial operator $s_operator not supported";
-				break;
-		}
-		
-		
-		
-		# Query
+		$s_op = get_s_operator($s_operator);
+
+		# QUERY
 		if ($source['id'] == 26 || $source['id'] == 27) {
-			if ($s_operator <> 'quickoverlap') {
-				$str = $str . " SELECT DISTINCT t.binomial AS bioname";
-				$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l ";
-				$str = $str . " INNER JOIN (";
-				$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
-				$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
-				$str = $str . " WHERE t.\"TaxonID\" = m.\"TaxonID\"";
-				$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
-				$str = $str . " AND t.binomial IS NOT NULL";
-			} else {
-				$str = $str . " SELECT DISTINCT t.binomial AS bioname ";
-				$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l ";
-				$str = $str . " WHERE l.$s_col && (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom";
-				$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
-				$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
-				$str = $str . " AND t.binomial IS NOT NULL";
+			# GPDD
+			switch ($s_operator) {
+				case 'quickoverlap':
+				case 'quickwithin':
+					$str = $str . " SELECT DISTINCT t.binomial AS bioname ";
+					$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l,";
+					$str = $str . " (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
+					$str = $str . " WHERE l.$s_col::geometry $s_op geom::geometry";
+					$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
+					$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
+					$str = $str . " AND t.binomial IS NOT NULL";					
+					break;
+					
+				case 'overlap':
+				case 'within':
+					$str = $str . " SELECT DISTINCT t.binomial AS bioname";
+					$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l ";
+					$str = $str . " INNER JOIN (";
+					$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
+					$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
+					$str = $str . " WHERE t.\"TaxonID\" = m.\"TaxonID\"";
+					$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
+					$str = $str . " AND t.binomial IS NOT NULL";
+					break;				
 			}
 		} else {
-			if ($s_operator <> 'quickoverlap') {
-				$str = $str . " SELECT " . $source['namefield'] . " AS bioname";
-				$str = $str . " FROM " . $source['dbloc'] . " s INNER JOIN (";
-				$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
-				$str = $str . " ON $s_op(v::geometry, s.$s_col::geometry)";
-				$str = $str . " WHERE s." . $source['namefield'] . " IS NOT NULL";
-			} else {
-				$str = $str . " SELECT " . $source['namefield'] . " AS bioname";
-				$str = $str . " FROM " . $source['dbloc'] . " s";
-				$str = $str . " WHERE s.$s_col && (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom";
-				$str = $str . " AND s." . $source['namefield'] . " IS NOT NULL";
+			# Not GPDD
+			switch ($s_operator) {
+				case 'quickoverlap':
+				case 'quickwithin':	
+					$str = $str . " SELECT DISTINCT " . $source['namefield'] . " AS bioname";
+					$str = $str . " FROM " . $source['dbloc'] . " s, ";
+					$str = $str . " (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
+					$str = $str . " WHERE s.$s_col::geometry $s_op geom::geometry = 't'";					
+					break;
+					
+				case 'overlap':
+				case 'within':
+					// !!!!!!!!!!!CHECK RESULTS WITH GEOMETRY COLLECTION!!!!!!!!!!!
+					$str = $str . " SELECT " . $source['namefield'] . " AS bioname";
+					$str = $str . " FROM " . $source['dbloc'] . " s INNER JOIN (";
+					$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
+					$str = $str . " ON $s_op(v::geometry, s.$s_col::geometry)";
+					$str = $str . " WHERE s." . $source['namefield'] . " IS NOT NULL";
+					break;
 			}
 		}
 		
@@ -812,12 +812,13 @@ return $qobject;
 	
 	function query_biogeographic_series($qobject, $sql) {
 		
-		echo "Begin biogeographic_series query<br>";
+		//echo "Begin biogeographic_series query<br>";
 
 		//print_r($qobject);
 		
 		$qsources = $qobject['sources'];
 		$s_operator = $qobject['s_operator'];
+		$s_op =get_s_operator ($s_operator); 
 		$s_col = $source['spatial_column'];
 		$q_geometry = $qobject['q_geometry'];
 		$dbloc = $source['dbloc'];
@@ -829,22 +830,6 @@ return $qobject;
 		}
 		
 		if ($both == true) $str = $str . " SELECT DISTINCT mid FROM (";
-		//echo "s_operator: $s_operator<br>";
-		# POSTGIS FUNCTION
-		switch ($s_operator) {
-			case 'quickoverlap':
-				$s_op = "&&";
-				break;
-			case 'overlap':
-				$s_op = "ST_Intersects";
-				break;
-			case 'within':
-				$s_op = "ST_Contains";
-				break;
-			default:
-				echo "php_query: spatial operator $s_operator not supported";
-				break;
-		}
 			
 		if (in_array(26, $qsources)) {
 			$sql = $sql . " SELECT m.\"MainID\" AS mid";
@@ -855,7 +840,6 @@ return $qobject;
 			$str = $str . "	AND m.\"TaxonID\" = t.\"TaxonID\"";
 			$str = $str . "	AND t.binomial IS NOT NULL";
 		}
-
 			
 		if ($both == true) $sql = $sql . " UNION ALL";
 			
@@ -1017,25 +1001,16 @@ return $qobject;
 		}
 		if($run == false) return $qobject;
 		
-		//RUN QUERY
-		//echo "run series query<br>";
-		//$npts = 0;           // number of series points
-		//echo "<br>running" . $qobject['name'] . ": " . $qobject['status'] . "<br>";
-		//print_r($qobject);
-		
 		$mids = query_get_mids($qobjects);
-		#echo "get-mids " . count($mids) . "<br>";
-		# REPOST
-		#echo "get-mids " . count($mids) . "<br>";
 		if ($mids && ($_SESSION['token'] == $_POST['token'])) {
 			if (count($qobjects) == 1) {
 				unset ($mids);
 			} else {
 				$mids = $qobjects[count($qobjects) - 2]['series'];
 			}
-			#echo "repost mids " . count($mids) . "<br>";
+
 		}
-		//echo count($names) . " + " . count($mids) . "<br>";
+		
 		if ($mids) $midsarr = array_to_postgresql($mids, 'numeric');
 		if ($names) $arr = array_to_postgresql($names, 'text');		
 		
@@ -1048,6 +1023,7 @@ return $qobject;
 		} else {
 			$term = $qobject['term'];
 			#echo $qobject['term'] . "<br>";
+			
 			switch ($term){
 				case 'biotree':
 				case 'biotable':
@@ -1060,43 +1036,62 @@ return $qobject;
 					# MainIDs
 					#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
 					break;
+					
 				case 'biogeographic':
 					$qsources = $qobject['sources'];
-					$s_overlay = $bbox['s_overlay'];
-					// Bbox
-					$bbox = $qobject['bbox'];
-					$north = $bbox['bbnorth'];
-					$south = $bbox['bbsouth'];
-					$east = $bbox['bbeast'];
-					$west = $bbox['bbwest'];
-					# if(in_array(26, $qsources) || in_array(27, $qsources)) {
-						 if ($west <= $east) {
-							$polygon = "'srid=4326;POLYGON(($west $south, $west $north, $east $north, $east $south, $west $south))'::geometry";
-						} else {
-							$polygon = "'srid=4326;POLYGON(($west $south, $west $north, 180 $north, 180 $south, $west $south),
-								(-180 $south, -180 $north, $east $north, $east $south, -180, $south))'::geometry";
-						}
-						# SELECT
-						$str = "SELECT m.\"MainID\"
-							FROM gpdd.main m, gpdd.location_pt p, gpdd.location_bbox b, gpdd.taxon t
-							WHERE m.\"TaxonID\" = t.\"TaxonID\" 
-							AND m.\"LocationID\" = p.\"LocationID\"
-							AND m.\"LocationID\" = b.\"LocationID\"";
-						# GPDD POINTS
-						if (in_array(26, $qsources)) $str = $str . " AND ST_Intersects(p.the_geom::geometry, $polygon)";
-						# GPDD BBOX
-						if (in_array(27, $qsources)) {
-							if ($s_overlay == 'within') {
-								$str = $str . " AND ST_Within(b.the_geom::geometry, $polygon)";
-							} else {
-								$str = $str . " AND ST_Intersects(b.the_geom::geometry, $polygon)";
+					$s_operator = $qobject['s_operator'];
+					$s_op = get_s_operator($s_operator);
+					$q_geometry = $qobject['q_geometry'];
+
+
+					# SELECT
+					$str = "SELECT m.\"MainID\"
+						FROM gpdd.main m,";
+					if (in_array(26, $qsources)) $str = $str . " gpdd.location_pt p,";		
+					if (in_array(27, $qsources)) $str = $str . " gpdd.location_bbox b,";
+					$str = $str . " gpdd.taxon t";
+					$str = $str . ", (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
+					
+					$str = $str . "WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+					if (in_array(26, $qsources)) $str = $str . " AND m.\"LocationID\" = p.\"LocationID\"";
+					if (in_array(27, $qsources)) $str = $str . " AND m.\"LocationID\" = b.\"LocationID\"";
+					
+					
+					switch ($s_operator) {
+						case 'quickoverlap':
+						case 'quickwithin':
+							if (in_array(26, $qsources)) {
+								$source = get_obj($sources, 26);
+								$str = $str . " AND p." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
 							}
-						}	
-						# MainIDs
-						#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
-						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-					# }
+							if (in_array(26, $qsources)) {
+								$source = get_obj($sources, 27);
+								$str = $str . " AND p." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
+							}
+							break;
+							
+						case 'overlap':
+						case 'within':
+							if (in_array(26, $qsources)) {
+								$source = get_obj($sources, 26);
+								$str = $str . " AND $s_op(p." . $source['spatial_column'] . "::geometry, geom::geometry)";
+							}
+							if (in_array(27, $qsources)) {
+								$source = get_obj($sources, 26);
+								$str = $str . " AND $s_op(p." . $source['spatial_column'] . "::geometry, geom::geometry)";
+							}
+							break;				
+					}
+					
+					$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
+					$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
+					$str = $str . " AND t.binomial IS NOT NULL";	
+	
+					# MainIDs
+					#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
+					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 					break;
+					
 				case 'biotemporal':
 					$t_overlay = $qobject['t_overlay'];
 					$from_dtime = $qobject['from_dtime'];
@@ -1150,12 +1145,10 @@ return $qobject;
 				break;
 			}   #term
 		}
-		//echo "$str<br>";
+		//echo "series query: $str<br>";
 		$res = pg_query($str);
 		$ids = pg_fetch_all_columns($res, 0);
-		#echo count($ids) . " ids<br>";
-		#$qobject['sql_eb_series'] = $str;
-		#$qobject['series_eb'] = $ids;
+
 
 		# INTERQUERY OPERATOR
 		
@@ -1163,39 +1156,23 @@ return $qobject;
 			$mids = $ids;                          #first mids query
 		} else {
 			$op = $qobject['queryoperator'];
-			//echo "$op<br>";
 			switch ($op) {
 				case 'UNION':
-					#echo "<br>!UNION!";
-					#echo count(array_values(array_unique(array_merge($mids, $ids))));
 					 if ($ids) $mids = array_values(array_unique(array_merge($mids, $ids)));
 					break;
 				case 'MINUS':
-					#echo "<br>!!MINUS!!";
-					#echo count(array_values(array_diff($mids, $ids)));
 					if ($ids) $mids = array_values(array_diff($mids, $ids));
 					break;
 				case 'INTERSECT';
-					#echo "<br>!!!INTERSECT!!!";
-					#echo count(array_values(array_intersect($mids, $ids)));
 					if ($ids) $mids = array_values(array_intersect($mids, $ids));
 					break;
 			}
 		}		
 		
-
-	//print_r($mids);
 	$sql = "$sql $op $str";
-	#echo "before query_add_series_sql<br>";
+
 	$qobject = query_add_series_sql($qobject,$qobjects, $sources);
-	#echo "after query_add_series_sql<br>";
-	#print_r($qobject);
 	$qobject['series'] = $mids;
-	//print_r($mids) . "<br>";
-	//$qobject['sql_series'] = $sql;	
-	
-	#echo "end query series <br>";
-	#print_r($qobject);
 	return $qobject;
 	}
 
@@ -1205,7 +1182,7 @@ return $qobject;
 	function query_series_names($db_handle, $qobjects, $names, $sources) {
 		
 		# STRIPS $names without mids
-		#echo "begin query_series_names<br>";
+
 		$mids = query_get_mids($qobjects);
 		# REPOST FIX
 		if ($mids && ($_SESSION['token'] == $_POST['token'])) unset ($mids);
@@ -1222,21 +1199,15 @@ return $qobject;
 					";
 				if ($names_arr) $str = $str . " AND t.binomial = ANY($names_arr )";
 			}
-			#echo "str: $str<br>";
 			$res = pg_query($db_handle, $str);
 			$outnames = pg_fetch_all_columns($res, 0);
-			#$sql = $qobject['sql'];
-			#$sql = "SELECT bioname FROM ( $sql INTERSECT $str) as bioname";
-			#$qobject['sql']= $sql;		
-			#echo "sql: $sql<br>";
-			//print_r($names);
 		} else {
 			$outnames = $names;
 		}
-		//print_r($out);
-		#echo "end query_series_names<br>";
 		return ($outnames);
+		
 	}
+	
 	#=================================================================================================================
 
 function query_get_mids($qobjects) {
@@ -1316,7 +1287,31 @@ function query_name_search($db_handle, $sources) {
 }
 
 # ====================================================================================================
-	
-	
+
+function get_s_operator($s_operator) {
+		
+	# Returns POSTGIS FUNCTION
+		switch ($s_operator) {
+			case 'quickoverlap':
+				$s_op = "&&";
+				break;
+			case 'quickwithin':
+				$s_op = "~-";
+				break;
+			case 'overlap':
+				$s_op = "ST_Intersects";
+				break;
+			case 'within':
+				$s_op = "ST_Contains";
+				break;
+			default:
+				echo "php_query: spatial operator $s_operator not supported";
+				$s_op = null;
+				break;
+		}
+	return $s_op;
+}
+					
+# ====================================================================================================
 	
 ?>

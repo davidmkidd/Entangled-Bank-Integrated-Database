@@ -573,6 +573,7 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	
 	echo '<script src="http://openlayers.org/api/OpenLayers.js" type="text/javascript"></script>';
+	//echo '<script src="./OpenLayers-2.11-rc4/OpenLayers.js" type="text/javascript"></script>';
 	echo '<script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>';
 	echo '<script src="./scripts/geographic_utils.js" type="text/javascript"></script>';
 	
@@ -599,7 +600,7 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
     echo '<script type="text/javascript" defer="true">
      	mapinit();
      	</script>';
-
+	echo "<p>Google Map content &copy; Google, TeleAtlas and their suppliers<p>";
 	
     # BOUNDING BOX
 	 echo "<table border='0'>";
@@ -626,19 +627,24 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	echo "<td>";
 	echo "<select name='s_operator'>";
 	if (!$s_operator || $s_operator == 'quickoverlap') {
-		echo "<option value='quickoverlap' SELECTED>Bounding Box Overlap</option>";
+		echo "<option value='quickoverlap' SELECTED>Quick Overlap (by bounding box)</option>";
 	} else {
-		echo "<option value='quickoverlap'>Bounding Box Overlap</option>";
+		echo "<option value='quickoverlap'>Quick Overlap (by bounding box)</option>";
+	}
+	if ($s_operator == 'quickwithin') {
+		echo "<option value='quickoverlap'>Quick Within (by bounding box)</option>";
+	} else {
+		echo "<option value='quickoverlap'>Quick Within (by bounding box)</option>";
 	}
 	if ($s_operator == 'overlap') {
-		echo "<option value='overlap' SELECTED>Full Overlap</option>";
+		echo "<option value='overlap' SELECTED>Accurate Overlap (of query features)</option>";
 	} else {
-		echo "<option value='overlap'>Full Overlap</option>";
+		echo "<option value='overlap'>Accurate Overlap (of query features)</option>";
 	}
 	if ($s_operator == 'within') {
-		echo "<option value='within' SELECTED>Within</option>";
+		echo "<option value='within' SELECTED>Accurate Within (of query polygons)</option>";
 	} else {
-		echo "<option value='within'>Within</option>";
+		echo "<option value='within'>Accurate Within (of query polygons)</option>";
 	}
 	echo "</select>";
 	echo "</td>";
