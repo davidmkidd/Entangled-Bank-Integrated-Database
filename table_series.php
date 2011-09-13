@@ -22,7 +22,7 @@ echo "<title>Series Table</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #BODY
-
+echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
 $qobjects = $_SESSION['qobjects'];
@@ -39,7 +39,7 @@ if ($names) {
 }
 //echo $qobjects[count($qobjects) - 2]['series_sql'] . "<br>";
 
-echo "<img src='shoppingCartIcon.gif' alt='Shopping Cart' />";
+echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
 echo "- $c time series<br>";
 
@@ -95,7 +95,9 @@ html_arr_to_table($mat);
 echo "<br>";
 
 html_entangled_bank_footer();
-
+echo "</div>";
+echo "</body>";
+echo '</html>';
 	
 ?>
 

@@ -20,10 +20,10 @@ echo "<title>Series SQL</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #BODY
-
+echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
-echo "<img src='shoppingCartIcon.gif' alt='Shopping Cart' />";
+echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
 echo "- Series SQL<br><br>";
 
@@ -44,10 +44,12 @@ if($qobjects && !empty($qobjects)){
 	}
 }
 	
-echo "<textarea readonly='readonly' rows='25' cols='100'>$str</textarea>";
+echo "<textarea readonly='readonly' rows='25' cols='103'>$str</textarea>";
 
 echo "<br>";
 html_entangled_bank_footer();
-	
+echo "</div>";
+echo "</body>";
+echo '</html>';
 ?>
 

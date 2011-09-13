@@ -4,9 +4,9 @@
 	
 		# RUNS AN ENTANGLED BANK QUERY
 		
-		//echo "Begin query<br>";
-		//print_r($qobject);
-		
+/*		echo "Begin query<br>";
+		print_r($qobject);
+		echo "<br>";*/
 		if ($names && !$queryop) {
 			echo "query: if names passed queryoperators must be set";
 			exit;
@@ -861,55 +861,67 @@ return $qobject;
 	
 	# ====================================================================================================
 	
-	function query_biotemporal ($qobject, $qobjects, $str){
+	function query_biotemporal ($qobject,$qobjects, $str){
 		
 		#echo "query_biotemporal: $str<br>";
-		$t_overlay = $qobject['t_overlay'];
-		#echo "$t_overlay<br>";
+		$t_from_overlay = $qobject['t_from_overlay'];
+		$t_to_overlay = $qobject['t_from_overlay'];
 		$from_dtime = $qobject['from_dtime'];
 		$to_dtime = $qobject['to_dtime'];
-		$mids = get_mids($qobjects);
-		//print_r($mids);
+		
+		$mids = query_get_mids($qobjects);
 		if ($mids) $arr = array_to_postgresql($mids, 'numeric');
 		
-		switch ($t_overlay) {
-			case 'OVERLAP':
-				$str = $str . "SELECT bioname 
-				FROM ( 
-					SELECT t.binomial AS bioname, 
-					MIN(d.\"DecimalYearBegin\") AS dstart, 
-					MAX(d.\"DecimalYearEnd\") AS dfinish
-					FROM gpdd.taxon t,
-					gpdd.main m,
-					gpdd.data d
-					WHERE m.\"MainID\" = d.\"MainID\"
-					AND m.\"TaxonID\" = t.\"TaxonID\"
-					AND t.binomial IS NOT NULL";
-				if ($$arr) $str = $str .  " AND m.\"MainID\" = ANY($arr)";
-				$str = $str . " GROUP BY t.binomial
-					HAVING MAX(d.\"DecimalYearBegin\") >= 1500
-					AND (MIN(d.\"DecimalYearEnd\") >= $from_dtime AND MAX(d.\"DecimalYearBegin\") <= $to_dtime)
-					) AS foo";	
+		$str = $str . "SELECT bioname 
+			FROM ( 
+				SELECT t.binomial AS bioname, 
+				MIN(d.\"DecimalYearBegin\") AS dstart, 
+				MAX(d.\"DecimalYearEnd\") AS dfinish
+				FROM gpdd.taxon t,
+				gpdd.main m,
+				gpdd.data d
+				WHERE m.\"MainID\" = d.\"MainID\"
+				AND m.\"TaxonID\" = t.\"TaxonID\"
+				AND t.binomial IS NOT NULL";
+			if ($arr) $str = $str .  " AND m.\"MainID\" = ANY($arr)";
+			$str = $str . " GROUP BY t.binomial";
+		
+		
+		switch ($t_from_overlay) {
+			case 'BEFORE':
+					$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500 AND MIN(d.\"DecimalYearEnd\") <= $from_dtime";
+					if ($qobject['t_2'] == 'on') {
+						if ($t_to_overlay == 'DURING') {
+						 	$str = $str . " AND MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearEnd\") >= $to_dtime";
+						} else {
+							$str = $str . " AND MAX(d.\"DecimalYearEnd\") <= $to_dtime";
+						}
+					}
 				break;
-			case 'WITHIN':
-				$str = $str . "SELECT bioname 
-				FROM ( 
-					SELECT t.binomial AS bioname, 
-					MIN(d.\"DecimalYearBegin\") AS dstart, 
-					MAX(d.\"DecimalYearEnd\") AS dfinish
-					FROM gpdd.taxon t,
-					gpdd.main m,
-					gpdd.data d
-					WHERE m.\"MainID\" = d.\"MainID\"
-					AND m.\"TaxonID\" = t.\"TaxonID\"
-					AND t.binomial IS NOT NULL";
-				if ($$arr) $str = $str .  " AND m.\"MainID\" = ANY($arr)";
-				$str = $str . " GROUP BY t.binomial				
-					HAVING MAX(d.\"DecimalYearBegin\") >= 1500
-					AND (MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearBegin\") >= $from_dtime)
-					) AS foo";							
+			case 'DURING':
+					$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500
+						AND (MIN(d.\"DecimalYearBegin\") <= $from_dtime AND MAX(d.\"DecimalYearEnd\") >= $from_dtime)";
+					if ($qobject['t_2'] == 'on') {
+						if ($t_to_overlay == 'DURING') {
+						 	$str = $str . " AND MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearEnd\") >= $to_dtime";
+						} else {
+							$str = $str . " AND MAX(d.\"DecimalYearEnd\") <= $to_dtime";
+						}
+					}
+				break;
+			case 'AFTER':		
+					$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500
+						AND MIN(d.\"DecimalYearBegin\") >= $from_dtime";
+					if ($qobject['t_2'] == 'on') {
+						if ($t_to_overlay == 'DURING') {
+						 	$str = $str . " AND MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearEnd\") >= $to_dtime";
+						} else {
+							$str = $str . " AND MAX(d.\"DecimalYearEnd\") <= $to_dtime";
+						}
+					}
 				break;
 		}
+		$str = $str . " ) AS foo";
 		#echo "$str<br>";
 		return ($str);
 	}

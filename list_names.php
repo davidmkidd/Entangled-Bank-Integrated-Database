@@ -19,7 +19,7 @@ echo "<title>Names</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #BODY
-
+echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
 $names = $_SESSION['names'];
@@ -44,7 +44,9 @@ foreach($names as $name) {
 echo "<textarea rows='25' cols='40'>$str</textarea>";
 
 html_entangled_bank_footer();
-
+echo "</div>";
+echo "</body>";
+echo '</html>';
 	
 ?>
 

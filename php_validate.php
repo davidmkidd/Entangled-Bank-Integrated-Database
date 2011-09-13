@@ -92,13 +92,17 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 		
 	#Temporal keys
 	if ($term == 'biotemporal') {
-		$qobject = add_key_val($qobject, 't_overlay', $_SESSION['t_overlay']);
-		$qobject = add_key_val($qobject, 'from_day', $_SESSION['from_day']);
-		$qobject = add_key_val($qobject, 'from_month', $_SESSION['from_month']);
-		$qobject = add_key_val($qobject, 'from_year', $_SESSION['from_year']);
-		$qobject = add_key_val($qobject, 'to_day', $_SESSION['to_day']);
-		$qobject = add_key_val($qobject, 'to_month', $_SESSION['to_month']);
-		$qobject = add_key_val($qobject, 'to_year', $_SESSION['to_year']);		
+		$qobject['t_from_overlay'] = $_SESSION['t_from_overlay'];
+		$qobject['from_day'] = $_SESSION['from_day'];
+		$qobject['from_month'] = $_SESSION['from_month'];
+		$qobject['from_year'] = $_SESSION['from_year'];
+		$qobject['t_2'] = $_SESSION['t_2'];
+		if ($qobject['t_2'] == 'on') {
+			$qobject['t_to_overlay'] = $_SESSION['t_to_overlay'];
+			$qobject['to_day'] = $_SESSION['to_day'];
+			$qobject['to_month'] = $_SESSION['to_month'];
+			$qobject['to_year'] = $_SESSION['to_year'];
+		}
 	}
 	
 	# GPDD keys
@@ -397,11 +401,11 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 
 		//echo "$from_digital_time - $to_digital_time<br>";
 		
-		if ($from_digital_time >= $to_digital_time) {
+/*		if ($from_digital_time >= $to_digital_time) {
 			$errs = array();
 			$errs = add_key_val($errs, "temporal", "'From' time must be before 'To' time");
 			$qobject = add_key_val($qobject, 'errs', $errs);
-		}
+		}*/
 		
 		return $qobject;
 	}

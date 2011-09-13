@@ -2,42 +2,6 @@
  * Utilities for html_query_tree
  */
 
-/*HTTP._factories = [
-      function(){return new XMLHttpRequest(); },
-      function(){return new ActiveXObject("Msxml2.XMLHTTP"); },
-      function(){return new ActiveXObject("Microsoft.XMLHTTP"); }
-];
-
-HTTP._factory = null;
-
-HTTP.newRequest = function() {
-	alert("!");
-    if (HTTP._factory != null) return HTTP._factory();
-
-    for(var i = 0; i < HTTP._factories.length; i++) {
-        try {
-            var factory = HTTP._factories[i];
-            var request = factory();
-            if (request != null) {
-                HTTP._factory = factory;
-                return request;
-            }
-        }
-        catch(e) {
-            continue;
-        }
-    }
-
-    // If we get here, none of the factory candidates succeeded,
-    // so throw an exception now and for all future calls.
-    HTTP._factory = function() {
-        throw new Error("XMLHttpRequest not supported");
-    }
-    HTTP._factory(); // Throw an error
-}*/
-
-
-
 function findNodes() {
 	// Adds search returns to tree select box
 	
@@ -62,8 +26,13 @@ function findNodes() {
 		alert('Find filter excluding all node type! Check one type at least.');
 	} else {
 		var str2 = str.substring(0, str.length-1);	
+		
 		url = "http://localhost/entangled-bank/api/treelabels.php?tree=" + tree_id.value + 
 		"&query=" + findval.value + "&filter=" + str2;
+		
+		// LINUX HARDCODE
+		//url = "http://129.31.4.53/entangled-bank/api/treelabels.php?tree=" + tree_id.value + 
+		//"&query=" + findval.value + "&filter=" + str2;
 	
 		//alert(url);
 		

@@ -21,7 +21,7 @@ echo "<title>Sources</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #BODY
-
+echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
 $db_handle = eb_connect_pg($config);
@@ -176,7 +176,9 @@ echo "*Tree - names at tip/internal (all)<br>";
 echo "*Global Population Dynamics Database - names/time-series<br>";
 
 html_entangled_bank_footer();
-
+echo "</div>";
+echo "</body>";
+echo '</html>';
 #Close db handle
 pg_close($db_handle);
 

@@ -20,7 +20,7 @@ echo "<title>Names in Sources</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #BODY
-
+echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
 $names = $_SESSION['names'];
@@ -37,7 +37,7 @@ $mc = count($mids);
 #CONNECT TO DATABASE
 $db_handle = eb_connect_pg($config);
 
-echo "<img src='.image/shoppingCartIcon.gif' alt='Shopping Cart' />";
+echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
 if ($cn == 1) {
 	echo " - $cn name";
@@ -122,7 +122,9 @@ html_arr_to_table($mat);
 echo "<br>";
 
 html_entangled_bank_footer();
-
+echo "</div>";
+echo "</body>";
+echo '</html>';
 #Close db handle
 pg_close($db_handle);
 	

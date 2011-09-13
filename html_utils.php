@@ -1496,8 +1496,9 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "<table border='0'>";
 		
 		# FROM
+		$title='';
 		echo "<tr>";
-		echo "<td class='query_title'>Time 1</td>";
+		echo "<td class='query_title' title='$title'>Time</td>";
 		
 		echo "<td>";
 		
@@ -1559,38 +1560,40 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</td>";
 		echo "</tr>";
 		
-		# TO
+/*		# TO
 		echo "<tr>";
 		echo "<td class='query_title'>Time 2";
 		# TO DISABLE
-		echo "&nbsp;<input type='checkbox' id='no_finish' CHECKED onClick='noFinish()'/>";
+		if ($qobject['no_finish' == 'on']) {
+			$checked = 'CHECKED';
+			$disabled = '';
+		} else {
+			$checked = '';
+			$disabled = "disabled='disabled'";
+		}
+		echo "&nbsp;<input type='checkbox' id='t_2' name='t_2' $checked onClick='noFinish()'/>";
 		echo "</td>";
 		
 		echo "<td>";
 		# TO OPERATOR
 		if (!$t_to_overlay) $t_to_overlay = 'DURING';
-		echo "<SELECT NAME='t_from_overlay' id='t_from_overlay'>";
+		echo "<SELECT NAME='t_to_overlay' id='t_to_overlay' $disabled>";
 		switch ($t_to_overlay) {
 			case 'BEFORE':
 				echo "<OPTION VALUE='BEFORE' SELECTED>Before";
 				echo "<OPTION VALUE='DURING'>During";
-				echo "<OPTION VALUE='AFTER'>After";
+				//echo "<OPTION VALUE='AFTER'>After";
 				break;
 			case 'DURING':
 				echo "<OPTION VALUE='BEFORE'>Before";
 				echo "<OPTION VALUE='DURING' SELECTED>During";
-				echo "<OPTION VALUE='AFTER'>After";
+				//echo "<OPTION VALUE='AFTER'>After";
 				break;				
-			case 'AFTER':
-				echo "<OPTION VALUE='BEFORE'>Before";
-				echo "<OPTION VALUE='DURING'>During";
-				echo "<OPTION VALUE='AFTER' SELECTED>After";
-				break;
 		}
 		echo "</select>";
 		
 		# TO DAY
-		echo "<SELECT NAME='to_day' id='to_day'>";
+		echo "<SELECT NAME='to_day' id='to_day' $disabled>";
 		for ($i = 1; $i <= 31; $i++) {
 			if ($i != $to_day) {
 				echo "<OPTION VALUE='$i'>$i";
@@ -1601,7 +1604,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</SELECT> ";
 		
 		# TO MONTH
-		echo "<SELECT NAME='to_month' id='to_month'>";
+		echo "<SELECT NAME='to_month' id='to_month' $disabled>";
 		for ($i = 1; $i <= 12; $i++) {
 			if ($i != $to_month) {
 				echo "<OPTION VALUE='$i'>$month[$i]";
@@ -1613,7 +1616,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</SELECT> ";
 		
 		# TO YEAR
-		echo "<SELECT NAME='to_year' id='to_year'>";
+		echo "<SELECT NAME='to_year' id='to_year' $disabled>";
 		for ($i = $minyear; $i <= $maxyear; $i++) {
 			if ($i != $to_year ) {
 				echo "<OPTION VALUE='$i'>$i";
@@ -1624,7 +1627,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</SELECT> ";
 		
 		echo "</td>";
-		echo "</tr>";
+		echo "</tr>";*/
 		
 		echo "</table>";
 	
