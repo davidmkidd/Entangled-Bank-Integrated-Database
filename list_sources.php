@@ -44,7 +44,7 @@ foreach($sources as $source) {
 //echo "$nmids<br>";
 //echo "<h3>Sources</h3>";
 
-echo "<img src='shoppingCartIcon.gif' alt='Shopping Cart' />";
+echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
 
 
@@ -77,7 +77,8 @@ foreach ($sources as $source) {
 
 	$val = "<a href= " . $source['www'] . "target=_blank> " . $source['name'] . "</a>";
 	array_push($s_name, $val);
-	array_push($s_type, $source['term']);
+	array_push($s_type, html_query_image($source, 30, null, 'source', true));
+	// array_push($s_type, $source['term']);
 	array_push($s_code, $source['code']);
 	
 		
@@ -165,7 +166,7 @@ foreach ($sources as $source) {
 
 	}
 	
-$arr = array('id'=>$s_id, 'name'=>$s_name, 'code'=>$s_code, 'type'=>$s_type, 'in source*'=>$s_n, 'selected*'=>$s_ns);
+$arr = array('id'=>$s_id, 'type'=>$s_type, 'name'=>$s_name, 'code'=>$s_code, 'in source*'=>$s_n, 'selected*'=>$s_ns);
 
 echo "<br>";
 html_arr_to_table($arr);

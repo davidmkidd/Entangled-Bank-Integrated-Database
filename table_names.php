@@ -37,7 +37,7 @@ $mc = count($mids);
 #CONNECT TO DATABASE
 $db_handle = eb_connect_pg($config);
 
-echo "<img src='shoppingCartIcon.gif' alt='Shopping Cart' />";
+echo "<img src='.image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
 if ($cn == 1) {
 	echo " - $cn name";
@@ -103,18 +103,15 @@ foreach ($sources as $source) {
 	foreach ($names as $name) {
 		if (in_array($name, $res_names)) {
 			if ($term !== 'biorelational') {
-				array_push($snames, 'Yes');
+				array_push($snames, "<img src='./image/green-dot.gif' />");
 			} else {
 				$n = $res_count[array_search($name, $res_names)];
-				array_push($snames, $n);
+				array_push($snames, "<FONT color='green' style='font-style:bold;'>$n</font>");
 			}
 
 		} else {
-			if ($term !== 'biorelational') {
-				array_push($snames, '<FONT color="Red">No</FONT>');
-			} else {
-				array_push($snames, '<FONT color="Red">0</FONT>');
-			}
+			//array_push($snames, '<FONT color="Red">No</FONT>');
+			array_push($snames, "<img src='./image/red-dot.gif' />");
 		}
 	}
 	$mat = add_key_val($mat, $source['name'],$snames);

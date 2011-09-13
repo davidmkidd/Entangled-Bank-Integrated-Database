@@ -26,7 +26,7 @@ $names = $_SESSION['names'];
 sort($names);
 $c = count($names);
 
-echo "<img src='shoppingCartIcon.gif' alt='Shopping Cart' />";
+echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
 echo "- $c names<br><br>";
 

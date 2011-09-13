@@ -658,36 +658,43 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 
 #=======================================================================================================================	
 
-	function html_query_image($qobject, $size, $title = null) {
+	function html_query_image($object, $size, $title = null, $type = 'query', $ret = false) {
 		
 		$size = $size . 'px';
 		
-		//echo "<div id='imgcolumn'>";
-		
-		switch ($qobject['term']) {
+		switch ($object['term']) {
 			case 'bionames' : 
-				if (!$title) $title = 'Names query';
+				if (!$title) $title = "Names $type";
 				$img = 'systema.gif';
 				break;
 			case 'biotree' : 
-				if (!$title) $title = 'Tree query';
+				if (!$title) $title = "Tree $type";
 				$img = 'tree.gif';
 				break;
 			case 'biogeographic' : 
-				if (!$title) $title = 'Geographic query';
+				if (!$title) $title = "Geographic $type";
 				$img = 'blue-planet.gif';
 				break;
 			case 'biotable' : 
-				if (!$title) $title = 'Attributes query';
+				if (!$title) $title = "Attributes $type";
 				$img = 'haekel_bug.gif';
 				break;
 			case 'biotemporal' : 
-				if (!$title) $title = 'Temporal query';
+				if (!$title) $title = "Temporal $type";
 				$img = 'clock.gif';
 				break;
+			case 'biorelational':
+				if (!$title) $title = "Time series $type";
+				$img = 'ts.gif';
+				break;
+				
 		}
-		echo "<img src='./image/$img' alt='queryimg' title='$title' class='query_type_button' height='$size'></img>";
-		//echo "</div>";
+		if ($ret == false) {
+			echo "<img src='./image/$img' alt='queryimg' title='$title' class='query_type_button' height='$size'></img>";
+		} else {
+			return "<img src='./image/$img' alt='queryimg' title='$title' class='query_type_button' height='$size'></img>";	
+		}
+
 	}
 
 
