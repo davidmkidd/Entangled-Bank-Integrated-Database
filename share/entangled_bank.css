@@ -124,6 +124,25 @@
 		border-color: rgb(104, 104, 104);
 	}
 	
+	.query_type_button_non_active {
+		border: 1px solid;
+		border-color: rgb(104, 104, 104);
+		height: 25px;
+	}
+	
+	.query_type_button_active {
+		border: 1px solid;
+		border-color: red;
+		height: 25px;
+	}
+	
+	.query_type_button_active_interquery {
+		border-left: 1px solid;
+		border-top: 1px solid;
+		border-bottom: 1px solid;
+		border-color: red;
+	}
+	
 	td.qtype {
 		width: 120px;
 		vertical-align: top;
@@ -160,7 +179,9 @@
 		border-left: 1px solid grey;
 	}
 	
-	*/table.query_header {
+	*/
+	
+	table.query_header {
 		border-bottom: 1px solid grey;
 	}
 	
@@ -169,9 +190,10 @@
 		vertical-align: middle;
 	}
 	
-	td.query_title {
+	.query_title {
 		width: 105px;
 		vertical-align: middle;
+		align: left;
 	}
 	
 	td.query_field {
@@ -184,10 +206,18 @@
 		vertical-align: middle;
 	}
 	
-	
-	td.query_title_plus {
-		width: 120px;
+	td.query_title_minus {
+		width: 95px;
 		vertical-align: middle;
+	}
+	
+	td.cart_menu {
+		width: 110px;
+		background-color: white;
+		border: 1px solid;
+		border-color: rgb(104, 104, 104);
+		text-align: center;
+		valign: middle;
 	}
 	
 	td.find_c2 {
@@ -201,6 +231,10 @@
 	td.query_spatial_c2 {
 		width: 450px;
 		padding-left: 5px;
+	}
+	
+	.qop {
+		width: 150px;
 	}
 	
 	.find_name {

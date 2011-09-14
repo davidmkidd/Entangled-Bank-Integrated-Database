@@ -2,69 +2,65 @@
 
 # ------------------------------------------------------------------------------------------------------------
 
-function html_cart($db_handle, $qobjects, $sources, $names, $outputs, $stage) {
+function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $stage) {
 	
 	# CART
 	echo "<div id='cart'>";
-	echo "<table>";
+	echo "<table border='0'>";
 	echo "<tr>";
-	$title = "Data Cart";
-	if ($stage == 'qbegin') {
-		$class = 'option_title_plus';
+	if (count($qobjects) >  0) {
+		echo "<th rowspan='2' class='query_title' align='left'>";
 	} else {
-		$class = 'query_title';
+		echo "<th rowspan='1' class='query_title' align='left'>";
 	}
-	echo "<td class='$class' title='$title'>";
-	echo "<img src='./image/shoppingCartIcon.gif' alt='Cart' height='50px'/>";
-	echo "</td>";
-	echo "<td>";
+	
+	
+	$title = "Data Cart";
+	$class = 'query_title';
+	//echo "<td class='$class' title='$title'>";
+	echo "<img src='./image/shoppingCartIcon.gif' alt='Cart' height='30px'/>";
+	echo "</th>";
+	//echo "</td>";
+	//echo "<td>";
 	# SOURCES
 	html_cart_sources($sources);
 	# QUERIES
-	html_cart_query($qobjects, $sources);
+	//html_cart_query($qobjects, $sources);
 	# NAMES
 	html_cart_names($names);
 	# SERIES
 	html_cart_series($db_handle, $qobjects);
 	# OUTPUTS
 	html_cart_outputs($outputs);	
-	echo "</td>";
 	echo "</tr>";
+
+	//echo "<tr>";
+	html_cart_queries($qobjid, $qobjects);
+	//echo "</tr>";
 	echo "</table>";
-	
-	if (isset($qobjects) && ! empty($qobjects) && $qobjects[0]['status'] != 'new') {
-	# QUERY CHAIN
-		$title = "Queries";
-		echo "<table>";
-		echo "<tr>";
-		echo "<td class='$class' title='$title'><img src='./image/queryicon.gif' alt='queryicon.gif'></td>";
-		echo "<td class='querycart'>";
-		html_cart_queries($qobjects);
-		echo "</td>";
-		echo "</tr>";
-		echo "</table>";
-	}
 	echo "</div>";
 	;
 }
 # ------------------------------------------------------------------------------------------------------------
 
 function html_cart_series($db_handle, $qobjects) {
-
-	If ($qobjects) {
+	
+	If (count($qobjects) > 0) {
 		$mids = query_get_mids($qobjects);
+		
 		if (!$mids) { 
-			echo " | 0 series";
+			//echo "0 series";
 		} else {
-			echo ' | <a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
-			echo ' <a href="table_series.php?' . SID . '"  target="_blank"> (table)</a>';
-			echo ' <a href="table_series_by_names.php?' . SID . '"  target="_blank"> (by name)</a>';
-			echo ' <a href="sql_series.php?' . SID . '"  target="_blank"> (sql)</a>';
+			echo "<td class = 'cart_menu'>";
+			echo '<a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
+			echo '<a href="table_series.php?' . SID . '"  target="_blank"> (table)</a>';
+			echo '<a href="table_series_by_names.php?' . SID . '"  target="_blank"> (by name)</a>';
+			echo '<a href="sql_series.php?' . SID . '"  target="_blank"> (sql)</a>';
+			echo "</td>";
 		}
-		//$qobjects['series_sql'] = $total_sql;
-		//$qobjects['series'] = $mids;
-		//print_r($qobjects);
+		
 	}
+	
 }
 
 # ------------------------------------------------------------------------------------------------------------
@@ -99,36 +95,58 @@ function html_cart_query($qobjects, $sources) {
 
 # ------------------------------------------------------------------------------------------------------------
 	
-	function html_cart_queries($qobjects) {
+	function html_cart_queries($qobjid, $qobjects) {
 		
-		echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
+		//if (isset($qobjects) && ! empty($qobjects)) {
 		
-		echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
+			echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
 		
-		$c = 0;
-		//print_r($qobjects);
-		if ($qobjects) {
-			foreach ($qobjects as $qobject) {
-				if ($c == 0) {
-					# FIRST QUERY
-					if ($qobject['status'] !== 'new') {
-						$name = $qobject['name'];
-						$id = $qobject['id'];
+			echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
+			
+			# QUERY CHAIN
+			$title = "Queries";
+			//echo "<table>";
+			echo "<tr>";
+			//echo "<td class='$class' title='$title'><img src='./image/queryicon.gif' alt='queryicon.gif'></td>";
+			//echo "<td class='query_title' title='$title'>Queries</td>";
+			$n = count($qobjects);
+			
+			if ($n == 0) {
+				# NO QOBJECTS
+				//echo "<td class='cart_menu'>";
+				//echo "0 queries";
+				//echo "</td>";
+			} else {
+				# QOBJECTS
+				//echo "<td class='cart_menu'>";
+				//echo "$n queries";
+				//echo "</td>";			
+				$c = 0;
+				echo "<td>";
+				foreach ($qobjects as $qobject) {
+					# IF EQ QOBJID OR NEW THEN LARGE
+					$name = $qobject['name'];	
+					if ($qobject['status'] !== 'new' || $qobject['id'] !== $qobjid) {
+						# NON-ACTIVE QUERY
+						$class = 'non-active';
+						if ($c > 0) echo html_queryoperator_image($qobject['queryoperator'], $class);
+						echo "<a>";
 						echo "<a href='javascript: editQuery(\"$id\")'>";
-						html_query_image($qobject, 40 , $name);
-						echo "</a>";
+						html_query_image($qobject, $class, $name);
+					} else {
+						# ACTIVE QUERY
+						$class = 'active';
+						$id = $qobject['id'];
+						if ($c > 0) echo html_queryoperator_image($qobject['queryoperator'], $class);
+						echo "<a>";
+						html_query_image($qobject, $class , $name);
 					}
-				} else {
-					# SUBSEQUENT QUERY
-					if ($qobject['status'] == 'valid') {
-						echo "&nbsp;", $qobject['queryoperator'], "&nbsp;";
-						$name = $qobject['name'];
-						html_query_image($qobject,40, $name);
-					}
+					echo "</a>";
+					$c++;
 				}
-			$c++;
+			echo "</td>";
 			}
-		}
+		echo "</tr>";
 	}
 	
 # ------------------------------------------------------------------------------------------------------------
@@ -146,27 +164,30 @@ function html_cart_outputs($outputs) {
 		$c = 0;
 	}
 
-	if ($c > 0) echo " | <a href='list_output.php?" . SID . "' target='_blank'>";
-	
-	switch ($c) {
-		case 0:
-			echo " | 0 outputs";
-			break;
-		case 1:
-			echo "1 output";
-			break;
-		default:
-			echo "$c outputs";
+	if ($c > 0)  {
+		echo "<td class='cart_menu'>";
+		echo "<a href='list_output.php?" . SID . "' target='_blank'>";
+		switch ($c) {
+			case 0:
+				//echo " | 0 outputs";
+				break;
+			case 1:
+				echo "1 output";
+				break;
+			default:
+				echo "$c outputs";
 		}
-	if ($c > 0) echo "</a>";
+	echo "</a>";
+	echo "</td>";
+	}
 	
-
 	}
 	
 # ------------------------------------------------------------------------------------------------------------
 	
 function html_cart_sources($sources) {
 	
+	echo "<td class='cart_menu'>";
 	if ($sources) {
 		$c = count($sources);
 		} else {
@@ -175,7 +196,6 @@ function html_cart_sources($sources) {
 	
 	if ($c > 0) echo '<a href="list_sources.php?' . SID . '"  target="_blank">';
 	
-	#echo "<b>";
 	switch ($c) {
 		case 0:
 			echo "0 sources";
@@ -186,18 +206,19 @@ function html_cart_sources($sources) {
 		default:
 			echo $c . " sources";
 		}
-	#echo "</b>";
 	if ($c > 0) echo '</a>';
-	#echo "<br>";
+	echo "</td>";
 	}
 	
 # ------------------------------------------------------------------------------------------------------------
 
 function html_cart_names($names) {
 
+
 	if (!isset($names)) {
-		echo " | 0 names";
-		} else {
+		//echo " | 0 names";
+	} else {
+		echo "<td class='cart_menu'>";
 		# NAMES
 		$c = count($names);
 		switch ($c) {
@@ -215,8 +236,10 @@ function html_cart_names($names) {
 			echo ' <a href="table_names.php?' . SID . '"  target="_blank"> (table)</a>';
 			echo ' <a href="sql_names.php?' . SID . '"  target="_blank"> (sql)</a> ';
 			//echo '<a href="namestable.php?' . SID . '"  target="_blank"> (sources)</a>';
-			}
 		}
+		echo "</td>";
+	}
+	
 	}
 
 #=================================================================================================================

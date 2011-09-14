@@ -441,15 +441,10 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 		echo "No qobjid!!";
 	}
 	$term = $qobject['term'];
-//	echo "$qobjid<br>";
-	//print_r($qobjects);
-	//echo "<br>";
-    //echo "<br>qid: $qobjid<br>";
-   	//echo "html qset: $term<br>";
+
 	echo '<script src="./scripts/query_utils.js" type="text/javascript"></script>';
-	
-	html_query_header($qobject, $sources);
-	html_query_name($qobject);
+
+	html_query_header($qobject, $qobjects, $sources);
 	
 	# Tool
 	switch ($term) {
@@ -483,7 +478,7 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 				
 		}
 		
-	html_query_footer($qobject, $qobjects);
+	
 	echo "<input type='hidden' name='stage' value='qverify'>";
 	echo "<input type = 'hidden' name ='qobjid' value=$qobjid>";
 }
@@ -491,7 +486,7 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 
 #=======================================================================================================================	
 	
-	function html_query_errs ($qobject) {
+/*	function html_query_errs ($qobject) {
 		
 		if ($qobject['errs']) {
 			$errs = $qobject['errs'];
@@ -506,49 +501,52 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 			}
 			echo "</FONT><br>";
 		}
-	}
+	}*/
 	
 #=======================================================================================================================	
 	
-	function html_query_footer($qobject, $qobjects) {
+/*	function html_query_footer($qobject, $qobjects) {
 		
 		echo "<table>";
 		
 		echo "<tr>";
-		echo "<td class='option_title'>";
+		echo "<td class='query_title'>";
 		if (count($qobjects) > 1) echo "Interquery";
 		echo "</td>";
 		
 		$op = $qobject['queryoperator'];
 		$term = $qobject['term'];
 		
-		echo "<td width='400x'>";
+		echo "<td width='600px'>";
 		if (count($qobjects) > 1) {
-			if (!$op || $op == 'AND') {
-				echo "<input type=radio CHECKED name='queryoperator' value=INTERSECT> And (Intersect)";
+			echo "<SELECT id='queryoperator' name='queryoperator' class='eb'>";
+			if (!$op || $op == 'INTERSECT') {
+				$selected = 'SELECTED';
 			} else {
-				echo "<input type=radio name='queryoperator' value=INTERSECT> And (Intersect)";
+				$selected = '';
 			}
-			if ($op == 'OR') {
-				echo "<input type=radio CHECKED name='queryoperator' value=UNION> Or (Union)";
+			echo "<OPTION value='INTERSECT' $selected>And (Intersect)</OPTION>";
+			if ($op == 'UNION') {
+				$selected = 'SELECTED';
 			} else {
-				echo "<input type=radio name='queryoperator' value=UNION> Or (Union)";
+				$selected = '';
 			}
-			if ($op == 'MINUS') {
-				echo "<input type=radio CHECKED name='queryoperator' value=EXCEPT> Minus (Except)<br>";
+			echo "<OPTION value='UNION' $selected>Or (Union)</OPTION>";
+			if ($op == 'EXCEPT') {
+				$selected = 'SELECTED';
 			} else {
-				echo "<input type=radio name='queryoperator' value=EXCEPT> Minus (Except)<br>";
+				$selected = '';
 			}
+			echo "<OPTION value='EXCEPT' $selected>Minus (Except)</OPTION>";
+			echo "</SELECT >";
 		}
-
 		echo "</td>";
 		
 		echo "<td>";
-		
-		echo "<input type='button' name='delete' class='delete' value='Delete' />";
+		echo "<input type='button' name='cancel' class='delete' value='Cancel'/>";
 		if ($qobject['status'] != 'new') 
-			echo "<input type='button' name='cancel' class='cancel' value='Cancel'/>";
-		
+			echo "<input type='button' name='delete' class='delete' value='Delete' />";
+			
 		switch ($term) {
 			case 'biotree':
 			case 'biotable':
@@ -561,15 +559,75 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 				echo "<input id='submit-button' type='submit' class='button-standard' value='Run > ' />";
 				break;
 		}
-
-		
 		echo "</td>";
+		
 		echo "</tr>";
 		echo "</table>";
-	}
+	}*/
 	
 #================================================================================================================
 
+	
+	function html_query_buttons($qobject, $qobjects) {
+		
+/*		echo "<td class='query_title'>";
+		if (count($qobjects) > 1) echo "Interquery";
+		echo "</td>";*/
+		
+		$op = $qobject['queryoperator'];
+		$term = $qobject['term'];
+		
+		$title = 'Interquery operator';
+		
+		echo "<td class='qop' title='$title'>";
+		if (count($qobjects) > 1) {
+			echo "<SELECT id='queryoperator' name='queryoperator' class='qop'>";
+			if (!$op || $op == 'INTERSECT') {
+				$selected = 'SELECTED';
+			} else {
+				$selected = '';
+			}
+			echo "<OPTION value='INTERSECT' $selected>And (Intersect)</OPTION>";
+			if ($op == 'UNION') {
+				$selected = 'SELECTED';
+			} else {
+				$selected = '';
+			}
+			echo "<OPTION value='UNION' $selected>Or (Union)</OPTION>";
+			if ($op == 'EXCEPT') {
+				$selected = 'SELECTED';
+			} else {
+				$selected = '';
+			}
+			echo "<OPTION value='EXCEPT' $selected>Minus (Except)</OPTION>";
+			echo "</SELECT >";
+		}
+		echo "</td>";
+		
+		echo "<td>";
+		echo "<input type='button' name='cancel' class='delete' value='Cancel'/>";
+		if ($qobject['status'] != 'new') 
+			echo "<input type='button' name='delete' class='delete' value='Delete' />";
+			
+		switch ($term) {
+			case 'biotree':
+			case 'biotable':
+				echo "<input id='submit-button' type='submit' class='button-standard' onClick='selAll()' value='Run >' />";
+				break;
+			case 'biogeographic':
+				echo "<input id='submit-button' type='submit' class='button-standard' onClick='serializeLayer()' value='Run >' />";
+				break;
+			default:
+				echo "<input id='submit-button' type='submit' class='button-standard' value='Run > ' />";
+				break;
+		}
+		echo "</td>";
+		
+	}
+	
+#================================================================================================================
+	
+	
 function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	
 	echo '<script src="http://openlayers.org/api/OpenLayers.js" type="text/javascript"></script>';
@@ -594,7 +652,9 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	if ($qobject['q_geometry']) $q_geometry = $qobject['q_geometry'];
 	//echo "q_geom: $q_geometry<br>";
 	echo "<INPUT type='hidden' name='q_geometry' id='q_geometry' value='$q_geometry' />";
-		
+	
+	html_query_spatial_operator ($s_operator);
+	
 	# div tags for OpenLayers
     echo "<div id='map' name='map' class='smallmap'></div>";
     echo '<script type="text/javascript" defer="true">
@@ -619,13 +679,23 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	echo "</td>";
 	echo "</tr>";
 	
+
+	echo "</table>";
+
+}
+
+#=======================================================================================================================	
+
+function html_query_spatial_operator ($s_operator) {
+		
 	# SPATIAL OPERATOR
+	echo "<table>";
 	echo "<tr>";
 	$title='Point and line queries are ignored by \'Within\'';
 	echo "<td class='query_title' title='$title'>Spatial operator</td>";
 	
 	echo "<td>";
-	echo "<select name='s_operator'>";
+	echo "<select name='s_operator' class='eb'>";
 	if (!$s_operator || $s_operator == 'quickoverlap') {
 		echo "<option value='quickoverlap' SELECTED>Quick Overlap (by bounding box)</option>";
 	} else {
@@ -648,19 +718,22 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	}
 	echo "</select>";
 	echo "</td>";
-	
 	echo "</tr>";
 	echo "</table>";
-
 }
 
 	
 
 #=======================================================================================================================	
 
-	function html_query_image($object, $size, $title = null, $type = 'query', $ret = false) {
+	function html_query_image($object, $class, $title = null, $type = 'query', $ret = false) {
 		
-		$size = $size . 'px';
+		//$size = $size . 'px';
+		if ($class == 'non-active') {
+			$class = 'query_type_button_non_active';
+		} else {
+			$class = 'query_type_button_active';
+		}
 		
 		switch ($object['term']) {
 			case 'bionames' : 
@@ -690,9 +763,9 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 				
 		}
 		if ($ret == false) {
-			echo "<img src='./image/$img' alt='queryimg' title='$title' class='query_type_button' height='$size'></img>";
+			echo "<img src='./image/$img' alt='queryimg' title='$title' class='$class'></img>";
 		} else {
-			return "<img src='./image/$img' alt='queryimg' title='$title' class='query_type_button' height='$size'></img>";	
+			return "<img src='./image/$img' alt='queryimg' title='$title' class='$class'></img>";	
 		}
 
 	}
@@ -974,11 +1047,11 @@ function html_query_nnames ($formname, $qobject){
 
 #=======================================================================================================================
 
-function html_query_not($formname, $qobject) {
+function html_query_not($qobject) {
 	if ($qobject['querynot']) {
-		echo "<input type=checkbox CHECKED name=$formname value='not'> NOT";
+		echo "<input type=checkbox CHECKED name='querynot' value='not'>NOT";
 		} else {
-		echo "<input type=checkbox name=$formname value='not'>NOT";
+		echo "<input type=checkbox name='querynot' value='not'>NOT";
 		}
 	}
 	
@@ -1632,95 +1705,56 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</table>";
 	
 	}
-
-	
 	
 #=================================================================================================================
+	
+	function html_query_header ($qobject, $qobjects, $sources) {
+		
+		// Name and action buttons
+		html_query_header1 ($qobject, $qobjects);
+		// Sources
+		html_query_header2($qobject, $sources);
 
-/*function html_query_biotree_old($db_handle, $qobject, $sources, $indentchar, $indentlimit) {
-	
-	echo '<script src="./scripts/tree_utils.js" type="text/javascript"></script>';
-
-	$source = get_obj($sources, $qobject['sources'][0]);
-	$width = 250;
-	echo "<h3>Tree Query - ".$source['name']."</h3>";
-	
-	html_query_errs($qobject);
-	html_query_heading($qobject);
-	echo '<br>';
-
-	$qnames = $qobject['taxa'];
-	if (!$qnames) $qnames = array();
-	//print_r($source);
-	$tree_id = $source['tree_id'];
-	echo "Operator ";
-	html_query_subtree_method();
-	# Internal/tip nodes
-	html_query_tree_nodes($qobject['treenodes']);
-	echo "<br>";
-	
-	# Find Box
-	echo "<INPUT type='text' id = 'findval' name='findval' value='' style='width:300px'>";
-	echo "<BUTTON type='button' id='findbtn' name='findbtn' onClick='findNode()' onChange='clear()'>Find</BUTTON>
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-	echo "<INPUT type='text' id ='treeval' name='treeval' value='' style='width:300px' DISABLED>";
-	echo "<BUTTON type='button' id='addbtn' name='addbtn' onClick='add()'>Add</BUTTON><br>";
-	
-	#Add root node to text SELECT box
-	$str = "SELECT *
-		FROM biosql.node
-		WHERE node.left_idx = 1
-		AND node.tree_id = $tree_id;";
-	//echo "$str<br>";
-	$res = pg_query($db_handle,$str);
-	$row = pg_fetch_row($res);
-	$name = $row[1];
-	echo "<SELECT name='tree' id='tree_items' MULTIPLE SIZE=15 style='width:300px'>";
-	if (in_array($row[1], $qnames)) {
-		echo "<OPTION SELECTED>$name</OPTION>";
-		} else {
-		echo "<OPTION>$name</OPTION>";
-		}
-	# Add other values
-	html_tree_level_options($db_handle, $tree_id, $row[0], $qnames, $indentchar, 1, $indentlimit);
-	echo "</SELECT>";
-	
-	# Add Buttons
-	echo "<BUTTON type='button' id='tree_add' name='tree_add' onClick='treeAdd()'>></BUTTON>";
-	echo "<BUTTON type='button' id='tree_all' name='tree_all' onClick='treeAll()'>>></BUTTON>";
-	# Delete Buttons
-	echo "<BUTTON type='button' id='tree_del' name='tree_del' onClick='treeDel()'><</BUTTON>";
-	echo "<BUTTON type='button' id='tree_delall' name='tree_delall' onClick='treeDelall()'><<</BUTTON>";
-	
-	# Taxa area
-	echo "<SELECT name='taxa[]' id='taxa_items' MULTIPLE SIZE=15 style='width:300px'>";
-	if (!empty($qnames)) {
-		foreach ($qnames as $qname) echo "<OPTION>$qname</OPTION>";
 	}
-
-	echo "</SELECT>";
 	
-
-	echo "<BR>... hierarchical depth";
+#=================================================================================================================
 	
-	if ($qobject['errs']) {
-		$errs = $qobject['errs'];
-		unset($qobject['errs']);
+	function html_query_header1 ($qobject, $qobjects) {
+		
+		echo "<table border='0'>";
+		echo "<tr>";
+		$objname = $qobject['name'];
+		$title = "Query name";
+
+		# QUERY NAME
+		echo "<td class='query_title' title='$title' >Name</td>";
+		
+		echo "<td>";
+		echo "<INPUT type='text' id='objname' name='objname' class='eb' value=$objname onChange='checkObjName()'>";
+		echo "</td>";
+		
+		# NOT
+		echo "<td >";
+		if ($not !== false) {
+			//echo "&nbsp;";
+			html_query_not($qobject);
 		}
-	echo "<br>";
-}
-*/
+		echo "</td>";
+		html_query_buttons($qobject, $qobjects);
+		echo "</tr>";
+		echo "</table>";
+	}
+	
+
 #=================================================================================================================
 
-	function html_query_header ($qobject, $sources) {
+	function html_query_header2 ($qobject, $sources) {
 		
 		$qterm = $qobject['term'];
 		
 		echo "<table>";
-		
 		echo "<tr>";
-		echo "<td class='query_image' align='center'>";
-		html_query_image($qobject, 50);
+		echo "<td class='query_title' align='center'>";
 		echo "</td>";
 		if ($qobject['term'] == 'biotree' || $qobject['term'] == 'biotable') {
 			$source = get_obj($sources, $qobject['sources'][0]);
@@ -1731,12 +1765,8 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			html_query_sources($qobject, $sources);
 		}
 		echo "</td>";
-		//echo "</tr>";
-		
 
 		if ($qterm == 'biogeographic' || $qterm == 'bionames' || $qterm == 'biotemporal') {
-			//echo "<tr>";
-			//echo "<td class='query_title'></td>";
 			echo "<td id='button-nsources'>";
 			echo "<input type=button name='allbtn' value='all' onClick='checkAll(document.ebankform.qsources)'> ";
 			echo "<input type=button name='clearbtn' value='clear' onClick='uncheckAll(document.ebankform.qsources)'>";
@@ -1751,9 +1781,9 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			html_query_nsources ($qobject, $sources);
 			echo "</td>";
 		} 
-
 		echo "</tr>";
 		echo "</table>";
+		
 		
 	}
 	
@@ -1767,15 +1797,6 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	$tree_id = $source['tree_id'];
 	$qnames = $qobject['taxa'];
 	if (!$qnames) $qnames = array();
-		
-	//html_query_image($qobject);
-	
-	//html_query_header($qobject,$sources);
-	//echo "<div id='toolcolumn'>";
-	//html_query_name($qobject);
-
-	//html_query_errs($qobject);
-	//echo '<br><BR>';
 
 	# Find Box
 	echo "<table border='0'>";
@@ -2008,7 +2029,7 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		$title = "Quick find for which sources names are in. Comma seperate names.";
 		echo "<table border='0'>";
 		echo "<tr>";
-		echo "<td class='option_title_plus' title='$title'>Find</td>";
+		echo "<td class='query_title' title='$title'>Find</td>";
 		echo "<td class='find_c2'><INPUT type='text' id='name_search' name='name_search' value='$val' /></td>";
 		echo "<td><input type='button' class='button-standard' value='Go' onClick='submitform(\"find\")'></td>";
 		echo "</tr>";
@@ -2022,7 +2043,7 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		echo "<table border='0'>";
 		echo "<tr>";
 		$title = "Build query to subset data";
-		echo "<td  class='option_title' title='$title'>New Query</td>";
+		echo "<td  class='query_title_minus' title='$title'>New Query</td>";
 		$title = "Which names are in what sources?";
 		echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"bionames\")'><img src='./image/systema.gif' class='query_type_button'/></a></td>";
 	
@@ -2067,7 +2088,7 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		# OTHER ACTIONS
 		echo "<table border='0'>";
 		echo "<tr>";
-		echo "<td class='option_title' title='$title'>Action</td>";
+		echo "<td class='query_title_minus' title='$title'>Action</td>";
 		$n = 0;
 		if ($qobjects) {
 			$title = "Edit and delete queries";
@@ -2754,4 +2775,38 @@ function html_write($db_handle, $config, $names, $qobjects, $outputs, $sources) 
 	}
 
 #=================================================================================================================	
+
+	function html_queryoperator_image($op, $class) {
+		
+		if ($class == 'non-active') {
+			$class = 'query_type_button';
+		} else {
+			$class = 'query_type_button_active_interquery';
+		}
+		//echo "$op";
+		
+		switch ($op) {
+			case 'UNION': 
+				$img = "union.gif";
+				break;
+			case 'INTERSECT': 
+				$img = "intersect.gif";
+				break;
+			case 'EXCEPT': 
+				$img = "except.gif";
+				break;
+			default:
+				$img = "unset-interquery.gif";
+				$op = 'Unset Interquery Operator';
+				break;
+		}
+		
+		echo "<img src='./image/$img' alt='$op' title='$op' height='$size' class='query_type_button'/>";
+		
+	}
+	
+#=================================================================================================================	
+	
+	
+	
 ?>

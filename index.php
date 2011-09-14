@@ -387,7 +387,7 @@ if ($outputs) $_SESSION['outputs'] = $outputs;
 //echo "pre-cart stage: $stage<br>";
 if ($stage != 'finish' && $stage != 'sources') { 
 	//print_r($names);
-	html_cart($db_handle, $qobjects, $sources, $names, $outputs, $stage);
+	html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $stage);
 	}	
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -421,15 +421,13 @@ if ($stage == 'qbegin') {
 	html_query_type($db_handle, $qobjects, $sources, $names, $name_search);
 	echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
 	}
-	//print_r($qobjects);
+
 # QUERY SETUP
 if ($stage == 'qset') {
 	echo "<div id='ebtool'>";
 	html_query_set($db_handle, $qobjid, $qobjects, $sources, $names);
 	echo "</div>";
 }
-# QUERY SETUP2 FOR BIOTREE AND BIOTABLE
-//if ($stage == 'qset2') html_query_set2($db_handle, $qobjid, $qobjects, $sources, $names);
 	
 # SELECT SOURCE TO OUTPUT
 if ($stage == 'outputs') html_output_source($sources, $outputs);

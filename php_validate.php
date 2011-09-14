@@ -37,11 +37,8 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 		$qobject = add_key_val($qobject, 'querynot', '');
 	}
 	
-	$qobject = add_key_val($qobject, 'querynull', $_SESSION['querynull']);
-
-	# INTERQUERY OPERATOR 
-	//echo $_SESSION['queryoperator'] . "<br>";
-	$qobject = add_key_val($qobject, 'queryoperator', $_SESSION['queryoperator']);
+	$qobject['querynull'] = $_SESSION['querynull'];
+	$qobject['queryoperator'] = $_SESSION['queryoperator'];
     
 	# NAMES QUERY
 	if ($term == 'bionames' || $term == 'biotree') {

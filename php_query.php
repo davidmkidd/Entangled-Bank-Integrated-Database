@@ -7,10 +7,7 @@
 /*		echo "Begin query<br>";
 		print_r($qobject);
 		echo "<br>";*/
-		if ($names && !$queryop) {
-			echo "query: if names passed queryoperators must be set";
-			exit;
-			}
+
 		
 		# QUERY PARAMETERS
 		$qterm = $qobject['term'];
@@ -24,6 +21,11 @@
 		//	print_r ($qsources);
 		//	echo "<br>";
 		
+		if ($names && !$queryop) {
+			echo "query: if names passed queryoperators must be set";
+			exit;
+			}
+			
 		# SINGLE OR MULTISOURCE?
 		if (count($qsources) == 1) {
 			$single_source = true;
@@ -1064,7 +1066,7 @@ return $qobject;
 					$str = $str . " gpdd.taxon t";
 					$str = $str . ", (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
 					
-					$str = $str . "WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+					$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
 					if (in_array(26, $qsources)) $str = $str . " AND m.\"LocationID\" = p.\"LocationID\"";
 					if (in_array(27, $qsources)) $str = $str . " AND m.\"LocationID\" = b.\"LocationID\"";
 					
@@ -1073,30 +1075,30 @@ return $qobject;
 						case 'quickoverlap':
 						case 'quickwithin':
 							if (in_array(26, $qsources)) {
-								$source = get_obj($sources, 26);
+								$source = get_source($db_handle, 26, null);
 								$str = $str . " AND p." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
 							}
-							if (in_array(26, $qsources)) {
-								$source = get_obj($sources, 27);
-								$str = $str . " AND p." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
+							if (in_array(27, $qsources)) {
+								$source = get_source($db_handle, 27, null);
+								$str = $str . " AND b." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
 							}
 							break;
 							
 						case 'overlap':
 						case 'within':
 							if (in_array(26, $qsources)) {
-								$source = get_obj($sources, 26);
+								$source = get_source($db_handle, 26, null);
 								$str = $str . " AND $s_op(p." . $source['spatial_column'] . "::geometry, geom::geometry)";
 							}
 							if (in_array(27, $qsources)) {
-								$source = get_obj($sources, 26);
-								$str = $str . " AND $s_op(p." . $source['spatial_column'] . "::geometry, geom::geometry)";
+								$source = get_source($db_handle, 27, null);
+								$str = $str . " AND $s_op(b." . $source['spatial_column'] . "::geometry, geom::geometry)";
 							}
 							break;				
 					}
 					
-					$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
-					$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
+					//$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
+					$//str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
 					$str = $str . " AND t.binomial IS NOT NULL";	
 	
 					# MainIDs
