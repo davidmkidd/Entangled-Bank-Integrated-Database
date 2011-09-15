@@ -97,10 +97,9 @@ function html_entangled_bank_header($eb_path, $html_path, $share_path, $restart)
 	if($restart) $restart = true;
 
 	echo "<div id='ebheader'>";
-	//echo "<div id='ebimage'>";
 	echo "<img id='ebimage' src='" , $share_path , "Entangled-Bank_small.gif' alt='Banner'>";
-	//echo "</div>";
-	echo "<p class='ebheader'><a href='" , $html_path , "index.php' target='_blank'>Home</a>";
+
+	echo "<a href='" , $html_path , "index.php' target='_blank'>Home</a>";
 	echo " | ";
 	echo "<a href='" , $html_path , "help.php' target='_blank'>Help</a>";
 	echo " | ";
@@ -109,7 +108,8 @@ function html_entangled_bank_header($eb_path, $html_path, $share_path, $restart)
 		echo " | ";
 		echo "<a href='" , $eb_path , "restart.php'> New Session</a>";
 	}
-	echo ' | v0.5 (Sept 2011)</p>';
+	echo ' | v0.5 (Sept 2011)';
+
 	echo "</div>";
 	//echo '<hr>';
 }
@@ -448,39 +448,28 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 	
 	# Tool
 	switch ($term) {
-		
 		case 'bionames' :
 			html_query_bionames($db_handle, $qobject, $qobjects, $sources);
-			//echo "<input type = 'hidden' name ='stage' value='qverify'>";
-			break;
-			
+			break;			
 		case 'biogeographic':			
 			html_query_biogeographic($db_handle, $qobject, $qobjects, $sources);
-			//echo "<input type='hidden' name='stage' value='qverify'>";
 			break;
-
 		case 'biotree':
 			html_query_biotree($db_handle, $qobject, $qobjects, $sources);
 			break;
-			
 		case 'biotable':
 			html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names);
 			break;	
-
 		case 'biotemporal':
 			html_query_biotemporal($db_handle, $qobject, $qobjects, $sources, $names);
-			echo "<input type='hidden' name='stage' value='qverify'>";
 			break;
-			
 		default:
 			echo "Invalid selectobj: term.<br>";
 			break;
-				
-		}
+	}
 		
-	
-	echo "<input type='hidden' name='stage' value='qverify'>";
-	echo "<input type = 'hidden' name ='qobjid' value=$qobjid>";
+	echo "<input type='hidden' id='stage' name='stage' value='qverify'>";
+	echo "<input type='hidden' id='qobjid' name ='qobjid' value=$qobjid>";
 }
 
 
@@ -576,6 +565,7 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 		
 		$op = $qobject['queryoperator'];
 		$term = $qobject['term'];
+		$id = $qobject['id'];
 		
 		$title = 'Interquery operator';
 		
@@ -604,10 +594,10 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 		}
 		echo "</td>";
 		
-		echo "<td>";
-		echo "<input type='button' name='cancel' class='delete' value='Cancel'/>";
+		echo "<td id='query_buttons'>";
+		echo "<input type='button' name='cancel' class='cancel' value='Cancel' onClick='cancelQuery(\"$id\")'/>";
 		if ($qobject['status'] != 'new') 
-			echo "<input type='button' name='delete' class='delete' value='Delete' />";
+			echo "<input type='button' name='delete' class='delete' value='Delete' onClick='deleteQuery(\"$id\")'/>";
 			
 		switch ($term) {
 			case 'biotree':
@@ -1721,16 +1711,20 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 	function html_query_header1 ($qobject, $qobjects) {
 		
+		print_r($qobject);
+		echo "<br>";
+		
 		echo "<table border='0'>";
 		echo "<tr>";
 		$objname = $qobject['name'];
+		if (empty($objname)) $objname = get_next_name($qobjects, $qobject['term']);
 		$title = "Query name";
 
 		# QUERY NAME
 		echo "<td class='query_title' title='$title' >Name</td>";
 		
 		echo "<td>";
-		echo "<INPUT type='text' id='objname' name='objname' class='eb' value=$objname onChange='checkObjName()'>";
+		echo "<INPUT type='text' id='objname' name='objname' class='eb' value='$objname' onChange='checkObjName()'>";
 		echo "</td>";
 		
 		# NOT
@@ -1805,7 +1799,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo "<td class='query_title' title='$title'>Find</td>";
 	echo "<td>";
 	echo "<INPUT type='text' class='eb' id = 'findval' name='findval' value=''>";
-	echo "&nbsp;<BUTTON type='button' id='findbtn' name='findbtn' onClick='findNodes()' onChange='clear()'>Find</BUTTON><br>";
+	echo "&nbsp;<BUTTON type='button' id='findbtn' class='button-standard' name='findbtn' onClick='findNodes()' onChange='clear()'>Find</BUTTON><br>";
 	echo "</td>";
 	echo "</tr>";
 	echo "</table>";
@@ -2776,10 +2770,10 @@ function html_write($db_handle, $config, $names, $qobjects, $outputs, $sources) 
 
 #=================================================================================================================	
 
-	function html_queryoperator_image($op, $class) {
+	function html_query_operator_image($op, $class) {
 		
 		if ($class == 'non-active') {
-			$class = 'query_type_button';
+			$class = 'query_type_button_non_active_interquery';
 		} else {
 			$class = 'query_type_button_active_interquery';
 		}
@@ -2801,7 +2795,7 @@ function html_write($db_handle, $config, $names, $qobjects, $outputs, $sources) 
 				break;
 		}
 		
-		echo "<img src='./image/$img' alt='$op' title='$op' height='$size' class='query_type_button'/>";
+		echo "<img src='./image/$img' alt='$op' title='$op' class='$class'/>";
 		
 	}
 	

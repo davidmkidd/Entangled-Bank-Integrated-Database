@@ -4,24 +4,23 @@
 
 function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $stage) {
 	
+	//echo "$qobjid<br>";
+	
 	# CART
 	echo "<div id='cart'>";
-	echo "<table border='0'>";
-	echo "<tr>";
-	if (count($qobjects) >  0) {
-		echo "<th rowspan='2' class='query_title' align='left'>";
-	} else {
-		echo "<th rowspan='1' class='query_title' align='left'>";
-	}
 	
-	
+	# ICON
+	echo "<table border='0' style='display: inline'>";
+	echo "<th class='query_title' align='left' height='65px'>";
 	$title = "Data Cart";
-	$class = 'query_title';
-	//echo "<td class='$class' title='$title'>";
-	echo "<img src='./image/shoppingCartIcon.gif' alt='Cart' height='30px'/>";
+	echo "<img src='./image/shoppingCartIcon.gif' alt='Cart'/>";
 	echo "</th>";
-	//echo "</td>";
-	//echo "<td>";
+	echo "</table>";
+	
+	# INFO
+	echo "<table style='display: inline' border='0'>";
+	echo "<tr height='20px'>";
+	echo "<td>";
 	# SOURCES
 	html_cart_sources($sources);
 	# QUERIES
@@ -31,15 +30,12 @@ function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $
 	# SERIES
 	html_cart_series($db_handle, $qobjects);
 	# OUTPUTS
-	html_cart_outputs($outputs);	
+	html_cart_outputs($outputs);
+	echo "</td>";
 	echo "</tr>";
-
-	//echo "<tr>";
 	html_cart_queries($qobjid, $qobjects);
-	//echo "</tr>";
 	echo "</table>";
 	echo "</div>";
-	;
 }
 # ------------------------------------------------------------------------------------------------------------
 
@@ -51,12 +47,12 @@ function html_cart_series($db_handle, $qobjects) {
 		if (!$mids) { 
 			//echo "0 series";
 		} else {
-			echo "<td class = 'cart_menu'>";
-			echo '<a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
+			//echo "<td class = 'cart_menu'>";
+			echo ' | <a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
 			echo '<a href="table_series.php?' . SID . '"  target="_blank"> (table)</a>';
 			echo '<a href="table_series_by_names.php?' . SID . '"  target="_blank"> (by name)</a>';
 			echo '<a href="sql_series.php?' . SID . '"  target="_blank"> (sql)</a>';
-			echo "</td>";
+			//echo "</td>";
 		}
 		
 	}
@@ -107,45 +103,45 @@ function html_cart_query($qobjects, $sources) {
 			$title = "Queries";
 			//echo "<table>";
 			echo "<tr>";
+			//echo "<td class=''>";
+			echo "<td>";
 			//echo "<td class='$class' title='$title'><img src='./image/queryicon.gif' alt='queryicon.gif'></td>";
 			//echo "<td class='query_title' title='$title'>Queries</td>";
 			$n = count($qobjects);
 			
 			if ($n == 0) {
 				# NO QOBJECTS
-				//echo "<td class='cart_menu'>";
-				//echo "0 queries";
+				//echo "<td class='cart_query'>";
+				echo "<img src='./image/no-query.gif' alt='0 queries' class='query_type_button_non_active'>";
 				//echo "</td>";
 			} else {
-				# QOBJECTS
-				//echo "<td class='cart_menu'>";
-				//echo "$n queries";
-				//echo "</td>";			
+				# QOBJECTS	
 				$c = 0;
-				echo "<td>";
+
 				foreach ($qobjects as $qobject) {
 					# IF EQ QOBJID OR NEW THEN LARGE
-					$name = $qobject['name'];	
-					if ($qobject['status'] !== 'new' || $qobject['id'] !== $qobjid) {
+					$name = $qobject['name'];
+					//echo $qobject['id'] . "<br>";
+					if ($qobject['status'] !== 'new' && $qobject['id'] !== $qobjid) {
 						# NON-ACTIVE QUERY
 						$class = 'non-active';
-						if ($c > 0) echo html_queryoperator_image($qobject['queryoperator'], $class);
+						if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
 						echo "<a>";
-						echo "<a href='javascript: editQuery(\"$id\")'>";
+						echo "<a href='javascript: editQuery(\"$qobjid\")'>";
 						html_query_image($qobject, $class, $name);
 					} else {
 						# ACTIVE QUERY
 						$class = 'active';
 						$id = $qobject['id'];
-						if ($c > 0) echo html_queryoperator_image($qobject['queryoperator'], $class);
+						if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
 						echo "<a>";
 						html_query_image($qobject, $class , $name);
 					}
 					echo "</a>";
 					$c++;
 				}
-			echo "</td>";
 			}
+		echo "</td>";
 		echo "</tr>";
 	}
 	
@@ -187,7 +183,7 @@ function html_cart_outputs($outputs) {
 	
 function html_cart_sources($sources) {
 	
-	echo "<td class='cart_menu'>";
+	//echo "<td class='cart_menu'>";
 	if ($sources) {
 		$c = count($sources);
 		} else {
@@ -207,7 +203,7 @@ function html_cart_sources($sources) {
 			echo $c . " sources";
 		}
 	if ($c > 0) echo '</a>';
-	echo "</td>";
+	//echo "</td>";
 	}
 	
 # ------------------------------------------------------------------------------------------------------------
@@ -218,7 +214,7 @@ function html_cart_names($names) {
 	if (!isset($names)) {
 		//echo " | 0 names";
 	} else {
-		echo "<td class='cart_menu'>";
+		//echo "<td class='cart_menu'>";
 		# NAMES
 		$c = count($names);
 		switch ($c) {
@@ -237,7 +233,7 @@ function html_cart_names($names) {
 			echo ' <a href="sql_names.php?' . SID . '"  target="_blank"> (sql)</a> ';
 			//echo '<a href="namestable.php?' . SID . '"  target="_blank"> (sources)</a>';
 		}
-		echo "</td>";
+		//echo "</td>";
 	}
 	
 	}

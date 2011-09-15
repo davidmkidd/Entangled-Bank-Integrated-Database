@@ -14,9 +14,13 @@
 	}
 
 	#ebheader {
-		text-align: left;
-		padding: 3px;
+		text-align: center;
+		padding: 5px;
 		border-bottom: 3px groove;
+	}
+	
+	#ebmenu {
+		margin: 0px;
 	}
 	
 	#ebfooter {
@@ -76,6 +80,9 @@
 		font-size: larger;
 	}
 	
+	#thanks {
+		text-indent: 50px;
+	}
 	
 	#biotree_select_div {
 		display: 'none';
@@ -127,13 +134,13 @@
 	.query_type_button_non_active {
 		border: 1px solid;
 		border-color: rgb(104, 104, 104);
-		height: 25px;
+		height: 40px;
 	}
 	
 	.query_type_button_active {
 		border: 1px solid;
 		border-color: red;
-		height: 25px;
+		height: 40px;
 	}
 	
 	.query_type_button_active_interquery {
@@ -141,6 +148,15 @@
 		border-top: 1px solid;
 		border-bottom: 1px solid;
 		border-color: red;
+		height: 40px;
+	}
+	
+	.query_type_button_non_active_interquery {
+		border-left: 1px solid;
+		border-top: 1px solid;
+		border-bottom: 1px solid;
+		border-color: rgb(104, 104, 104);
+		height: 40px;
 	}
 	
 	td.qtype {
@@ -211,14 +227,22 @@
 		vertical-align: middle;
 	}
 	
+	td.query_buttons {
+		width: 95px;
+		vertical-align: middle;
+		aligh: left;
+	}
+	
 	td.cart_menu {
-		width: 110px;
-		background-color: white;
-		border: 1px solid;
-		border-color: rgb(104, 104, 104);
 		text-align: center;
 		valign: middle;
+		padding: 2px;
 	}
+	
+	td.cart_query {
+		height: 40px;
+	}
+	
 	
 	td.find_c2 {
 		width: 515px;
@@ -234,7 +258,7 @@
 	}
 	
 	.qop {
-		width: 150px;
+		width: 120px;
 	}
 	
 	.find_name {
@@ -285,7 +309,6 @@
 	#query_table_c2 {
 		display: inline;
 		float: left;
-		margin-left: 0px;
 	}
 	
 	select.query_options {
@@ -300,6 +323,11 @@
 	
 	input.delete {
 		color: red;
+		width: 60px;
+	}
+	
+	input.cancel {
+		color: green;
 		width: 60px;
 	}
 	

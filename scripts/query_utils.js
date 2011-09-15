@@ -26,3 +26,26 @@ function is_int(value){
 function isNumber(n) {
 	  return !isNaN(parseFloat(n)) && isFinite(n);
 	}
+
+function deleteQuery(id) {
+	//alert(id);
+	//var item = document.getElementById('qobjid');
+	//item.value = id;
+	var item = document.getElementById('qobjid');
+	item.value = id;
+	var item = document.getElementById('stage');
+	item.value = 'qdelete';
+	document.ebankform.submit();
+}
+
+
+function cancelQuery(id) {
+	//alert(id);
+	//var item = document.getElementById('qobjid');
+	//item.value = id;
+	var item = document.getElementById('stage');
+	//alert(item.value);
+	item.value = 'qcancel';
+	//alert(item.value);
+	document.ebankform.submit();
+}
