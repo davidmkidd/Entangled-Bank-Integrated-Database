@@ -1,5 +1,7 @@
 @CHARSET "ISO-8859-1";
   
+/*  *[title] { font:black; color:green; padding: 1px; }*/
+  
   body { 
 	background-color: rgb(204, 204, 204);
 	font-family: Trebuchet MS, sans-serif;
@@ -56,6 +58,11 @@
 	
 	.eb {
 		width: 300px;
+	}
+	
+	
+	.eb_plus {
+		width: 450px;
 	}
 	
 	#invalid_taxa {
@@ -144,17 +151,13 @@
 	}
 	
 	.query_type_button_active_interquery {
-		border-left: 1px solid;
-		border-top: 1px solid;
-		border-bottom: 1px solid;
+		border: 1px solid;
 		border-color: red;
 		height: 40px;
 	}
 	
 	.query_type_button_non_active_interquery {
-		border-left: 1px solid;
-		border-top: 1px solid;
-		border-bottom: 1px solid;
+		border: 1px solid;
 		border-color: rgb(104, 104, 104);
 		height: 40px;
 	}
@@ -228,9 +231,21 @@
 	}
 	
 	td.query_buttons {
-		width: 95px;
+		width: 200px;
+		vertical-align: top;
+		align: right;
+	}
+	
+	td.query_not {
+		width: 145px;
 		vertical-align: middle;
-		aligh: left;
+		align: right;
+	}
+	
+	td.query_sources {
+		width: 483px;
+		vertical-align: middle;
+		align: left;
 	}
 	
 	td.cart_menu {

@@ -4,7 +4,8 @@
 	 
     var map;
     var wgs84 = new OpenLayers.Projection("EPSG:4326");
-    var vectors = new OpenLayers.Layer.Vector("Vector Layer");
+    var vectors = new OpenLayers.Layer.Vector("Query Objects");
+    //var apiKey = "AqTGBsziZHIJYYxgivLBf0hVdrAk9mWO5cQcb8Yux8sW5M8c8opEC2lZqKR1ZZXf";
     
     function mapinit(){
     	
@@ -33,7 +34,15 @@
     	    // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
     	);
     	
+/*    	var aerial = new OpenLayers.Layer.Bing(
+    		"Bing Aerial",
+    		{
+    	    key: apiKey,
+    	    type: "Aerial"
+    	});*/
+    	
     	map.addLayers([vectors, gphy, gmap ,gsat]);
+    	
         // Add data
         var q_geom = document.getElementById('q_geometry').value;
 
@@ -53,6 +62,17 @@
 
         var bounds = new OpenLayers.Bounds(-180, -90, 180, 90);
         map.zoomToExtent(bounds.transform(wgs84, map.getProjectionObject()));
+        
+//        for (i = 0; i <= map.layers.length - 1; i++) {
+//        	alert(map.layers[i].name);
+//        	map.layers[i].refresh({force:true});
+//        }
+        
+        //alert(map.div.id);
+        //map.layers[0].refresh({force:true});
+        //map.layers[1].refresh({force:true});
+        //map.redraw();
+        
     }
     
     function serializeLayer() {
@@ -66,6 +86,7 @@
     		alert('Add one or more geographical query features or cancel');
     		return false;
     	}
+    	
     	
     	var n = getNSourcesSelected();
     	if (n == 0) {
@@ -83,6 +104,7 @@
     	//alert(wkt_format.write(vectors.features));
     	
     	document.getElementById('q_geometry').value = wkt_format.write(vectors.features);
+    	//document.ebankform.submit();
     	
     }
     

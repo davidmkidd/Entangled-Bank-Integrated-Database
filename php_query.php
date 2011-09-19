@@ -16,10 +16,6 @@
 		$nsources = $qobject['nsources'];
 		$nop = $qobject['noperator'];
 		$allnames = $qobject['allnames'];
-		//$not = $qobject['querynot'];
-		//$qnull = $qobject['querynull'];
-		//	print_r ($qsources);
-		//	echo "<br>";
 		
 		if ($names && !$queryop) {
 			echo "query: if names passed queryoperators must be set";
@@ -139,6 +135,7 @@
 		$qstr = $str;
 		
 		# ADD INTERQUERY OPERATOR
+		//if ($names_array) $str = "$str $queryop SELECT UNNEST($names_array) AS bioname";
 		if ($names_array) {
 			if ($qterm == 'biotable' && $sterm == 'biorelational') {
 				$str = "$str $queryop SELECT UNNEST($names_array) AS bioname, NULL AS n";
@@ -166,9 +163,11 @@
 			$qobjects = save_obj($qobjects, $qobject);
 			# RUN NAMES QUERY
 			$outnames = query_series_names($db_handle, $qobjects, $outnames, $sources);
-			$qobjects = save_obj($qobjects, $qobject);
+		} else {
+			# No Names
+			$qobject['series'] = null;
 		}
-		
+		$qobjects = save_obj($qobjects, $qobject);
 		# RETURN QOBJECT AND NAMES
 		if ($outnames) {
 			return array($qobject, array_filter($outnames));
@@ -242,7 +241,7 @@
 			foreach ($tables_val as $val) $str = $str . $val;
 			
 			# WHERE JOINS
-			$str = $str . " WHERE";
+			$str = $str . " WHERE ";
 			$first = true;
 			
 			$table_keys = array_keys($tables);
@@ -289,11 +288,11 @@
 			# WHERE CLAUSES
 			switch ($dtype) {
 				case 'rangefield':
-					$str = query_biotable_rangefield($query, $str, $source['id']);
+					query_biotable_rangefield($query, $str, $source['id'], $null);
 					break;
-				case 'lookup':
+/*				case 'lookup':
 					$str = query_biotable_lookup($query, $str, $source['id']);
-					break;
+					break;*/
 				case 'groupfield':
 					if (count($queries) == 1) {
 						$nseries_type = 'only';
@@ -306,11 +305,11 @@
 					break;
 				case 'lookupfield':
 				case 'catagoryfield':
-					query_biotable_lookupfield($query, $str, $source['id']);
+					query_biotable_lookupfield($query, $str, $source['id'], $null);
 					break;
 				case 'lookuptable':
 					# GPDD HARDCODE
-					query_biotable_lookuptable($query, $str);
+					query_biotable_lookuptable($query, $str, $null);
 					break;
 				default:
 					//look up
@@ -318,8 +317,16 @@
 					break;
 			}
 		}
-			//$nf++;
 
+		# ALL NULL
+		if ($null && count($queries) > 1) {
+			$str = $str . " AND (";
+			foreach ($queries as $query) $str = $str . " \"" . $query['field'] . "\" IS NOT NULL AND";
+			$str = substr($str, 0, strlen($str) - 4);
+			$str = $str . ")";
+		}
+		
+		
 		#NOT END
 		if ($not == 'NOT' && $nseries_only == 'only') $str = $str . ")";
 		
@@ -391,7 +398,7 @@
 		}
 		# QUERIES 
 		$nf = 0;
-		print_r($queries);
+		//print_r($queries);
 		
 		foreach ($queries as $query) {
 			$field = $query['field'];
@@ -434,11 +441,11 @@
 		
 		$str = $str . ")";
 		
-		return ($str);
+		//return ($str);
 	}
 	
 	# --------------------------------------------------------------------------------
-	function query_biotable_lookuptable($query, &$str) {
+	function query_biotable_lookuptable($query, &$str, $null) {
 		
 		$field = $query['field'];
 		$ftype = $query['ftype'];
@@ -478,14 +485,19 @@
 				break;
 		}
 		$arr = array_to_postgresql($values, $ftype);
+		
+		if ($null) $str = $str . "(";
+		
 		$str = $str . " $letter.\"$field\" = ANY ($arr)";
-		//return $str;
+		if ($null) $str = $str . " OR $letter.\"$field\" IS NULL)";
+		
 	}
 
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotable_lookupfield($query, &$str, $source) {
+	function query_biotable_lookupfield($query, &$str, $source, $null) {
+		
 		if ($source['id'] == 23) {
 			$s = 'm';
 		} else {
@@ -494,22 +506,31 @@
 		$field = $query['field'];
 		$ftype = $query['ftype'];
 		$values = $query['value'];
-		//echo "$field; $ftype; " . implode(", ",$values) . "<br />";
 		$arr = array_to_postgresql($values, $ftype);
+		
+		if ($null) $str = $str . "(";
+		
 		$str = $str . " $s.\"$field\" = ANY ($arr)";
-		//return $str;
+		
+		if ($null) $str = $str . " OR $s.\"$field\" IS NULL)";
+		
+		//return ($str);
 	}
 	
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotable_rangefield ($query, $str, $source) {
+	function query_biotable_rangefield ($query, &$str, $source, $null) {
 		
 		$field = $query['field'];
 		$values = $query['value'];
 		$ops = $query['operator'];
 		$first = true;
 		$i = 0;
+		
+		if ($null) $str = $str . "(";
+		$str = $str . " (";
+		
 		if ($source['id'] == 23) {
 			$s = 'm';
 		} else {
@@ -522,7 +543,11 @@
 			$first = false;
 			$i++;
 		}
-		return $str;
+		
+		$str = $str . ")";
+		if ($null) $str = $str . " OR $s.\"$field\" IS NULL)";
+		
+		//return $str;
 	}
 
 	
@@ -1200,7 +1225,7 @@ return $qobject;
 		$mids = query_get_mids($qobjects);
 		# REPOST FIX
 		if ($mids && ($_SESSION['token'] == $_POST['token'])) unset ($mids);
-		print_r($mids);
+		//print_r($mids);
 		if ($mids && !empty($mids)) {
 			$mids_arr = array_to_postgresql($mids, 'numeric');
 			if ($names) $names_arr = array_to_postgresql($names, 'text');
@@ -1225,22 +1250,30 @@ return $qobject;
 	#=================================================================================================================
 
 function query_get_mids($qobjects) {
-		
-	//if($qobjects) echo "**********<br>";
-	foreach (array_reverse($qobjects) as $qobject) {
-		switch (true) {
-			case ($qobject['status'] == 'new'):
-				break;
-			case ($qobject['status'] == 'valid'):
-				if (!$mids && $qobject['series']) $mids = $qobject['series'];
+	
+	$n = count($qobjects);
+	
+	switch ($n) {
+		case 0:
+			return null;
 			break;
-		}
+		case 1:
+			if ($qobject[0]['series']) {
+				return $qobject[0]['series'];
+				 null;
+			} else {
+				return null;
+			}
+			break;
+		default:
+			if ($qobject[$n - 1]['status'] == 'new') {
+				return $qobject[$n - 2]['series'];
+			} else {
+				return $qobject[$n - 1]['series'];
+			}
+			break;
 	}
-	 if ($mids && !empty($mids)) {
-	 	return ($mids);
-	 } else {
-	 	return null;
-	 }
+	
 }
 
 # ====================================================================================================

@@ -194,8 +194,16 @@ function treeDelall() {
 function selAll() {
 	// selects all taxa form submission
 	var taxa = document.getElementById('taxa_items');
-	for (var i = 0; i <= taxa.length - 1; i++) {
-		taxa.options[i].selected = true;
-		//alert(taxa.options[i].value);
+	// No taxa
+	//alert (taxa.length);
+	if (taxa.length == 0) {
+		alert ('At least one taxa required in query');
+		return false;
+	} else {
+		for (var i = 0; i <= taxa.length - 1; i++) {
+			taxa.options[i].selected = true;
+		}
+		document.ebankform.submit();
 	}
+	
 }

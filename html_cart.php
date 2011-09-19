@@ -28,7 +28,7 @@ function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $
 	# NAMES
 	html_cart_names($names);
 	# SERIES
-	html_cart_series($db_handle, $qobjects);
+	html_cart_series($qobjects);
 	# OUTPUTS
 	html_cart_outputs($outputs);
 	echo "</td>";
@@ -39,13 +39,15 @@ function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $
 }
 # ------------------------------------------------------------------------------------------------------------
 
-function html_cart_series($db_handle, $qobjects) {
+function html_cart_series($qobjects) {
 	
 	If (count($qobjects) > 0) {
 		$mids = query_get_mids($qobjects);
 		
+		//echo count($mids), "mids<br>";
+		
 		if (!$mids) { 
-			//echo "0 series";
+			echo " | 0 series";
 		} else {
 			//echo "<td class = 'cart_menu'>";
 			echo ' | <a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
@@ -54,9 +56,7 @@ function html_cart_series($db_handle, $qobjects) {
 			echo '<a href="sql_series.php?' . SID . '"  target="_blank"> (sql)</a>';
 			//echo "</td>";
 		}
-		
 	}
-	
 }
 
 # ------------------------------------------------------------------------------------------------------------
@@ -121,18 +121,19 @@ function html_cart_query($qobjects, $sources) {
 				foreach ($qobjects as $qobject) {
 					# IF EQ QOBJID OR NEW THEN LARGE
 					$name = $qobject['name'];
+					$id = $qobject['id'];
 					//echo $qobject['id'] . "<br>";
 					if ($qobject['status'] !== 'new' && $qobject['id'] !== $qobjid) {
 						# NON-ACTIVE QUERY
 						$class = 'non-active';
 						if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
 						echo "<a>";
-						echo "<a href='javascript: editQuery(\"$qobjid\")'>";
+						echo "<a href='javascript: editQuery(\"$id\")'>";
 						html_query_image($qobject, $class, $name);
 					} else {
 						# ACTIVE QUERY
 						$class = 'active';
-						$id = $qobject['id'];
+						
 						if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
 						echo "<a>";
 						html_query_image($qobject, $class , $name);

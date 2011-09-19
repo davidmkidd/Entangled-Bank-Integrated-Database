@@ -72,11 +72,11 @@ $db_handle = eb_connect_pg($config);
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
-//echo "old: $oldtoken, new: $newtoken<br>";
+echo "old: $oldtoken, new: $newtoken<br>";
 
 # Save submitted data to session variables
 foreach ($_POST as $key =>$value) {
-	//echo "$key => $value<br>";
+	echo "$key => $value<br>";
 	$_SESSION[$key] = $value;
 	}
 
@@ -127,6 +127,9 @@ $files_to_delete = $_SESSION['files_to_delete'];
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 if ($output_id) $output = get_obj($outputs, $output_id);
 
+# BIOTREE AND BIOTTRIBUTE FIX
+if (empty($qobjects)) $qobjid = null;
+
 #echo "output_id: $output_id, output:";#if ($output) print_r($output);
 #echo "<br>";
 #echo "after get current qobject<br>";
@@ -161,7 +164,7 @@ if ($stage == 'qedit') {
 # CANCELLING A QUERY
 if ($stage == 'qcancel') {
 	$c = count($qobjects) - 1;
-	if ($qobjects[$c]['status' == 'new']) unset($qobjects[$c]);
+	if ($qobjects[$c]['status'] == 'new') unset($qobjects[$c]);
 	#echo "<FONT color=red>Query Cancelled</FONT><br>";
 	$qobjid = null;
 	$stage = 'qbegin';
@@ -171,11 +174,14 @@ if ($stage == 'qcancel') {
 if ($stage == 'qdelete') {
 	$idx = obj_idx($qobjects,$qobjid);
 	unset ($qobjects[$idx]);
+	
 	array_values($qobjects);
 	# If no queries unset names
 	$names = null;
 	# If re-run queries 
+	echo "Query $idx deleted, ", count($qobjects) , " in stack";
 	foreach ($qobjects as $qobject) {
+		echo ", running queries";
 		$out = query($db_handle, $qobject, $qobjects, $names, $sources);
 		$qobjects = save_obj($qobjects,$out[0]);
 		$names = $out[1];
@@ -186,6 +192,7 @@ if ($stage == 'qdelete') {
 	}
 
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
+echo "pre qset qobjid: $qobjid<br>";
 if ($stage == 'qset' && !$qobjid) {
 	if ($oldtoken == $newtoken) {
 		$qobject = $qobjects[count($qobjects) - 1];
@@ -208,7 +215,7 @@ if ($stage == 'qset' && !$qobjid) {
 		# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
 		if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
 		if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
-		
+		//$qobjid = $qobject['id'];
 		array_push($qobjects, $qobject);
 		$_SESSION['qobjects'] = $qobjects;
 	}
@@ -350,6 +357,10 @@ if ($stage != 'finish' && $stage != 'sources') {
 
 //echo "html stage: $stage<br>";
 
+/*echo "post processing: ";
+print_r($qobjects);
+echo "<br/>";	*/
+	
 /*echo "sources:<br>";
 print_r($sources);
 echo "<BR>";*/
