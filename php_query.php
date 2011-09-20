@@ -1258,18 +1258,18 @@ function query_get_mids($qobjects) {
 			return null;
 			break;
 		case 1:
-			if ($qobject[0]['series']) {
-				return $qobject[0]['series'];
+			if ($qobjects[0]['series']) {
+				return $qobjects[0]['series'];
 				 null;
 			} else {
 				return null;
 			}
 			break;
 		default:
-			if ($qobject[$n - 1]['status'] == 'new') {
-				return $qobject[$n - 2]['series'];
+			if ($qobjects[$n - 1]['status'] == 'new') {
+				return $qobjects[$n - 2]['series'];
 			} else {
-				return $qobject[$n - 1]['series'];
+				return $qobjects[$n - 1]['series'];
 			}
 			break;
 	}

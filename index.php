@@ -72,11 +72,11 @@ $db_handle = eb_connect_pg($config);
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
-echo "old: $oldtoken, new: $newtoken<br>";
+//echo "old: $oldtoken, new: $newtoken<br>";
 
 # Save submitted data to session variables
 foreach ($_POST as $key =>$value) {
-	echo "$key => $value<br>";
+	//echo "$key => $value<br>";
 	$_SESSION[$key] = $value;
 	}
 
@@ -192,7 +192,7 @@ if ($stage == 'qdelete') {
 	}
 
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
-echo "pre qset qobjid: $qobjid<br>";
+//echo "pre qset qobjid: $qobjid<br>";
 if ($stage == 'qset' && !$qobjid) {
 	if ($oldtoken == $newtoken) {
 		$qobject = $qobjects[count($qobjects) - 1];
@@ -200,7 +200,7 @@ if ($stage == 'qset' && !$qobjid) {
 	} else {
 		if (!$qobjects) $qobjects = array();
 		
-		echo "Creating new qobject<br>";
+		//echo "Creating new qobject<br>";
 		
 		# CREATE NEW QOBJECT
 		$qname = get_next_name($qobjects, $qterm);

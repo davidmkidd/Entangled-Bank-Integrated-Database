@@ -1039,25 +1039,30 @@ function html_query_operator($qobject) {
 		
 #=================================================================================================================
 	
-	function html_query_select_options($db_handle, $str, $fname, $queries) {
+	function html_query_select_options($db_handle, $str, $fname, $qobject) {
 		
 	//HTML select box set with 'in' and 'out' controls
 	// SQL must return two fields the value to pass and the item to display
+	
+	$queries = $qobject['queries'];
 	
 	if (!$queries) $queries = array();
 	foreach ($queries as $query) {
 		if ($query['field'] == $fname) $vals = $query['value'];
 	}
-
-	//echo "str: $str<br>";
+	
+/*	echo "fname: $fname, str: $str<br>";
+	print_r($queries);
+	echo "<br>";*/
+	
 	$res = pg_query($db_handle, $str);
 	
 	echo "<table>";
 	echo "<tr>";
 	echo "<td>";
 	echo "<SELECT id='$fname' name='$fname' class='query_options' $disabled MULTIPLE size='8'>";
-	while ($row2 = pg_fetch_row($res)) {
-		echo "<OPTION value='$row2[0]'>$row2[1]</OPTION>";
+	while ($row = pg_fetch_row($res)) {
+		echo "<OPTION value='$row[0]'>$row[1]</OPTION>";
 	}
 	echo "</SELECT>";
 	echo "</td>";
@@ -1067,9 +1072,16 @@ function html_query_operator($qobject) {
 	echo "<BUTTON type='button' class='button-standard' $disabled id='" . $fname . "_allout' name='$fname' onClick='rem_all(this)'><<</BUTTON><br>";
 	echo "<BUTTON type='button' class='button-standard' $disabled id='" . $fname . "____out' name='$fname' onClick='rem_sel(this)'><</BUTTON>";
 	echo "</td>";
-	echo "<td>";		
+	echo "<td>";
+	
 	echo "<SELECT id='$fname" . "_add' name='$fname" . "_add[]' class='query_options' MULTIPLE size='8'>";
-	foreach ($vals as $val) echo "<OPTION value='$val'>$val</option>";
+	if ($vals) {
+		$res = pg_query($db_handle, $str);
+		while ($row = pg_fetch_row($res)) {
+			if (in_array($row[0], $vals)) echo "<OPTION value='$row[0]'>$row[1]</option>";
+		}
+	}
+
 	echo "</SELECT>";
 	echo "</td>";
 	echo "</tr>";
@@ -1256,7 +1268,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			case 'catagoryfield':
 				$str = "SELECT DISTINCT \"$fname\", \"$fname\" FROM $dbloc ORDER BY \"$fname\"";
 				//echo "$str<br>";
-				html_query_select_options($db_handle, $str, $fname, $queries);
+				html_query_select_options($db_handle, $str, $fname, $qobject);
 				break;
 			
 			case 'lookupfield':
@@ -1266,7 +1278,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 					WHERE f.field_id = c.field_id
 					AND f.source_id = $sid
 					AND f.field_name = '$fname'";
-				html_query_select_options($db_handle, $str, $fname, $queries);
+				html_query_select_options($db_handle, $str, $fname, $qobject);
 				break;
 				
 			case "rangefield":
@@ -1295,12 +1307,12 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 				if (!$vals) {
 					if (!$names) {
 						echo "[$row_names[0]] <INPUT type='text' name='$fmin'" ,
-							" id='$fmin' disabled=true size=8 value=$row_names[0] onchange='validateRangeField(\"$fmin\")'>";
+							" id='$fmin' disabled='true' size=8 value='$row_names[0]' onchange='validateRangeField(\"$fmin\")'>";
 						echo " &ndash <INPUT type='text' name='$fmax'" .
-							" id='$fmax' disabled=true align='right' size=8" . 
+							" id='$fmax' disabled='true' align='right' size=8" . 
 							" value='$row_names[1]' onchange='validateRangeField(\"$fmax\")'>[$row_names[1]]";
 						} else {
-						echo "[$row_names[0]] <INPUT name='$fmin'id='$fmin' disabled=true size=8 value=$row_names[0]'",
+						echo "[$row_names[0]] <INPUT name='$fmin'id='$fmin' disabled='true' size=8 value='$row_names[0]'",
 							" onchange='validateRangeField(\"$fmin\")'>";
 						echo " &ndash <INPUT type='text' name='$fmax'" ,
 							" id='$fmax' disabled=true size=8" ,
@@ -1310,12 +1322,12 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 					# vals
 					if (!$names) {
 						echo "[$row_names[0]] <INPUT type='text' name='$fmin'" ,
-						 	" id='$fmin' size=8 value=$vals[0]' onchange='validateRangeField(\"$fmin\")'>";
+						 	" id='$fmin' size=8 value='$vals[0]' onchange='validateRangeField(\"$fmin\")'>";
 						echo " &ndash <INPUT type='text' name='$fname" . "_max'" ,
 							" id='$fmax' size=8 value='$vals[1]' onchange='validateRangeField(\"$fmax\")'>[$row_names[1]]";
 						} else {
 						echo "[$row_names[0]] <INPUT type='text' name='$fmin'" ,
-							" id='$fmin' size=8 value=$vals[0] onchange='validateRangeField(\"$fmin\")'>";
+							" id='$fmin' size=8 value='$vals[0]' onchange='validateRangeField(\"$fmin\")'>";
 						echo " &ndash <INPUT type='text' name='$fmax'" ,
 							" id='$fmax' size=8 value='$vals[1]' onchange='validateRangeField(\"$fmax\")'> [$row_names[1]]";
 						}
@@ -1339,7 +1351,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 								 	AND t.binomial IS NOT NULL";
 							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 							$str = $str . " ORDER BY s.\"$fname\"";
-							html_query_select_options($db_handle, $str, $fname, $queries);
+							html_query_select_options($db_handle, $str, $fname, $qobject);
 						break;
 					case 'TaxonomicPhylum':
 					case 'TaxonomicClass':
@@ -1354,7 +1366,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 								 	
 						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 						$str = $str . " ORDER BY t.\"$fname\"";
-						html_query_select_options($db_handle, $str, $fname, $queries);
+						html_query_select_options($db_handle, $str, $fname, $qobject);
 						//echo "</DIV>";
 						break;
 					case 'HabitatName':
@@ -1367,7 +1379,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 							 	
 						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 						$str = $str . "ORDER BY b.\"$fname\"";
-						html_query_select_options($db_handle, $str, $fname, $queries);
+						html_query_select_options($db_handle, $str, $fname, $qobject);
 						break;
 					case 'ExactName':
 					case 'TownName':
@@ -1384,7 +1396,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 								 	AND t.binomial IS NOT NULL";
 							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 							$str = $str . " ORDER BY l.\"$fname\"";
-							html_query_select_options($db_handle, $str, $fname, $queries);
+							html_query_select_options($db_handle, $str, $fname, $qobject);
 						break;
 						
 					default:
@@ -1720,16 +1732,17 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		$title = 'Interquery operator';
 		
 		echo "<td class='query_buttons' title='$title' align='right'>";
-		echo "Interquery ";
+		
 		//echo "n qobjects:" . count($qobjects);
 		if (count($qobjects) > 1) {
-			echo "<SELECT id='queryoperator' name='queryoperator' class='qop'>";
+			echo "Interquery ";
+			echo "<SELECT id='queryoperator' name='queryoperator' class='qop' onChange='updateCART()'>";
 			if (!$op || $op == 'INTERSECT') {
 				$selected = 'SELECTED';
 			} else {
 				$selected = '';
 			}
-			echo "<OPTION value='INTERSECT' $selected>And (Intersect)</OPTION>";
+			echo "<OPTION value='INTERSECT' $selected >And (Intersect)</OPTION>";
 			if ($op == 'UNION') {
 				$selected = 'SELECTED';
 			} else {
@@ -2448,7 +2461,7 @@ function html_select_sources($db_handle) {
 	echo "<tr>";
 	echo "<td class='query_title' title='$title'>Sources</td>";
 	echo "<td class='query_form'>";
-	echo "<SELECT id='select_sources' class='eb' name='qsources' SIZE=7>";
+	echo "<SELECT id='select_sources' class='eb' name='qsources' SIZE=7  MULTIPLE='multiple'>";
 	if(!$result) {
 		echo "<OPTION>No Data Sets Available</OPTION>";
 	} else {

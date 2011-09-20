@@ -44,7 +44,7 @@ function html_cart_series($qobjects) {
 	If (count($qobjects) > 0) {
 		$mids = query_get_mids($qobjects);
 		
-		//echo count($mids), "mids<br>";
+		//echo count($mids), " mids<br>";
 		
 		if (!$mids) { 
 			echo " | 0 series";
@@ -111,9 +111,8 @@ function html_cart_query($qobjects, $sources) {
 			
 			if ($n == 0) {
 				# NO QOBJECTS
-				//echo "<td class='cart_query'>";
-				echo "<img src='./image/no-query.gif' alt='0 queries' class='query_type_button_non_active'>";
-				//echo "</td>";
+				$title = 'No queries';
+				echo "<img src='./image/no-query.gif' alt='$title' title='$title' class='query_type_button_non_active'>";
 			} else {
 				# QOBJECTS	
 				$c = 0;
