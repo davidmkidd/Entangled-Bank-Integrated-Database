@@ -6,37 +6,6 @@
 #
 
 	
-#=======================================================================================================================
-
-/*function html_all_tree_names ($form_objname, $form_treenodes, $form_not, $form_qoperator, $form_cancel,
-	$qobjects, $qobjid) {
-	
-	$qobj = get_obj($qobjects, $qobjid);
-	$qname = $qobj['name'];
-	
-	if ($qname) {
-		echo "<h3>Query: $qname</h3>";
-		} else {
-		echo "<h3>New tree query</h3>";
-		}	
-	if (!$qname) $qname = get_next_name($qobjects, 'biotree');	
-	
-	html_select_tree_nodes($qobj['treenodes']);
-
-	#html_query_not($form_not, $qobj);
-	#echo "<br>";
-	
-	if (obj_idx($qobjects, $qobjid) != 0 or $qobj['queryoperator']) {
-		html_query_operator($qobj);
-		echo "<br>";
-		// html_query_join($form_qjoin, $qobj);
-		// echo "<br>";
-		}
-	html_obj_name($form_objname, $qname);
-	echo "<hr>";
-	html_cancel_select();
-	}*/
-	
 #=================================================================================================================	
 
 function html_arr_to_table($arr) {
@@ -180,7 +149,7 @@ function html_obj_name($obj) {
 	} else {
 		$name = "";
 	}
-	echo "<INPUT type='text' id='objname' name='objname' class='namewidth' value=$name onChange='checkObjName()'>";
+	echo "<INPUT type='text' id='objname' name='objname' class='eb' value=$name onChange='checkObjName()'>";
 	}
 	
 #=================================================================================================================
@@ -188,134 +157,106 @@ function html_obj_name($obj) {
 	function html_output_biorelational($db_handle, $output, $outputs, $sources) {
 		
 		# GPDD HARD CODE
-		
-		# OUTPUT NAME
-		$outname = $output['name'];
-		//echo $output['term'] . "<br>";
-		if (!$outname) {
-			$outname = get_next_name($outputs, $output['term']);
-			//echo "$outname<BR>";
-			$output['name'] = $outname;
-		}
-		
-		echo "Name ";
-		html_obj_name('objname', $output);
-		echo "<BR>";
-		
+
 		# OUTPUT TABLES
 		html_output_dbformat($output);
-		echo "<BR>";
 		
 		# OUTPUT GEOGRAPHY
-		echo "Spatial format ";
-		echo "<SELECT name='sp_format'>";
+		echo "<tr>";
+		echo "<td class='query_title'>Spatial format</td>";
+		echo "<td class = 'query_option'>";
+		echo "<SELECT name='sp_format' class='eb'>";
 		echo "<OPTION SELECTED value='shapefile'> ESRI Shapefile</OPTION>";
 		echo "<OPTION value='mapinfo'> MapInfo</OPTION>";
 		echo "<OPTION value='dgn'> DGN</OPTION>";
 		echo "<OPTION value='dxf'> DXF</OPTION>";
 		echo "<OPTION value='gml'> Geographic Markup Language (GML)</OPTION>";
 		echo "<OPTION value='kml'> Keyhole Markup Language (KML)</OPTION>";
-		echo "</SELECT><br>";		
-		
-		
+		echo "</SELECT>";		
+		echo "</td>";
+		echo "</tr>";
 	}
-	
+		
+#================================================================================================================
+
+	function html_output_buttons($output) {
+		
+		# CONTROL BUTTONS FOR QUERY
+		$term = $output['term'];
+		$id = $output['id'];
+		$status = $output['status'];
+		
+		//print_r($output);
+		//echo " --- $id<br>";
+		
+		echo "<td id='output_buttons' class='output_buttons' align='right'>";
+		# CANCEL
+		if ($status !== 'new') echo "<input type='button' name='cancel' class='cancel' value='Cancel' onClick='cancelOutput(\"$id\")'/>";
+		
+		# DELETE
+		echo "<input type='button' name='delete' class='delete' value='Delete' onClick='deleteOutput(\"$id\")'/>";
+		
+		# OK
+		echo "<input id='submit-button' type='submit' class='button-standard' onClick='addOutput(\"$id\")' value='OK' />";
+
+		echo "</td>";
+	}
 #=================================================================================================================
 
 function html_output_biogeographic($output, $outputs, $sources) {
-
-	//$output = get_obj($outputs, $outputid);
-	//$source = get_obj($sources, $output['sourceid']);
-	//print_r($output);
-	$outname = $output['name'];
-	//echo $output['term'] . "<br>";
-	if (!$outname) {
-		$outname = get_next_name($outputs, $output['term']);
-		//echo "$outname<BR>";
-		$output['name'] = $outname;
-	}
-	
-	echo "Name ";
-	html_obj_name('objname', $output);
-	echo "<BR>";
-
-	echo "Spatial format ";
-	echo "<SELECT name='sp_format'>";
-	echo "<OPTION SELECTED value='shapefile'> ESRI Shapefile</OPTION>";
-	echo "<OPTION value='mapinfo'> MapInfo</OPTION>";
-	echo "<OPTION value='dgn'> DGN</OPTION>";
-	echo "<OPTION value='dxf'> DXF</OPTION>";
-	echo "<OPTION value='gml'> Geographic Markup Language (GML)</OPTION>";
-	echo "<OPTION value='kml'> Keyhole Markup Language (KML)</OPTION>";
-	echo "</SELECT><br>";
-	
-	
+	echo "<tr>";
+	echo "<td class='query_title'>";
+	echo "Format";
+	echo "</td>";
+	echo "<td>";
+	echo "<SELECT name='sp_format' class='eb'>";
+	echo "<OPTION SELECTED value='shapefile'>ESRI Shapefile</OPTION>";
+	echo "<OPTION value='mapinfo'>MapInfo</OPTION>";
+	echo "<OPTION value='dgn'>DGN</OPTION>";
+	echo "<OPTION value='dxf'>DXF</OPTION>";
+	echo "<OPTION value='gml'>Geographic Markup Language (GML)</OPTION>";
+	echo "<OPTION value='kml'>Keyhole Markup Language (KML)</OPTION>";
+	echo "</SELECT>";
+	echo "</td>";
+	echo "</tr>";
 	}
 	
 	
 #=================================================================================================================
 
-function html_output_biotree($db_handle, $output, $outputs, $sources) {
+function html_output_biotree($db_handle, $output, $outputs, $source) {
 
 	$subtree_formname = 'outsubtree';
 	$format_formname = 'format';
 	$branch_formname = 'brqual';
-	 	
-	//$output = get_obj($outputs, $outputid);
-	$source = get_obj($sources, $output['sourceid']);
-	# print_r($source);
-	 
 	$subtree = $output['subtree'];
 	$format = $output['format'];
 	$brqual = $output['brqual'];
-	$outname = $output['name'];
+	$outname = $output['name']; 	
 	
-	if (!$outname) {
-		$outname = get_next_name($outputs, $source['term']);
-		//echo "outname: $outname";
-		$output['name'] = $outname;
-	}
-	echo "Name ";
-	html_obj_name($output);
-	echo "<BR>";
+	 
 	
-	#Select subtree type
-	echo "Tree type ";
+	#SUBTREE TYPE
+	echo "<tr>";
+	echo "<td class='query_title'>";
+	echo "Tree type";
+	echo "</td>";
+	echo "<td>";
+	echo "<select name='$subtree_formname' class='eb'>";
 	if (!$subtree or $subtree == 'subtree') {
-		echo "<INPUT type='radio' CHECKED name=$subtree_formname value='subtree'> LCA subtree";
-		echo "<INPUT type='radio' name=$subtree_formname value='pruned'> Pruned LCA subtree";
+		echo "<OPTION SELECTED value='subtree'>LCA subtree</OPTION>";
+		echo "<OPTION value='subtree'>Pruned LCA subtree</OPTION>";
 		} else {
-		echo "<INPUT type='radio' name=$subtree_formname value='subtree'> LCA subtree";
-		echo "<INPUT type='radio' CHECKED name=$subtree_formname value='pruned'> Pruned LCA subtree";
+		echo "<OPTION value='subtree'>LCA subtree</OPTION>";
+		echo "<OPTION SELECTED value='subtree'>Pruned LCA subtree</OPTION>";
 		}
-
-	echo "<br>";
-	#Select tree format to output
-	echo "Tree file format ";
-	echo "<SELECT name=$format_formname>";
-	if (!$format || $format == 'newick') {
-		echo "<OPTION SELECTED value='newick'> NEWICK</OPTION>";
-		} else {
-		echo "<OPTION value='newick'> NEWICK</OPTION>";
-		}
-	if ($format == 'nhx') {
-		echo "<OPTION SELECTED value='nhx'> NHX</OPTION>";
-		} else {
-		echo "<OPTION value='nhx'> NHX</OPTION>";
-		}
-	if ($format == 'tabtree') {
-		echo "<OPTION SELECTED value='tabtree'> ASCII (tab indented)</OPTION>";
-		} else {
-		echo "<OPTION value='tabtree'> ASCII (tab indented)</OPTION>";
-		}
-	if ($format == 'lintree') {
-		echo "<OPTION SELECTED value='lintree'> LINTREE</OPTION>";
-		} else {
-		echo "<OPTION value='lintree'> LINTREE</OPTION>";
-		}
-	echo "</SELECT><br>";
+	echo "<select>";
 	
-	#  If new query then is it a phylogeny with distances? If so, then select edge qualifiers
+
+	echo "</td>";
+	echo "</tr>";
+	
+	#  BRANCH LENGTH
 	$brlen = false;
 	if (!$brqual) {
 		$str = "SELECT tm.name
@@ -325,8 +266,6 @@ function html_output_biotree($db_handle, $output, $outputs, $sources) {
 			AND tr.tree_id = tqv.tree_id
 			AND tr.tree_id = " . $source['tree_id'] .
 			 " AND ont.name = 'tree type'";
-		
-		#echo "$str ";
 		$res = pg_query($db_handle, $str);
 		$row = pg_fetch_row($res);
 		if ($row[0] == "phylogeny") $brlen = true;
@@ -335,7 +274,6 @@ function html_output_biotree($db_handle, $output, $outputs, $sources) {
 		}
 	
 		if ($brlen) {
-			
 			# Get Edge Qualifiers
 			$str = "SELECT DISTINCT t.term_id, t.name
 			FROM biosql.term t, biosql.node n, biosql.edge e, biosql.edge_qualifier_value eq
@@ -345,9 +283,13 @@ function html_output_biotree($db_handle, $output, $outputs, $sources) {
 			OR e.child_node_id = n.node_id)
 			AND n.tree_id = " . $source['tree_id'];
 			$res = pg_query($db_handle, $str);
-
-			echo "Tree length ";
-			echo "<SELECT name=$branch_formname>";
+			echo "<tr>";
+			echo "<td class='query_title'>";
+			echo "Branch length";
+			echo "</td>";
+			
+			echo "<td>";
+			echo "<SELECT name=$branch_formname class='eb'>";
 			# Reload of exiting query
 			if (!$brqual) {
 				# New output
@@ -378,12 +320,42 @@ function html_output_biotree($db_handle, $output, $outputs, $sources) {
 					}
 				}
 			echo "</SELECT>";
+			echo "</td>";
+			echo "</tr>";
 			}
+
 	
-	//$outputs = save_obj($outputs,$output);
-	//$_SESSION['outputs'] = $outputs;
-	#echo "<br>";
-	//html_obj_name($form_objname, $outname);
+	# TREE FORMAT
+	echo "<tr>";
+	echo "<td class='query_title'>";
+	echo "Format";
+	echo "</td>";
+	
+	echo "<td>";
+	echo "<SELECT name=$format_formname class='eb'>";
+	if (!$format || $format == 'newick') {
+		echo "<OPTION SELECTED value='newick'> NEWICK</OPTION>";
+		} else {
+		echo "<OPTION value='newick'> NEWICK</OPTION>";
+		}
+	if ($format == 'nhx') {
+		echo "<OPTION SELECTED value='nhx'> NHX</OPTION>";
+		} else {
+		echo "<OPTION value='nhx'> NHX</OPTION>";
+		}
+	if ($format == 'tabtree') {
+		echo "<OPTION SELECTED value='tabtree'> ASCII (tab indented)</OPTION>";
+		} else {
+		echo "<OPTION value='tabtree'> ASCII (tab indented)</OPTION>";
+		}
+	if ($format == 'lintree') {
+		echo "<OPTION SELECTED value='lintree'> LINTREE</OPTION>";
+		} else {
+		echo "<OPTION value='lintree'> LINTREE</OPTION>";
+		}
+	echo "</SELECT>";
+	echo "</td>";
+	echo "</tr>";
 	}
 	
 	#=======================================================================================================================	
@@ -395,20 +367,24 @@ function html_output_biotree($db_handle, $output, $outputs, $sources) {
 		} else {
 			$f = 'csv';
 		}
-		echo "Tabular format ";
+		echo "<tr>";
+		echo "<td class='query_title'>Format</td>";
 		$formats = array('csv','tab-delineated','dbf');
 		#print_r($formats);
-		echo "<SELECT id='format' name='db_format'>";
-			foreach ($formats as $format) {
-				if ($format == $f) {
-					$selected = 'SELECTED';
-				} else {
-					$selected = '';
-				}
-			echo "<OPTION $selected value='$format'>$format</OPTION>";
+		echo "<td>";
+
+		echo "<SELECT id='format' name='db_format' class='query_options'>";
+		foreach ($formats as $dbformat) {
+			if ($dbformat == $f) {
+				$selected = 'SELECTED';
+			} else {
+				$selected = '';
 			}
+		echo "<OPTION $selected value='$dbformat'>$dbformat</OPTION>";
+		}
 		echo "</SELECT>";
-	
+		echo "</td>";
+		echo "</tr>";
 	}
 	
 #=======================================================================================================================	
@@ -478,20 +454,11 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 	
 #================================================================================================================
 
-	
 	function html_query_buttons($qobject) {
 		
-/*		echo "<td class='query_title'>";
-		if (count($qobjects) > 1) echo "Interquery";
-		echo "</td>";*/
-		
-		//$op = $qobject['queryoperator'];
+		# CONTROL BUTTONS FOR QUERY
 		$term = $qobject['term'];
 		$id = $qobject['id'];
-		
-//		echo "<td class='qop' title='$title'>";
-//		echo "</td>";
-		
 		echo "<td id='query_buttons' class='query_buttons' align='right'>";
 		echo "<input type='button' name='cancel' class='cancel' value='Cancel' onClick='cancelQuery(\"$id\")'/>";
 		if ($qobject['status'] != 'new') 
@@ -512,7 +479,6 @@ function html_query_set($db_handle, $qobjid, $qobjects, $sources, $names){
 				break;
 		}
 		echo "</td>";
-		
 	}
 	
 #================================================================================================================
@@ -619,7 +585,7 @@ function html_query_spatial_operator ($s_operator) {
 
 #=======================================================================================================================	
 
-	function html_query_image($object, $class, $title = null, $type = 'query', $ret = false) {
+	function html_query_image($term, $class, $title = null, $type = 'query', $ret = false) {
 		
 		//$size = $size . 'px';
 		if ($class == 'non-active') {
@@ -628,7 +594,7 @@ function html_query_spatial_operator ($s_operator) {
 			$class = 'query_type_button_active';
 		}
 		
-		switch ($object['term']) {
+		switch ($term) {
 			case 'bionames' : 
 				if (!$title) $title = "Names $type";
 				$img = 'systema.gif';
@@ -2058,31 +2024,13 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		# SOURCE SELECTOR
 		html_select_source_table ($sources,'biotree');
 		html_select_source_table ($sources,'attribute');
+		echo "<hr>";
 		
-		# OTHER ACTIONS
+		# OUTPUTS
 		echo "<table border='0'>";
 		echo "<tr>";
-		echo "<td class='query_title_minus' title='$title'>Action</td>";
-		$n = 0;
-		if ($qobjects) {
-			$title = "Edit and delete queries";
-			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"manage\")'><img src='./image/managequeries.gif' class='query_type_button'/> </a></td>" ;
-		} else {
-			$n++;
-		}
-		if (!$names) {
-			$title = "Return entire datasets";
-			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"qend\")'><img src='./image/returnalldata.gif' class='query_type_button'/> </a></td>" ;
-		}  else {
-			$n++;
-		}
-		if ($names and count($names) != 0) {
-			$title = "Return subsetted data";
-			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"qend\")'><img src='./image/returndata.gif' class='query_type_button'/> </a></td>" ;
-		}	
-			
-		$title = "I\'m done";
-		echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"finish\")'><img src='./image/exit.gif' class='query_type_button'/> </a></td>" ;
+		echo "<td class='query_title' title='$title'>New Output</td>";
+		html_output_source($sources);
 		echo "</tr>";
 		echo "</table>";
 		echo "</div>";
@@ -2283,7 +2231,7 @@ function html_select_table_fields($db_handle, $formname, $form_all, $form_cancel
 
 #=================================================================================================================
 
-function html_output_biotable($db_handle, $output, $outputs, $sources) {
+function html_output_biotable($db_handle, $output, $outputs, $source) {
 	
 	echo '<script src="./scripts/table_utils.js" type="text/javascript"></script>';
 	
@@ -2293,57 +2241,42 @@ function html_output_biotable($db_handle, $output, $outputs, $sources) {
 	#$form_all = 'allfields';
 	$form_cancel = 'cancel';
 	$form_objname = 'objname';
-	$width = 250; 
-	$n_options = 8;
-		
-	# $ncheck check the first x  elements, If 0 then all unchecked, if undef then check all. Useful for development.
-	
-	if (!$db_handle || !$form_name || !$form_cancel || !$form_objname || !$sources || !$outputs || !$output) {
-		echo "html_output_biotable: missing arguments.";
-		exit;	
-		}
 
-	$source = get_obj($sources, $output['sourceid']);
-	#print_r($output);
-	#echo "<BR>";
-	$dtypes = get_source_dtypes($db_handle, $source);
-	
-	$outname = $output['name'];
-	//echo $source['term'] . "<BR>";
-	if (!$outname) $outname = get_next_name($outputs, $source['term']);
-	//echo "$outname<BR>";
-	$output['name'] = $outname;
-	echo "Output name ";
-	html_obj_name($form_objname, $output);
-	echo "<BR>";
+	$fields = $source['fields'];
+	//print_r($fields);
+	//$dtypes = get_source_dtypes($db_handle, $source);
 	html_output_dbformat($output);
-	echo "<BR>";
-	echo "<SELECT id='$form_name' name='$form_name' $disabled MULTIPLE size=8 style='width:" . $width . "px;'>";
-	foreach ($dtypes as $dtype) {
-		$fname = $dtype['fname'];
+	echo "</table>";
+	
+	echo "<table border='0'>";
+	echo "<tr>";
+	echo "<td class='query_title'>Fields</td>";
+	echo "<td>";
+	echo "<SELECT id='$form_name' name='$form_name' $disabled MULTIPLE size='8' class='query_options'>";
+	foreach ($fields as $field) {
+		$fname = $field['fname'];
 		echo "<OPTION value='$fname'>$fname</OPTION>";
 	}
 	echo "</SELECT>";
-
-	echo "<BUTTON type='button' $disabled id='" . $form_name . "__allin' name='$form_name' onClick='add_all(this)'>>></BUTTON>";
-	echo "<BUTTON type='button' $disabled id='" . $form_name . "_____in' name='$form_name' onClick='add_sel(this)'>></BUTTON>";
-	echo "<BUTTON type='button' $disabled id='" . $form_name . "____out' name='$form_name' onClick='rem_sel(this)'><</BUTTON>";
-	echo "<BUTTON type='button' $disabled id='" . $form_name . "_allout' name='$form_name' onClick='rem_all(this)'><<</BUTTON>";
-	
+	echo "<td>";
+	echo "<BUTTON type='button' $disabled id='" . $form_name . "__allin' name='$form_name' class='button-standard' onClick='add_all(this)'>>></BUTTON><br>";
+	echo "<BUTTON type='button' $disabled id='" . $form_name . "_____in' name='$form_name' class='button-standard' onClick='add_sel(this)'>></BUTTON><br>";
+	echo "<BUTTON type='button' $disabled id='" . $form_name . "____out' name='$form_name' class='button-standard' onClick='rem_sel(this)'><</BUTTON><br>";
+	echo "<BUTTON type='button' $disabled id='" . $form_name . "_allout' name='$form_name' class='button-standard' onClick='rem_all(this)'><<</BUTTON>";
+	echo "</td>";
 	//fields in output
 	$fields = $output['fields'];
 	
-	echo "<SELECT id='$form_name" . "_add' name='$form_name" . "_add[]' MULTIPLE size=$n_options style='width:" . $width . "px;'>";
+	echo "<td>";
+	echo "<SELECT id='$form_name" . "_add' name='$form_name" . "_add[]' MULTIPLE size='8' class='query_options'>";
 			foreach (fields as $field) {
 				$checked = "";
 				"<OPTION value='$field'>";
 			}
 	echo "</SELECT>";
-	
-	echo "<BR>";
+	echo "</td>";
+	echo "</tr>";
 
-	echo "<hr>";
-	html_cancel_select();
 }
 
 #================================================================================================================
@@ -2366,75 +2299,74 @@ function html_output_biotable($db_handle, $output, $outputs, $sources) {
 	
 #================================================================================================================
 
-function html_output_source($sources, $outputs) {
-
-	echo "<h3>Select data to output</h3>";
-	$fst = true;
-	#Radio buttons for outputting different combinations of data
+function html_output_source($sources) {
 	
+	# Select and go button for adding a new output
+	
+	echo "<td>";
+	echo "<select name='output_sid'>";
 	foreach ($sources as $source) {
-		if ($fst) {
-			echo "<input type='radio' CHECKED name='output_sid' value='" . $source['id'] . "'> " . $source['name'] . "<br>";
-			$fst = false;
-			} else {
-			echo "<input type='radio' name='output_sid' value='" . $source['id'] . "'> " . $source['name'] . "<br>";
-			}
-		}
-	echo "<hr>";
-	
-	if ($outputs) {
-		echo "<input type='radio' name='output_sid' value='manage'> Manage outputs<br>";
-		echo "<input type='radio' name='output_sid' value='end'> Return data<br>";
-		}
-	echo "<input type = 'hidden' name ='stage' value='outputset'>";
-	echo "<br>";
+		echo "<option value='", $source['id'], "'>", $source['name'], "</option>";
+	};
+	echo "</ select>";
+	echo "<input type='button' value='Add' class='button-standard' onclick='newOutput()'";
+	echo "</td>";
 }
 
 #================================================================================================================
 
-function html_output_set($db_handle, $output, $outputs, $qobjects, $sources) {
+function html_output_set($db_handle, $output, $outputs, $sources) {
 	
+	# SWITCH INTERFACE BY SOURCE TYPE
 	
 	$output_id = $output['id'];
-	//print_r($outputs);
-	#echo "<br>outpit_id: $output_id<br>";
-	//$output = get_obj($outputs, $outputid);
-	//print_r($output);
 	$source = get_obj($sources, $output['sourceid']);
-	//print_r($source);
-	
 	$sterm = $source['term'];
-	# Header
-	echo "<h3>Output $sterm - " . $source['name'] . "</h3>";
+	$outname = $output['name'];
 	
-	#echo $str; 
+	if (!$outname) {
+		$outname = get_next_name($outputs, $source['term']);
+		//echo "outname: $outname";
+		$output['name'] = $outname;
+	}
 	
-	# WWW link
-//	if (array_key_exists('www', $source)) {
-//		echo "<a href='" . trim($source['www']) . "' target='_blank'>";
-//		echo "Click for information on " . $source['name'] . "</a><br><br>";
-//		}
-		
+	echo "<br>";
+	echo "<div id='output'>";
+	echo "<table border='0'>";
+	
+	# OUTPUT NAME
+	echo "<tr>";
+	echo "<td class='query_title'>";
+	echo "Name";
+	echo "</td>";
+	echo "<td class='eb'>";
+	html_obj_name($output);
+	echo "</td>";
+	# OK/CANCEL/DELETE
+	html_output_buttons($output);
+	echo "</tr>";
+	
 	switch ($sterm) {
 		case "biotable" :
 			# select traits to output
-			html_output_biotable($db_handle, $output, $outputs, $sources);
+			html_output_biotable($db_handle, $output, $outputs, $source);
 			break;	
 		case "biogeographic" :
-			html_output_biogeographic($output, $outputs, $sources);
+			html_output_biogeographic($output, $outputs, $source);
 			break;	
 		case "biotree" :
-			html_output_biotree($db_handle, $output, $outputs, $sources);
+			html_output_biotree($db_handle, $output, $outputs, $source);
 			break;
 		case 'biorelational' :
-			html_output_biorelational($db_handle, $output, $outputs, $sources);
+			html_output_biorelational($db_handle, $output, $outputs, $source);
 			break;
 		}
-	echo "<input type = 'hidden' name='stage' value='verify_output'>";
-	echo "<input type = 'hidden' name='output_id' value='$output_id'>";
-	echo "<br>";
-	echo "<hr>";
+		
+	echo "</table>";
+	echo "</div>";
 	
+	echo "<input id='stage' type='hidden' name='stage' value='outputvalidate'>";
+	echo "<input id='output_id' type='hidden' name='output_id' value='$output_id'>";
 }
 
 	
@@ -2682,71 +2614,17 @@ function html_tree_level_options($db_handle, $tree, $parent_id, $qnames, $indent
 
 #=================================================================================================================
 	
-function html_write($db_handle, $config, $names, $qobjects, $outputs, $sources) {
-
-	echo "<h3>Entangled Bank Download</h3>";
+function html_write($zip) {
 	
-	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
-	$oid = substr(md5(uniqid()),0,4);
-	$_SESSION['oid'] = $oid;
-	
-	# ZIP, WRITE README THEN DELETE
-	$files_to_zip = array();
-		
-	# WRITE OUTPUT
-	$outputs = write($db_handle, $config, $qobjects, $names, $outputs, $sources, $oid);
-	#print_r($outputs);
-	
-	# ADD OUTPUTS TO README AND FILES_TO_ZIP
-	#echo "add outputs to readme and files to zip<br>";
-	foreach ($outputs as $output) {
-		$outfiles = $output['outfiles'];
-		if ($output['term'] == 'biotree') $outfiles[0] = $config['out_path'] . "/" . $outfiles[0];
-		$files_to_zip = array_merge($files_to_zip, $outfiles);
-	}
-	//print_r($files_to_zip);
-	#echo "<br>outputs added readme and files to zip<br>";
-	
-	# WRITE README
-	$readme = write_readme($qobjects, $outputs);
-	#$write_path = substr($config['tmp_path'], strpos($config['tmp_path'],'/') + 1);
-	$write_path = $config['out_path'];
-	#echo "write path $write_path<br>";
-	$fn = $write_path . "/readme_$oid.txt";
-	$fh = fopen($fn, 'w') or die("can't open file $fn: $php_errormsg");
-	fputs($fh, $readme);
-	fclose($fh) or die ($php_errormsg);
-	
-	#echo "readme $fn written<br>";
-	# add readme to zip list
-	array_push($files_to_zip, $fn);
-	$zn = "ebdata_$oid.zip";
-	#echo "Zipping files to $zn<br>";
-	#print_r($files_to_zip);
-	#echo "<br>";
-	
-	$res = create_zip($files_to_zip, $write_path . '/' . $zn, true);
-	
-	#echo "res: $res";
-	
-	If ($res === false) {
-		echo "php_interface_subs::html_write: zip file creation failed";
-		return 0;
+	If ($zip === false) {
+		echo "php_write: zip file creation failed";
 		} else {
 		echo "Right-click and 'Save as' to download Entangled Bank data zip file ";
-		echo "<a href='http://" . $config['host'] . '/' . $config['tmp_path'] . '/' . $zn;
-		echo "'> $zn</a><br><br>";
-		$_SESSION['zip_to_delete'] = $zn;
-		echo "<hr>";
-			
-		# Delete files_to_zip
-		foreach ($files_to_zip as $file) {
-			#echo "unlinking $file<br>";
-			unlink($file);
-		}
-		return $zn;
-		}
+		echo "<a href='http://" . $config['host'] . '/' . $config['tmp_path'] . '/' . $zip;
+		echo "'> $zip</a>";
+		echo "<p id='thanks'>Thank you for using the Entangled Bank&nbsp;&nbsp;<input id='submit-button' type='submit' value='Another query?'></p>";
 	}
+}
 
 #=================================================================================================================	
 

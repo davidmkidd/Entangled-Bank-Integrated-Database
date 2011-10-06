@@ -2,9 +2,9 @@
 
 # ------------------------------------------------------------------------------------------------------------
 
-function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $stage) {
+function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $object_id, $outputs, $stage) {
 	
-	//echo "$qobjid<br>";
+	echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
 	
 	# CART
 	echo "<div id='cart'>";
@@ -29,11 +29,10 @@ function html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $
 	html_cart_names($names);
 	# SERIES
 	html_cart_series($qobjects);
-	# OUTPUTS
-	html_cart_outputs($outputs);
 	echo "</td>";
 	echo "</tr>";
-	html_cart_queries($qobjid, $qobjects);
+	# QUERIES
+	html_cart_queries($qobjid, $qobjects);	
 	echo "</table>";
 	echo "</div>";
 }
@@ -43,9 +42,6 @@ function html_cart_series($qobjects) {
 	
 	If (count($qobjects) > 0) {
 		$mids = query_get_mids($qobjects);
-		
-		//echo count($mids), " mids<br>";
-		
 		if (!$mids) { 
 			echo " | 0 series";
 		} else {
@@ -93,90 +89,101 @@ function html_cart_query($qobjects, $sources) {
 	
 	function html_cart_queries($qobjid, $qobjects) {
 		
-		//if (isset($qobjects) && ! empty($qobjects)) {
+		echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
 		
-			echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
+		# QUERY CHAIN
+		$title = "Queries";
 		
-			echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
-			
-			# QUERY CHAIN
-			$title = "Queries";
-			//echo "<table>";
-			echo "<tr>";
-			//echo "<td class=''>";
-			echo "<td>";
-			//echo "<td class='$class' title='$title'><img src='./image/queryicon.gif' alt='queryicon.gif'></td>";
-			//echo "<td class='query_title' title='$title'>Queries</td>";
-			$n = count($qobjects);
-			
-			if ($n == 0) {
-				# NO QOBJECTS
-				$title = 'No queries';
-				echo "<img src='./image/no-query.gif' alt='$title' title='$title' class='query_type_button_non_active'>";
-			} else {
-				# QOBJECTS	
-				$c = 0;
+		echo "<tr>";
+		echo "<td>";
 
-				foreach ($qobjects as $qobject) {
-					# IF EQ QOBJID OR NEW THEN LARGE
-					$name = $qobject['name'];
-					$id = $qobject['id'];
-					//echo $qobject['id'] . "<br>";
-					if ($qobject['status'] !== 'new' && $qobject['id'] !== $qobjid) {
-						# NON-ACTIVE QUERY
-						$class = 'non-active';
-						if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
-						echo "<a>";
-						echo "<a href='javascript: editQuery(\"$id\")'>";
-						html_query_image($qobject, $class, $name);
-					} else {
-						# ACTIVE QUERY
-						$class = 'active';
-						
-						if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
-						echo "<a>";
-						html_query_image($qobject, $class , $name);
-					}
-					echo "</a>";
-					$c++;
+		$n = count($qobjects);
+		
+		if ($n == 0) {
+			# NO QOBJECTS
+			$title = 'No queries';
+			echo "<img src='./image/no-query.gif' alt='$title' title='$title' class='query_type_button_non_active'>";
+		} else {
+			# QOBJECTS	
+			$c = 0;
+
+			foreach ($qobjects as $qobject) {
+				# IF EQ QOBJID OR NEW THEN LARGE
+				$name = $qobject['name'];
+				$id = $qobject['id'];
+				if ($qobject['status'] !== 'new' && $qobject['id'] !== $qobjid) {
+					# NON-ACTIVE QUERY
+					$class = 'non-active';
+					if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
+					echo "<a>";
+					echo "<a href='javascript: editQuery(\"$id\")'>";
+					html_query_image($qobject['term'], $class, $name);
+				} else {
+					# ACTIVE QUERY
+					$class = 'active';
+					if ($c > 0) echo html_query_operator_image($qobject['queryoperator'], $class);
+					echo "<a>";
+					html_query_image($qobject['term'], $class , $name);
 				}
+				echo "</a>";
+				$c++;
 			}
-		echo "</td>";
-		echo "</tr>";
+		}
+	echo "</td>";
+	echo "</tr>";
 	}
 	
 # ------------------------------------------------------------------------------------------------------------
 	
-function html_cart_outputs($outputs) {
+function html_cart_outputs($output_id, $outputs, $qobjects) {
 	
 	//echo "begin cart output<br>";
-	//print_r ($outputs);
-	
+	//print_r ($outputs);	
+	//echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
+		
 	# OUTPUTS
-	if ($outputs) {
-		$c = count($outputs);
-		if ($outputs[$c - 1]['status'] == 'new') $c = $c - 1;
-	} else {
-		$c = 0;
-	}
-
-	if ($c > 0)  {
-		echo "<td class='cart_menu'>";
-		echo "<a href='list_output.php?" . SID . "' target='_blank'>";
-		switch ($c) {
-			case 0:
-				//echo " | 0 outputs";
-				break;
-			case 1:
-				echo "1 output";
-				break;
-			default:
-				echo "$c outputs";
-		}
-	echo "</a>";
+	$n = count($outputs);
+	$q = count($qobjects);
+	echo "<div id='output_cart'>";
+	echo "<table border='0'>";
+	echo "<tr>";
+	echo "<td class='query_title'>";
+	echo "Outputs";
 	echo "</td>";
-	}
 	
+	echo "<td>";
+	if ($n == 0) {
+		# NO OUTPUTS
+		$title = 'No Outputs';
+		echo "<img src='./image/no-output.gif' alt='$title' title='$title' class='query_type_button_non_active'>";
+	} else {
+		$title = "Outputs";
+		foreach ($outputs as $output) {
+			# IF EQ QOBJID OR NEW THEN LARGE
+			$name = $output['name'];
+			$id = $output['id'];
+			if ($output['status'] !== 'new' && $output['id'] !== $output_id) {
+				# NON-ACTIVE QUERY
+				$class = 'non-active';
+				//echo "<a>";
+				echo "<a href='javascript: editOutput(\"$id\")'>";
+				html_query_image($output['term'], $class, $name, 'output');
+			} else {
+				# ACTIVE QUERY
+				$class = 'active';
+				echo "<a>";
+				html_query_image($output['term'], $class , $name, 'output');
+			}
+			echo "</a>";
+		}
+		# RETURN DATA
+		$title = 'Return Data';
+		echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' alt='return data' title='$title' class='query_type_button_non_active';></img></a>";
+	}
+	echo "</td>";
+	echo "</tr>";
+	echo "</table>";
+	echo "</div>";
 	}
 	
 # ------------------------------------------------------------------------------------------------------------

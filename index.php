@@ -119,9 +119,9 @@ $files_to_delete = $_SESSION['files_to_delete'];
 #                                                                            PRE-FORM PROCESSING
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
-//echo "Pre-form processing: ";
+echo "Pre-form processing: ";
 //if ($qobjects) print_r($qobjects);
-//echo "$stage, $qterm<br>";
+echo "stage: $stage<br>";
 
 # Get Current qobject
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
@@ -165,7 +165,6 @@ if ($stage == 'qedit') {
 if ($stage == 'qcancel') {
 	$c = count($qobjects) - 1;
 	if ($qobjects[$c]['status'] == 'new') unset($qobjects[$c]);
-	#echo "<FONT color=red>Query Cancelled</FONT><br>";
 	$qobjid = null;
 	$stage = 'qbegin';
 }
@@ -174,7 +173,6 @@ if ($stage == 'qcancel') {
 if ($stage == 'qdelete') {
 	$idx = obj_idx($qobjects,$qobjid);
 	unset ($qobjects[$idx]);
-	
 	array_values($qobjects);
 	# If no queries unset names
 	$names = null;
@@ -255,101 +253,71 @@ if ($stage == 'query') {
 	}
 	
 # NEW OUTPUT
-if ($stage == 'outputset') {
-	//if(!$output_id && $newtoken == $oldtoken) $output_id = "*";
-	switch ($output_sid) {
-		case 'end':
-			$stage = 'write';
+if ($stage == 'newoutput') {
+	switch (true) {
+		case ($outputs && $outputs[count($outputs) - 1]['status'] == 'new'):
+		case ($outputs && $newtoken == $oldtoken):
+			$output = $outputs[count($outputs) - 1];
+			$output_id = $output['id'];
 			break;
-		case 'manage':
-			$stage = 'outmanage';
+		default;
+			if (!$outputs) $outputs = array();
+			$output = array();
+			$output['sourceid'] = $output_sid;
+			$output['id'] =  md5(uniqid());
+			$output['status'] = 'new';
+			$source = get_obj($sources, $output_sid);
+			$output['term'] = $source['term'];
+			$output_id = $output['id'];
+			//if (!$outputs) $outputs = array();
+			array_push($outputs, $output);
 			break;
-		default:
-			#echo "before outputset <br>";
-			#print_r($outputs);
-			echo "<br>";
-			switch (true) {
-				case ($outputs && $outputs[count($outputs) - 1]['status'] == 'new'):
-				case ($outputs && $newtoken == $oldtoken):
-					$output = $outputs[count($outputs) - 1];
-					$output_id = $output['id'];
-					break;
-				default;
-					if (!$outputs) $outputs = array();
-					$output = array();
-					$output['sourceid'] = $output_sid;
-					$output['id'] =  md5(uniqid());
-					$output['status'] = 'new';
-					$source = get_obj($sources, $output_sid);
-					$output['term'] = $source['term'];
-					$output_id = $output['id'];
-					//if (!$outputs) $outputs = array();
-					array_push($outputs, $output);
-					
-					break;
-			}
-			$_SESSION['outputs'] = $outputs;
-			#echo "post outputset, output_id: $output_id<br>";
-			#print_r($outputs);
-			#echo "<br>";
-			break;
-			
 	}
+	$_SESSION['outputs'] = $outputs;
 }
+
+# CANCEL OUTPUT
+if ($stage == 'outputcancel') {
+	$c = count($outputs) - 1;
+	if ($outputs[$c]['status'] == 'new') unset($outputs[$c]);
+	$output_id = null;
+	$stage = 'qbegin';
+}
+
+# DELETE OUTPUT
+if ($stage == 'outputdelete') {
+	$idx = obj_idx($outputs, $output_id);
+	unset ($outputs[$idx]);
+	array_values($outputs);
+	$_SESSION['outputs'] = $outputs;	
+	$stage = 'qbegin';
+	}
 
 # VERIFY OUTPUT POSTED DATA TO OUTPUT
-if ($stage == 'verify_output' && $output_id) {
+if ($stage == 'outputvalidate' && $output_id) {
 	$output = validate_output($db_handle, $output, $outputs, $sources);
 	$outputs = save_obj($outputs, $output);
+	if ($output['status'] == 'valid') {
+		$stage = 'qbegin';
+	} else {
+		$stage = 'newoutput';
+	}
 	$_SESSION['outputs'] = $outputs;
-	$stage = 'outputs';
+	$output_id = null;
 }
 
-	
-# OUTPUT MANAGEMENT
-if ($stage == 'output_manage_action') {
-	switch ($manage_action) {
-		case 'return':
-			$stage = 'outputs';
-			break;
-		case 'delete':
-			# DELETE OUTPUT
-			if (!$output_id) {
-				$manage_err = true;
-				} else {
-				$i = 0;
-				foreach ($outputs as $output) {
-					if ($output['id'] == $output_id) {
-						$d = $i;
-						$i++;
-						}
-					}
-				#echo "$manage_action, $output_id, $d<br>";
-				unset($outputs[$d]);
-				array_values($outputs);
-				// print_r($outputs);
-				// echo "<br>";
-				$manage_err = false;
-				}
-			$stage = 'outmanage';
-			break;
-		case 'edit':
-			$stage = 'setoutput';
-			break;
-		}
-	}
-	
+# WRITE OUTPUT FILES
+if ($stage == 'write') $zip = write_outputs($db_handle, $config, $names, $qobjects, $outputs, $sources);
+
 if ($names) $_SESSION['names'] = $names;
-if ($outputs) $_SESSION['outputs'] = $outputs;
+//if ($outputs) $_SESSION['outputs'] = $outputs;
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            SHOPPING CART
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 //echo "pre-cart stage: $stage<br>";
-if ($stage != 'finish' && $stage != 'sources') { 
-	//echo "$qobjid<br>";
-	html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $outputs, $stage);
-	}	
+if ($stage != 'finish' && $stage != 'sources')  
+	html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $object_id, $outputs, $stage);
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                                 FORM
@@ -361,10 +329,16 @@ if ($stage != 'finish' && $stage != 'sources') {
 print_r($qobjects);
 echo "<br/>";	*/
 	
+/*echo "post processing: ";
+print_r($output);
+echo "<br/>";
+print_r($outputs);
+echo "<br/>";*/
+	
 /*echo "sources:<br>";
 print_r($sources);
 echo "<BR>";*/
-
+	
 if ($qterm == 'finish') $stage = 'finish';
 
 if ($stage == 'sources') {
@@ -393,34 +367,19 @@ if ($stage == 'qset') {
 	html_query_set($db_handle, $qobjid, $qobjects, $sources, $names);
 	echo "</div>";
 }
-	
-# SELECT SOURCE TO OUTPUT
-if ($stage == 'outputs') html_output_source($sources, $outputs);
 
-# SET OUTPUT DIALOGS
-if ($stage == 'outputset') {
-	html_output_set($db_handle, $output, $outputs, $qobjects, $sources);
-	#echo "post html_output_biotree<br>";
-	#print_r($outputs);
-}
+
+# OUTPUT DIALOGS
+if ($stage == 'newoutput') html_output_set($db_handle, $output, $outputs, $sources);
 	
-# MANAGE OUTPUTS
-if ($stage == 'outmanage') {
-	html_manage('output_id', 'manage_action', $outputs, 'manage_err');
-	echo "<input type = 'hidden' name='stage' value='output_manage_action'>";
-	}
-				
-if ($stage == 'write') {
-	$zip = html_write($db_handle, $config, $names, $qobjects, $outputs, $sources);
-	echo '<input type="hidden" name="stage" value="finish">';
-	}
+# LINK TO OUTPUT ZIP FILE 
+if ($stage == 'write') html_write($zip);
 	
 
 # Unique id for each form instance
-echo '<input type ="hidden" name="token" value=' . md5(uniqid()) .'>';
+echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';
 
-//echo "end form n qobjects " . count($qobjects) . "<br>";
-if ($stage == 'finish') {
+/*if ($stage == 'finish') {
 	# clean up
 	if ($files_to_delete) {
 		foreach ($files_to_delete as $file) unlink($file);
@@ -431,14 +390,18 @@ if ($stage == 'finish') {
 	echo '<br/>';
 	#echo '<input type="hidden" name=finish value="no">';
 	//echo "<br/>";	
-}
-	
+}*/
+
+# OUTPUT CART
+if ($stage == 'qbegin') html_cart_outputs($output_id, $outputs, $qobjects);	
+
 echo '</form>';
 #Print mytimes array
 $mytimes = add_key_val($mytimes, "end_page", microtime(TRUE));
 #print_arr($mytimes);
 //echo "endform<br>";
 //print_r($outputs);
+
 
 html_entangled_bank_footer();
 

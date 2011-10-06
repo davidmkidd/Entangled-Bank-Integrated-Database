@@ -1,6 +1,71 @@
 <?php
 
-function write_output($db_handle, $config, $qobjects, $names, $output, $sources) {
+#=================================================================================================================
+	
+function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $sources) {
+
+	# WRITES ALL OUTPUTS TO COMPRESSED ARCHIVE
+	
+	echo "Begin write outputs<br>";
+	
+	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
+	$oid = substr(md5(uniqid()),0,4);
+	$_SESSION['oid'] = $oid;
+	
+		
+	# WRITE OUTPUTS
+	foreach ($outputs as $output) {
+		$filename = str_replace(" ","_",$output['name']) . "_$oid";
+		$output['filename'] = $filename;
+		//$outputs = save_obj($outputs, $output);
+		//$_SESSION['outputs'] = $outputs;
+		write_output($db_handle, $config, $qobjects, $names, &$output, $sources);
+		$outputs = save_obj($outputs, $output);
+		$_SESSION['outputs'] = $outputs;
+	}
+	
+	//print_r($outputs);
+	
+	# ADD OUTPUTS TO README AND FILES_TO_ZIP
+	$files_to_zip = array();
+	foreach ($outputs as $output) {
+		$outfiles = $output['outfiles'];
+		//if ($output['term'] == 'biotree') $outfiles[0] = $config['out_path'] . "/" . $outfiles[0];
+		$files_to_zip = array_merge($files_to_zip, $outfiles);
+	}
+	
+	
+	# WRITE README
+	$readme = write_readme($qobjects, $outputs);
+	$out_path = $config['out_path'];
+	$fn = $out_path . "/readme_$oid.txt";
+	$fh = fopen($fn, 'w') or die("can't open file $fn: $php_errormsg");
+	fputs($fh, $readme);
+	fclose($fh) or die ($php_errormsg);
+	# add readme to zip list
+	array_push($files_to_zip, $fn);
+	$zn = "ebdata_$oid.zip";
+	
+	echo "zipping files ", implode(", ", $files_to_zip), " to $zn<br>";
+	
+	$res = create_zip($files_to_zip, $out_path . '/' . $zn, true);
+	
+	if ($res === false) {
+		echo "php_interface_subs::html_write: zip file creation failed";
+		return null;
+	} else {
+		# Delete files_to_zip
+		foreach ($files_to_zip as $file) {
+			if (file_exists($file)) unlink($file);
+		}
+		return $zn;
+	}
+}
+
+#=================================================================================================================
+
+
+function write_output($db_handle, $config, $qobjects, $names, &$output, $sources) {
 
 	# WRITE INDIVIDUAL DATA OUTPUT TO TEMPORARY FILE
 	
@@ -8,28 +73,27 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 	
 	switch ($term) {
 		case 'biotable':
-			$outfiles = write_biotable($db_handle, $config, $output, $sources, $names);
+			$outfiles = write_biotable($db_handle, $config, &$output, $sources, $names);
 			break;
 		case 'biogeographic':
-			$outfiles = write_biogeographic($db_handle, $config, $qobjects, $output, $sources, $names);
+			$outfiles = write_biogeographic($db_handle, $config, $qobjects, &$output, $sources, $names);
 			break;	
 		case 'biotree':
-			$outfiles = write_biotree($db_handle, $config, $output, $sources, $names);
+			write_biotree($db_handle, $config, &$output, $sources, $names);
 			break;
 		case 'biorelational' :
-			$outfiles = write_biorelational($db_handle, $config, $qobjects, $output, $sources, $names);
+			write_biorelational($db_handle, $config, $qobjects, &$output, $sources, $names);
 			break;
 		}
 	#echo "n: $n";
-	$output['outfiles'] = $outfiles;
-	$output['nout'] = $n;
+	#$output['outfiles'] = $outfiles;
+	#$output['nout'] = $n;
 	#echo "After write<br>";
-	return $output;
 	}
 
 #=================================================================================================================
 	
-	function write_biogeographic($db_handle, $config, $qobjects, $output, $sources, $names) {
+	function write_biogeographic($db_handle, $config, $qobjects, &$output, $sources, $names) {
 		
 		$source = get_obj($sources, $output['sourceid']);
 		$term = $source['term'];
@@ -143,11 +207,11 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 		#echo $out ? $out : join("", file("output"));
 		#echo "out: $out<br>";
 		#$outfiles = array('/ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/' . $outfilename);
-		return $outfiles;
+		$output['outfiles'] = $outfiles;
 	}
 #=================================================================================================================
 	
-	function write_biorelational($db_handle, $config, $qobjects, $output, $sources, $names) {
+	function write_biorelational($db_handle, $config, $qobjects, &$output, $sources, $names) {
 		
 		$oid = $_SESSION['oid'];
 		$source = get_obj($sources, $output['sourceid']);
@@ -369,12 +433,12 @@ function write_output($db_handle, $config, $qobjects, $names, $output, $sources)
 //		#echo "<BR>bbox: $cmdstr<br>";
 //		$out = shell_exec($cmdstr);
 		#echo "out: $out<br>";
-		return $outfiles;
+		$output['outfiles'] = $outfiles;
 	}
 	
 #=================================================================================================================
 	
-function write_biotable ($db_handle, $config, $output, $sources, $names) {
+function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	
 	//print_r($output);
 	//echo "<BR>";
@@ -406,12 +470,11 @@ function write_biotable ($db_handle, $config, $output, $sources, $names) {
 	$res = pg_query($str);
 	$c = write_csv($res, $filename, $columns);
 	$outfiles = array($filename);
-	
-	return $outfiles;
+	$output['outfiles'] = $outfiles;
 }
 
 #=================================================================================================================
-
+/*
  function write_biotree_old($config, $output) {
  	
  	// Get session variables
@@ -459,16 +522,17 @@ function write_biotable ($db_handle, $config, $output, $sources, $names) {
 	$outfiles = array($filename);
  	
  	return $outfiles;
- }
+ }*/
  
  #=================================================================================================================
 
- function write_biotree($db_handle, $config, $output, $sources, $names) {
+ function write_biotree($db_handle, $config, &$output, $sources, $names) {
  	
  	# Get session variables
 	$sid = session_id();
-	$spath = $config['out_tree_path'];
+	//$spath = $config['out_tree_path'];
 	$spath = session_save_path();
+	$outpath = $config['out_path'] . "/";
 	#echo "spath $spath<br>";
 	
 	# LINUX HARDCODE
@@ -476,18 +540,13 @@ function write_biotable ($db_handle, $config, $output, $sources, $names) {
 	#$spath = substr ($spath, strpos ($spath, ";")+1);
 	#echo "spath $spath<br>";
 	
-	
-	#$source = get_obj($sources, $output_sid);
-	#echo "source: <br>";
-	#print_r($output);
-	echo "<br>";
 	$tree_id = $output['tree_id'];	
 	$filename = $output['filename'];
 	$output_sid = $output['sourceid']; 
 	$brqual = $output['brqual'];
-	echo "output: <br>";
-	print_r($output);
-	echo "<br>";
+	//echo "output: <br>";
+	//print_r($output);
+	//echo "<br>";
 
 	
 	switch ($output['format']) {
@@ -531,27 +590,29 @@ function write_biotable ($db_handle, $config, $output, $sources, $names) {
 	#echo "str: $str<br>";
 	$res = pg_query($str);
 	$row = pg_fetch_row($res);
-	$newick = $row[0];	
+	$tree = $row[0];	
 	
-	#echo "lca newick from DB: $newick<BR>";
 	
 	# Convert and/or prune
 	$subtree = $output['subtree'];
 	$format = $output['format'];
 	
 	if ($output['format'] != 'newick' || $subtree == 'pruned') {
-		$str = "$eb_path/perl/output_tree.pl $sid $spath $newick $subtree $format 2>&1";
+		$str = "$eb_path/perl/output_tree.pl $sid $spath $tree $subtree $format 2>&1";
 		echo "<br>*** BEGIN PERL: $str *** <br>";
-		$out = shell_exec($str);
+		$tree = shell_exec($str);
 		echo "$out<br>";
 		echo "<br>*** END PERL ***<br>";
-	}
+	} 
 	
-	# Write to file...
+	echo "Writing tree to $filename<BR>";
+	# WRITE TREE FILE
+	$fh = fopen($filename, 'w') or die ("failed to open tree file fo writing");
+	fwrite($fh, $tree);
+	fclose($fh);
+	
+ 	$output['outfiles'] = $outfiles;
 
-	$outfiles = array($filename);
- 	
- 	return $outfiles;
  }
  
 
@@ -605,28 +666,7 @@ function write_csv($result, $file, $columns) {
 	return $c; #n records
 	}
 	
-	
-#=================================================================================================================
 
-//function write_spatial($db_handle, $sptable, $spfield, $spoutfile, $names) {
-//	
-//	# Get tip labels
-//	#echo "$tree, $subtree, $names, $nodetype<br>";
-//	#$nodes = get_node_ids($db_handle, $tree, $subtree, $names, $nodetype);
-//	#$node_array = array_to_postgresql($nodes, 'numeric');
-//	$label_array = array_to_postgresql($names, 'text');
-//
-//	$sql = "SELECT * FROM $sptable WHERE $spfield = ANY($label_array)";
-//	#$sql = "SELECT * FROM data.msw05_geographic WHERE msw05_binomial = 'Glis glis'";
-//	$cmdstr = "ogr2ogr -overwrite -f \"ESRI Shapefile\" " . $spoutfile;
-//	$cmdstr = $cmdstr . " PG:\"host='lb-gissvr1' user='entangled_bank_user' dbname='dk_playground' password='m0nkeypu22le'\" ";
-//	$cmdstr = $cmdstr . "-sql \"" . $sql . "\"";
-//	#echo "$cmdstr<br>";
-//	
-//	#$output = shell_exec($cmdstr);
-//	#$output = shell_exec('c:/ms4w/apache/htdocs/entangled_bank/ogr2ogrtest.bat');
-//	return count($nodes);
-//}
 #=================================================================================================================
 	
 	function write_readme($qobjects, $outputs) {
@@ -646,10 +686,9 @@ function write_csv($result, $file, $columns) {
 		$c = 0;
 	}
 	
-	
 	switch ($c) {
 		case 0 :
-			$readme =  "$readme 0 queries, all data returned from sources";
+			$readme =  "$readme 0 queries, all data in outputs returned";
 			break;
 		case 1:
 			$readme = "$readme 1 query";
@@ -660,7 +699,7 @@ function write_csv($result, $file, $columns) {
 		
 	$readme = "$readme\r\n\r\n";
 	#$readme = $readme . "Query: ";
-	$c = 0;
+
 	$qstack = array();
 	$i = 0;
 	if ($qobjects) {
@@ -701,23 +740,24 @@ function write_csv($result, $file, $columns) {
 	# SQL
 	$readme = $readme . "SQL\r\n$dul\r\n";
 	$i = 0;
-	foreach (array_reverse($qobjects) as $qobj) {
-		$readme = $readme . $qobj['name'] . " ";
-		#$readme = $readme . $qstack[$i] . $sul;
-		$readme = $readme . "Names SQL:\r\n" . $qobj['sql_names'] . "\r\n\r\n";
-		if ($qobj['sql_series']) {
-			$readme = $readme . $qobj['name'] . "Series SQL:\r\n" . $qobj['sql_series'] . "\r\n\r\n";
+	if ($qobjects) {
+		foreach (array_reverse($qobjects) as $qobj) {
+			$readme = $readme . $qobj['name'] . " ";
+			#$readme = $readme . $qstack[$i] . $sul;
+			$readme = $readme . "Names SQL:\r\n" . $qobj['sql_names'] . "\r\n\r\n";
+			if ($qobj['sql_series']) {
+				$readme = $readme . $qobj['name'] . "Series SQL:\r\n" . $qobj['sql_series'] . "\r\n\r\n";
+			}
+			$i++;
+			$readme = "$readme \r\n$sul\r\n";
 		}
-		$i++;
-		$readme = "$readme \r\n$sul\r\n";
 	}
-	
 	return $readme;
 		
-	}
+}
 	
 #=================================================================================================================
-
+/*
 function write($db_handle, $config, $qobjects, $names, $outputs, $sources, $oid) {
 
 	#Writes all data output 
@@ -739,6 +779,6 @@ function write($db_handle, $config, $qobjects, $names, $outputs, $sources, $oid)
 	#echo "finish write_outputs<br>";
 	$_SESSION['outputs'] = $outputs;
 	return $outputs;
-	}
+	}*/
 #=================================================================================================================
 ?>

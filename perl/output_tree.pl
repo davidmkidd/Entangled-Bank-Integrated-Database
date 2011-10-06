@@ -84,7 +84,7 @@ while ( my ($key, $value) = each(%$names) ) {
 if ($subtree == 'pruned' || $format == "nexus" || $format == "xml" || $format == "svg") {
 	
 	# ================================================
-	#  Parse newick string to Bio:Phylo::Forest::Tree
+	#  Parse newick string to Bio::Phylo::Forest::Tree
 	# ================================================
 	
 	$forest = Bio::Phylo::IO->parse(

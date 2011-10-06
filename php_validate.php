@@ -536,23 +536,23 @@ function validate_names($db_handle, $qobject, $sources) {
 				# FORMAT OVERRIDE
 				$output['db_format'] = 'csv';
 				// ADD STRING
-				$as_string = "RETURN " . count($output['fields']) . " fields FROM " . $source['name'] . " AS " . $output['db_format'];
-				$output['as_string'] = $as_string;
+				//$as_string = "RETURN " . count($output['fields']) . " fields FROM " . $source['name'] . " AS " . $output['db_format'];
+				//$output['as_string'] = $as_string;
 				break;
 			case 'biogeographic':
 				# ADD KEYS
 				$output['sp_format'] = $_SESSION['sp_format'];
 				// ADD STRING
-				$as_string = "RETURN "  . $source['name'] . " AS " . $output['sp_format'];
-				$output['as_string'] = $as_string;
+				//$as_string = "RETURN "  . $source['name'] . " AS " . $output['sp_format'];
+				//$output['as_string'] = $as_string;
 				break;
 				
 			case 'biorelational':
 				$output['db_format'] = 'csv';
 				$output['sp_format'] = $_SESSION['sp_format'];
-				$as_string = "RETURN gpdd.tables FROM " . $source['name'] . " AS " . $output['db_format'];
-				$as_string = $as_string . " AND gpdd.geography FROM " . $source['name'] . " AS " . $output['sp_format'];
-				$output['as_string'] = $as_string;
+				//$as_string = "RETURN gpdd.tables FROM " . $source['name'] . " AS " . $output['db_format'];
+				//$as_string = $as_string . " AND gpdd.geography FROM " . $source['name'] . " AS " . $output['sp_format'];
+				//$output['as_string'] = $as_string;
 				break;
 				
 			case 'biotree':
@@ -571,7 +571,7 @@ function validate_names($db_handle, $qobject, $sources) {
 					}
 					
 				// ADD STRING
-				if (array_key_exists('format', $output)) {
+/*				if (array_key_exists('format', $output)) {
 					if (array_key_exists('brqual', $output)) {
 						$str = "SELECT name FROM biosql.term WHERE term_id = " . $output['brqual'];
 						$res = pg_query($db_handle, $str);
@@ -585,7 +585,7 @@ function validate_names($db_handle, $qobject, $sources) {
 				} else {
 					$as_string = "RETURN ? FROM " . $source['name'];
 				}
-				$output['as_string'] = $as_string;
+				$output['as_string'] = $as_string;*/
 				break;
 			}
 		//print_r($output);

@@ -313,9 +313,4 @@
 	}
 	
 	
-	function showTitle() {
-		
-		
-		
-	}
 	

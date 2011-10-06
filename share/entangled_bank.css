@@ -57,7 +57,7 @@
 	}
 	
 	.eb {
-		width: 300px;
+		width: 250px;
 	}
 	
 	
@@ -207,6 +207,11 @@
 	td.query_title_plus {
 		width: 115px;
 		vertical-align: middle;
+	}
+	
+	td.output_buttons {
+		width: 316px;
+		align: right;
 	}
 	
 	.query_title {
