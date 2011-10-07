@@ -234,8 +234,6 @@ function html_output_biotree($db_handle, $output, $outputs, $source) {
 	$brqual = $output['brqual'];
 	$outname = $output['name']; 	
 	
-	 
-	
 	#SUBTREE TYPE
 	echo "<tr>";
 	echo "<td class='query_title'>";
@@ -245,14 +243,12 @@ function html_output_biotree($db_handle, $output, $outputs, $source) {
 	echo "<select name='$subtree_formname' class='eb'>";
 	if (!$subtree or $subtree == 'subtree') {
 		echo "<OPTION SELECTED value='subtree'>LCA subtree</OPTION>";
-		echo "<OPTION value='subtree'>Pruned LCA subtree</OPTION>";
+		echo "<OPTION value='pruned'>Pruned LCA subtree</OPTION>";
 		} else {
 		echo "<OPTION value='subtree'>LCA subtree</OPTION>";
-		echo "<OPTION SELECTED value='subtree'>Pruned LCA subtree</OPTION>";
+		echo "<OPTION SELECTED value='pruned'>Pruned LCA subtree</OPTION>";
 		}
 	echo "<select>";
-	
-
 	echo "</td>";
 	echo "</tr>";
 	
@@ -1734,6 +1730,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo '<script src="./scripts/tree_utils.js" type="text/javascript"></script>';
 	
 	$source = get_obj($sources, $qobject['sources'][0]);
+	//print_r($source);
 	$tree_id = $source['tree_id'];
 	$qnames = $qobject['taxa'];
 	if (!$qnames) $qnames = array();
@@ -1926,7 +1923,7 @@ function html_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search) {
+function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $name_search) {
 	
 		# name_search is an array of name and sources returned by an names search
 		
@@ -2011,7 +2008,7 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		echo "<tr>";
 		echo "<td></td>
 			<td class='qtype_text'>Names</td>
-			<td class='qtype_text'>A Tree</td>
+			<td class='qtype_text'>Tree</td>
 			<td class='qtype_text'>Attributes</td>
 			<td class='qtype_text'>Geography</td>
 			<td class='qtype_text'>Time</td>";
@@ -2022,8 +2019,8 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		echo "<INPUT type='hidden' name='qterm' id = 'qterm' value='none' />";
 		
 		# SOURCE SELECTOR
-		html_select_source_table ($sources,'biotree');
-		html_select_source_table ($sources,'attribute');
+		html_query_select_source ($sources,'biotree');
+		html_query_select_source ($sources,'attribute');
 		echo "<hr>";
 		
 		# OUTPUTS
@@ -2038,7 +2035,7 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 
 #=======================================================================================================================
 	
-	function html_select_source_table ($sources, $term) {
+	function html_query_select_source($sources, $term) {
 		echo "<div id='$term" , "_select_div' style='display: none;'>";
 		echo "<table border='0'>";
 		echo "<tr>";
@@ -2049,11 +2046,11 @@ function html_query_type ($db_handle, $qobjects, $sources, $names, $name_search)
 		}
 		echo "<td style='width: $width px'></td>";
 		echo "<td>";
-		html_select_source($sources, $term);
+		html_query_select_source2($sources, $term);
 		echo "</td>";
 		echo "<td>";
 		if ($term == 'attribute') $term = 'biotable';
-		echo "<input type='button' class='button-standard' value='Go' id='$term", "_submit' onClick='submitform(\"$term\")' />";
+		echo "<input type='button' class='button-standard' value='Go' id='$term", "_submit' onClick='newSingleSourceQuery(\"$term\")' />";
 		echo "</td>";
 		echo "</tr>";
 		echo "</table>";
@@ -2281,9 +2278,9 @@ function html_output_biotable($db_handle, $output, $outputs, $source) {
 
 #================================================================================================================
 
-	function html_select_source($sources, $term) {
+	function html_query_select_source2($sources, $term) {
 		
-		echo "<select name='$term", "_sid' class='sourceselect'>";
+		echo "<select name='", $term, "_sid' class='sourceselect'>";
 		foreach ($sources as $source) {
 			if ($term == 'attribute') {
 				if ($source['term'] == 'biotable' || $source['term'] == 'biogeographic' || $source['term'] == 'biorelational') 
@@ -2615,15 +2612,21 @@ function html_tree_level_options($db_handle, $tree, $parent_id, $qnames, $indent
 #=================================================================================================================
 	
 function html_write($zip) {
-	
+	echo "<div id='data_output'>";
+	echo "<table border='0'><tr>";
+	echo "<td class='query_title'>Data package</td>";
+	echo "<td>";
 	If ($zip === false) {
-		echo "php_write: zip file creation failed";
+		echo "Data file creation failed! Please email a bug report.";
 		} else {
-		echo "Right-click and 'Save as' to download Entangled Bank data zip file ";
 		echo "<a href='http://" . $config['host'] . '/' . $config['tmp_path'] . '/' . $zip;
-		echo "'> $zip</a>";
-		echo "<p id='thanks'>Thank you for using the Entangled Bank&nbsp;&nbsp;<input id='submit-button' type='submit' value='Another query?'></p>";
+		echo "'>$zip</a>";
+		echo ", right-click and 'Save as' to download data archive";
+		//echo "<p id='thanks'>Thank you for using the Entangled Bank&nbsp;&nbsp;<input id='submit-button' type='submit' value='Another query?'></p>";
 	}
+	echo "</td>";
+	echo "</tr></table>";
+	echo "</div>";
 }
 
 #=================================================================================================================	

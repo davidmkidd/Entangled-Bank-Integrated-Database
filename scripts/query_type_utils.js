@@ -48,33 +48,7 @@
 		}
 	}
 	
-	function submitform(entry)
-	{
-		//alert(entry);
-		var qterm = document.getElementById('qterm');
-		qterm.value = entry;
-		
-/*	    if(document.ebankform.onsubmit &&
-	    !document.ebankform.onsubmit())
-	    {
-	        return;
-	    }*/
-	 document.ebankform.submit();
-	}
+
 
 	
-	function newOutput()
-	{
-		var item = document.getElementById('stage');
-		item.value = "newoutput";
-		//var qterm = document.getElementById('qterm');
-		//qterm.value = entry;
-		
-/*	    if(document.ebankform.onsubmit &&
-	    !document.ebankform.onsubmit())
-	    {
-	        return;
-	    }*/
-	 document.ebankform.submit();
-	}
 

@@ -533,7 +533,8 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	//$spath = $config['out_tree_path'];
 	$spath = session_save_path();
 	$outpath = $config['out_path'] . "/";
-	#echo "spath $spath<br>";
+	$perl_script_path = $config['perl_script_path'];
+	echo "perl_script_path $perl_script_path<br>";
 	
 	# LINUX HARDCODE
 	//if (strpos ($spath, ";") !== FALSE)
@@ -582,26 +583,30 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	$lca = $row[0];
 	
 	# Get NEWICK string for lca
-	if ($output['brqual' == 'none']) {
+	if ($output['brqual'] == 'none') {
 		$str = "SELECT biosql.pdb_as_newick_label($lca)";
 	} else {
 		$str = "SELECT biosql.pdb_as_newick_label($lca, $brqual, FALSE)";
 	}
-	#echo "str: $str<br>";
+	//echo "str: $str<br>";
 	$res = pg_query($str);
 	$row = pg_fetch_row($res);
 	$tree = $row[0];	
 	
-	
 	# Convert and/or prune
 	$subtree = $output['subtree'];
 	$format = $output['format'];
+	//echo "$format, $subtree<br>";
 	
-	if ($output['format'] != 'newick' || $subtree == 'pruned') {
-		$str = "$eb_path/perl/output_tree.pl $sid $spath $tree $subtree $format 2>&1";
-		echo "<br>*** BEGIN PERL: $str *** <br>";
-		$tree = shell_exec($str);
+	if ($format != 'newick' || $subtree == 'pruned') {
+		echo "<br>*** BEGIN PERL:*** <br>";
+		$str = "$perl_script_path/write_tree.pl $sid $spath $tree $subtree $format 2>&1";
+		//$str = "$perl_script_path/write_tree.pl";
+		$out = shell_exec($str);
 		echo "$out<br>";
+		//echo "Perl command: $str<br>";
+		//$tree = shell_exec($str);
+		//echo "$tree<br>";
 		echo "<br>*** END PERL ***<br>";
 	} 
 	

@@ -121,8 +121,9 @@ $files_to_delete = $_SESSION['files_to_delete'];
 
 echo "Pre-form processing: ";
 //if ($qobjects) print_r($qobjects);
-echo "stage: $stage<br>";
-
+echo "stage: $stage";
+//echo ", qobjid: $qobjid<br>";
+echo "<br>";
 # Get Current qobject
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 if ($output_id) $output = get_obj($outputs, $output_id);
@@ -137,7 +138,7 @@ if (empty($qobjects)) $qobjid = null;
 # NAME SEARCH
 if ($stage == 'qset' && $qterm == 'find') {
 	$name_search = query_name_search($db_handle, $sources);
-	$stage = 'qbegin';
+	$stage = 'main';
 }
 
 # EXIT QUERYING THROUGH QTERM
@@ -148,7 +149,7 @@ if ($stage == 'getsources') {
 	$sources = get_sources($db_handle, $sourceids, 'bio');
 	if ($sources) {
 		$_SESSION['sources'] = $sources;
-		$stage = 'qbegin';
+		$stage = 'main';
 	} else {
 		echo "<FONT COLOR='red'><b>Select one or more sources</FONT></b>";
 		$stage = 'getsources';
@@ -166,7 +167,7 @@ if ($stage == 'qcancel') {
 	$c = count($qobjects) - 1;
 	if ($qobjects[$c]['status'] == 'new') unset($qobjects[$c]);
 	$qobjid = null;
-	$stage = 'qbegin';
+	$stage = 'main';
 }
 	
 # DELETE A QUERY
@@ -186,7 +187,7 @@ if ($stage == 'qdelete') {
 	}
 	$_SESSION['qobjects'] = $qobjects;	
 	$_SESSION['names'] = $names;	
-	$stage = 'qbegin';
+	$stage = 'main';
 	}
 
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
@@ -197,9 +198,7 @@ if ($stage == 'qset' && !$qobjid) {
 		$qobjid = $qobject['id'];
 	} else {
 		if (!$qobjects) $qobjects = array();
-		
 		//echo "Creating new qobject<br>";
-		
 		# CREATE NEW QOBJECT
 		$qname = get_next_name($qobjects, $qterm);
 		$qobjid = md5(uniqid());
@@ -213,6 +212,7 @@ if ($stage == 'qset' && !$qobjid) {
 		# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
 		if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
 		if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
+		//if ($_SESSION['query_sid']) $qobject['sources'] = array($_SESSION['query_sid']);
 		//$qobjid = $qobject['id'];
 		array_push($qobjects, $qobject);
 		$_SESSION['qobjects'] = $qobjects;
@@ -222,19 +222,15 @@ if ($stage == 'qset' && !$qobjid) {
 # QVERIFY - VERIFY QUERY
 if ($stage == 'qverify') {
 	# fix for resubmission
-	//echo "Begin qverify: $qobjid<br>";
 	if ($qobjid && $newtoken == $oldtoken) $qobject = get_obj($qobjects, $qobjid);
-	//echo "pre-validate n qobjects " . count($qobjects) . "<br>";
 	$qobject = validate_query($db_handle, $qobject, $sources, $qsources, $names);
-	//echo "post-validate n qobjects " . count($qobjects) . "<br>";
+
 	if ($qobject['status'] === 'valid') {
 		$stage = 'query';
 	} else {
 		$stage = 'qset';
 	}
 	$qobjects = save_obj($qobjects, $qobject);
-	//print_r($qobjects);
-	//echo "<br>";
 	$_SESSION['qobjects'] = $qobjects;
 }
 	
@@ -247,7 +243,7 @@ if ($stage == 'query') {
 	$qobjects = save_obj($qobjects, $qobject);
 	$_SESSION['names'] = $names;
 	$_SESSION['qobjects'] = $qobjects;
-	$stage = 'qbegin';
+	$stage = 'main';
 	$qobjid = null;
 	unset ($_SESSION['qobjid']);
 	}
@@ -273,6 +269,7 @@ if ($stage == 'newoutput') {
 			array_push($outputs, $output);
 			break;
 	}
+	$stage = 'setoutput';
 	$_SESSION['outputs'] = $outputs;
 }
 
@@ -281,7 +278,7 @@ if ($stage == 'outputcancel') {
 	$c = count($outputs) - 1;
 	if ($outputs[$c]['status'] == 'new') unset($outputs[$c]);
 	$output_id = null;
-	$stage = 'qbegin';
+	$stage = 'main';
 }
 
 # DELETE OUTPUT
@@ -290,7 +287,7 @@ if ($stage == 'outputdelete') {
 	unset ($outputs[$idx]);
 	array_values($outputs);
 	$_SESSION['outputs'] = $outputs;	
-	$stage = 'qbegin';
+	$stage = 'main';
 	}
 
 # VERIFY OUTPUT POSTED DATA TO OUTPUT
@@ -298,7 +295,7 @@ if ($stage == 'outputvalidate' && $output_id) {
 	$output = validate_output($db_handle, $output, $outputs, $sources);
 	$outputs = save_obj($outputs, $output);
 	if ($output['status'] == 'valid') {
-		$stage = 'qbegin';
+		$stage = 'main';
 	} else {
 		$stage = 'newoutput';
 	}
@@ -339,7 +336,7 @@ echo "<br/>";*/
 print_r($sources);
 echo "<BR>";*/
 	
-if ($qterm == 'finish') $stage = 'finish';
+//if ($qterm == 'finish') $stage = 'finish';
 
 if ($stage == 'sources') {
 	# Select name source or input names
@@ -356,8 +353,8 @@ if ($stage == 'manage') {
 }	
 
 # NEW QUERY
-if ($stage == 'qbegin') {
-	html_query_type($db_handle, $qobjects, $sources, $names, $name_search);
+if ($stage == 'main' || $stage == 'write') {
+	html_entangled_bank_main($db_handle, $qobjects, $sources, $names, $name_search);
 	echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
 	}
 
@@ -368,41 +365,28 @@ if ($stage == 'qset') {
 	echo "</div>";
 }
 
-
 # OUTPUT DIALOGS
-if ($stage == 'newoutput') html_output_set($db_handle, $output, $outputs, $sources);
-	
-# LINK TO OUTPUT ZIP FILE 
-if ($stage == 'write') html_write($zip);
-	
-
-# Unique id for each form instance
-echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';
-
-/*if ($stage == 'finish') {
-	# clean up
-	if ($files_to_delete) {
-		foreach ($files_to_delete as $file) unlink($file);
-		}
-	session_destroy();
-	echo "<br/>";
-	echo "<p id='thanks'>Thank you for using the Entangled Bank&nbsp;&nbsp;<input id='submit-button' type='submit' value='Another query?'></p>";
-	echo '<br/>';
-	#echo '<input type="hidden" name=finish value="no">';
-	//echo "<br/>";	
-}*/
+if ($stage == 'setoutput') html_output_set($db_handle, $output, $outputs, $sources);
 
 # OUTPUT CART
-if ($stage == 'qbegin') html_cart_outputs($output_id, $outputs, $qobjects);	
+if ($stage == 'main' || $stage=='write') html_cart_outputs($output_id, $outputs, $qobjects);	
 
+# LINK TO OUTPUT ZIP FILE 
+if ($stage == 'write') html_write($zip);#
+
+# UNIQUE ID FOR FORM INSTANCE
+echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';
+
+#CLOSE FORM
 echo '</form>';
+
 #Print mytimes array
 $mytimes = add_key_val($mytimes, "end_page", microtime(TRUE));
 #print_arr($mytimes);
 //echo "endform<br>";
 //print_r($outputs);
 
-
+# FOOTER
 html_entangled_bank_footer();
 
 #Close db handle

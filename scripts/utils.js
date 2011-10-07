@@ -25,6 +25,35 @@ function loadScript() {
 	}
 }
 
+function newSingleSourceQuery(entry)
+{
+	//alert(entry);
+	var qterm = document.getElementById('qterm');
+	qterm.value = entry;
+	
+/*	    if(document.ebankform.onsubmit &&
+    !document.ebankform.onsubmit())
+    {
+        return;
+    }*/
+ document.ebankform.submit();
+}
+
+
+function newOutput() {
+	var item = document.getElementById('stage');
+	item.value = "newoutput";
+	//var qterm = document.getElementById('qterm');
+	//qterm.value = entry;
+	
+/*	    if(document.ebankform.onsubmit &&
+    !document.ebankform.onsubmit())
+    {
+        return;
+    }*/
+ document.ebankform.submit();
+}
+
 function deleteOutput(id) {
 	var item = document.getElementById('stage');
 	item.value = 'outputdelete';
@@ -41,6 +70,14 @@ function addOutput(id) {
 	document.ebankform.submit();
 }
 
+function editOutput(id) {
+	var item = document.getElementById('stage');
+	item.value = 'setoutput';
+	var item = document.getElementById('output_id');
+	item.value = id;
+	document.ebankform.submit();
+}
+
 function returnOutput(n) {
 	// RETURNS DATA
 	//alert(n);
@@ -53,6 +90,10 @@ function returnOutput(n) {
 		} else {
 			return false;
 		}
+	} else {
+		var item = document.getElementById('stage');
+		item.value = 'write';
+		document.ebankform.submit();
 	}
 	
 
