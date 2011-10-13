@@ -1982,6 +1982,7 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		echo "</table>";
 		# DISPLAY FIND
 		if ($name_search) html_entangled_bank_find($db_handle, $name_search, $sources);
+		
 		# END FIND
 		echo "</div>";
 
