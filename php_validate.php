@@ -270,7 +270,7 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 	//echo "<br>;";
 	
 	
-	foreach($fields as $field) array_push($fnames, $field['fname']);
+	foreach($fields as $field) array_push($fnames, $field['name']);
 	
 	# GET CHECKED QUERIES 
 	// add to qfields array.
@@ -289,8 +289,8 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 			
 			//$i = array_search($qfield, $fields);
 			$field = get_field($qfield, $fields);
-			$dtype = $field['dtype'];
-			$lookup = $field['flookup'];
+			$dtype = $field['ebtype'];
+			$lookup = $field['lookup'];
 			
 			///echo "field: $qfield, $dtype<br>";
 			
@@ -533,8 +533,6 @@ function validate_names($db_handle, $qobject, $sources) {
 				# ADD KEYS
 				$output['fields'] = $_SESSION['fields_add'];
 				$output['db_format'] = $_SESSION['db_format'];
-				# FORMAT OVERRIDE
-				$output['db_format'] = 'csv';
 				// ADD STRING
 				//$as_string = "RETURN " . count($output['fields']) . " fields FROM " . $source['name'] . " AS " . $output['db_format'];
 				//$output['as_string'] = $as_string;

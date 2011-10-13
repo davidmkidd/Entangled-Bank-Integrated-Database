@@ -322,26 +322,25 @@ function get_source_field_types($db_handle, $source) {
 function add_source_fields($db_handle, &$source) {
 	
 	# Adds namesfield and fields array to source
-	
-	$dtypes = array();         //display type from source.source_fields (rangefield,catagoryfield,lookupfield, lookuptable)
-	$ftypes = array();		   //field type from db (will be converted to text or numeric)
+	$dbtypes = array();        //field type from db
+	$ebtypes = array();        //display type from source.source_fields (rangefield,catagoryfield,lookupfield, lookuptable)
+	$ftypes = array();		   //text or numeric
 	$fnames = array();         //field names
-	//$fids = array();           //field id
 	$franks = array();         //field rank
 	$fdescs = array();         //field description
-	$flookups = array();         //field description
-	$faliases = array();         //field description
+	$flookups = array();       //field description
+	$faliases = array();       //field alias
 		
 	if ($source['term'] == 'biotree') return false;
 
 	# GET FIELD INFO
-	$str = "SELECT s.field_name,t.name,s.rank,s.field_description, s.field_alias FROM source.source_fields s, biosql.term t 
+	$str = "SELECT s.field_name, t.name, s.rank, s.field_description, s.field_alias FROM source.source_fields s, biosql.term t 
 		WHERE s.source_id=". $source['id'] .
 		"AND t.term_id=s.term_id ORDER by s.rank;";
 	$res = pg_query($db_handle, $str);
 	while ($row = pg_fetch_row($res)) {
 		array_push($fnames,$row[0]);
-		array_push($dtypes,$row[1]);
+		array_push($ebtypes,$row[1]);
 		array_push($franks,$row[2]);
 		array_push($fdescs,$row[3]);
 		array_push($faliases,$row[4]);
@@ -350,13 +349,12 @@ function add_source_fields($db_handle, &$source) {
 	# FTYPE
 	$i = 0;
 	foreach($fnames as $fname) {
-		$dtype = $dtypes[$i];
-		switch ($dtype) {
+		$ebtype = $ebtypes[$i];
+		switch ($ebtype) {
 			case 'rangefield':
 			case 'catagoryfield':
 				# FIELD IN TABLE
-				//$str = "SELECT \"$fname\" FROM " . $source['dbloc'] . " LIMIT 1;";
-				//echo "$str<br/>";
+				$str = "SELECT \"$fname\" FROM " . $source['dbloc'] . " LIMIT 1;";
 				$res = pg_query($db_handle, $str);
 				$dbtype = pg_field_type($res, 0);
 				$ftype = get_ftype_from_dbtype($dbtype);
@@ -390,24 +388,27 @@ function add_source_fields($db_handle, &$source) {
 				$flookup = null;
 				break;
 		}
+		array_push($dbtypes,$dbtype);
 		array_push($ftypes,$ftype);
 		array_push($flookups,$flookup);
+		
 		$i++;
 	}
 
 	
 	
 	$fields = array();
-	for ($i = 0; $i <= count($fnames) -1; $i++) {
+	for ($i = 0; $i <= count($fnames)-1; $i++) {
 		//echo "fname: $fnames[$i], dtype: $dtypes[$i] ftype: $ftypes[$i], ftitle: $fdescs[$i]<br/><br/>";
-		$field = array('fname' => $fnames[$i], 'ftype'=>$ftypes[$i], 
-			'dtype'=>$dtypes[$i], 'frank'=>$franks[$i], 'fdesc'=>$fdescs[$i], 'flookup'=>$flookups[$i], 'falias'=>$faliases[$i]);
+		$field = array('name' => $fnames[$i], 'dbtype' => $dbtypes[$i], 'ftype'=>$ftypes[$i], 
+			'ebtype'=>$ebtypes[$i], 'rank'=>$franks[$i], 'desc'=>$fdescs[$i],
+			'lookup'=>$flookups[$i], 'alias'=>$faliases[$i]);
 		array_push($fields, $field);
 		//echo "<br />";
 		//print_r ($field);
 		//echo "<br />";
 	}
-	$fields = array_sort($fields,'frank') ;
+	$fields = array_sort($fields,'rank') ;
 	$source['fields'] = $fields;
 	
 }
@@ -1218,7 +1219,7 @@ function tip_names($tree, $names) {
 
 function get_field($fname, $fields) {
 	foreach ($fields as $field) {
-		if ($field['fname'] == $fname) return $field;
+		if ($field['name'] == $fname) return $field;
 	}
 	return false;
 }

@@ -53,8 +53,8 @@ use DBI;
 use Bio::TreeIO;                # creates Bio::Tree::TreeI0 objects
 use Bio::Tree::TreeI;
 use Bio::Tree::Node;
-#use Bio::Phylo::Forest::Tree; 
-#use IO::String;
+use Bio::Phylo::Forest::Tree; 
+use IO::String;
 #use Time::HiRes qw(gettimeofday);
 
 # =======================================
@@ -65,79 +65,90 @@ my $spath = $ARGV[1];  # PHP session dir
 my $newick = $ARGV[2];  # newick string
 my $subtree = $ARGV[3];  # subtree
 my $format = $ARGV[4];  # output format
-print $sid . ", " , $spath . "\n";
-#my $session = PHP::Session->new($sid, { save_path => $spath });
-#my $names = $session->get('names');
+
+my $session = PHP::Session->new($sid, { save_path => $spath });
+my $names = $session->get('names');
+#print $sid . ", " , $spath . "\n";
+#print "$newick<br>";
+
 
 # =======================================
 # Internal Variables 
 # =======================================
-#my $forest;      # forest object
-#my $tree;        # tree object
+my $forest;      # forest object
+my $tree;        # tree object
+my $out = "Ugg!";
 
 # Dereference names
-#my @mynames;		#Names array
-#while ( my ($key, $value) = each(%$names) ) {
-#	push(@mynames, $value);
-#    }
-    
-print "Hello from PERL!!";
+my @mynames;		#Names array
+while ( my ($key, $value) = each(%$names) ) {
+	push(@mynames, $value);
+    }
+ 
+if ($subtree eq 'pruned' || $format eq "nexus" || $format eq "xml" || $format eq "svg") {
+	
+	# ================================================
+	#  Parse newick string to Bio::Phylo::Forest::Tree
+	# ================================================
+	
+	$forest = Bio::Phylo::IO->parse(
+		-format => 'newick',
+		-string => $newick
+		);
+		
+	$tree = $forest->first;
+	
+	# =======================================
+	#  Prune
+	# =======================================
+	
+	my $n = 0;
+	if ($subtree eq 'pruned') {
+		my $n1 = $tree->calc_number_of_nodes;
+		print "initial tree: " . $n1 . "<br>";
+		$tree = $tree->keep_tips(\@mynames);
+		$n++;
+		my $n2 = $tree->calc_number_of_nodes;
+		print "after prune tree " . $n . ": " . $n2 . "<br>";
+		while ($n1 ne $n2) {
+			#$tree1 = $tree2;
+			$n1 = $n2;
+			$tree = $tree->keep_tips(\@mynames);
+			$n2 = $tree->calc_number_of_nodes;
+			$n++;
+			print "after prune tree " . $n . ": " . $n2 . "<br>";
+		}
+		$tree->remove_unbranched_internals;
+		print "after remove internals tree: " . $tree->calc_number_of_nodes . "<br>";
+	}
+}
 
-#if ($subtree == 'pruned' || $format == "nexus" || $format == "xml" || $format == "svg") {
-#	
-#	# ================================================
-#	#  Parse newick string to Bio::Phylo::Forest::Tree
-#	# ================================================
-#	
-#	$forest = Bio::Phylo::IO->parse(
-#		-format => 'newick'
-#		-string => $newick
-#		);
-#	$tree = $forest->first;
-#	
-#	# =======================================
-#	#  Prune
-#	# =======================================
-#	
-#	if ($subtree == 'pruned') {
-#		my $n1 = $tree->calc_number_of_nodes;
-#		$tree = $tree->keep_tips(\@mynames);
-#		my $n2 = $tree->calc_number_of_nodes;
-#		while ($n1 ne $n2) {
-#			#$tree1 = $tree2;
-#			$n1 = $n2;
-#			$tree = $tree->keep_tips(\@mynames);
-#			$n2 = $tree->calc_number_of_nodes;
-#		}
-#		$tree->remove_unbranched_internals;
-#	}
-#}
-#
 ## =======================================
 ## Write tree
 ## =======================================
-#
-#my $out;
-#
-#if (($subtree == 'pruned' && $format == 'newick') ||
-#	($format == "nexus" || $format == "xml" || $format == "svg")) {
-#
-#	# Write from Bio:Phylo::Forest::Tree
-#	switch ($format) {
-#		case "newick" { $out = $tree ->	to_newick;}
-#		case "nexus" { $out = $tree ->to_nexus;}
-#		case "xml" { $out = $tree ->to_xml;}
-#		case "svg" { $out = $tree ->to_svg;}
-#	}
-#} elsif ($subtree == 'subtree' && $format == 'newick') {
-#	$out = $newick; 
-#} elsif ($format == "nhx" || $format == "tabtree" || $format == "lintree") {
-#	# Import to Bio::TreeI/O
-#	if ($subtree == 'pruned') { $newick = $tree -> to_newick;}
-#	my $io = IO::String -> new($newick);
-#	my $treeIO = Bio::TreeIO -> new(-fh => $io, -format => 'newick');
-#	switch ($format) {
-#		#case 'nhx' {$treeout = Bio::TreeIO -> new (-format 'nhx');}
-#	}
-#}
+print $subtree . ", " . $format . "\n"; 
+if (($subtree eq 'pruned' && $format eq 'newick') ||
+	($format eq "nexus" || $format eq "xml" || $format eq "svg")) {
+
+	# Write from Bio:Phylo::Forest::Tree
+	print "Write from Bio:Phylo::Forest::Tree\n";
+	switch ($format) {
+		case "newick" { $out = $tree ->	to_newick;}
+		case "nexus" { $out = $tree ->to_nexus;}
+		case "xml" { $out = $tree ->to_xml;}
+		case "svg" { $out = $tree ->to_svg;}
+	}
+} elsif ($subtree eq 'subtree' && $format eq 'newick') {
+	$out = $newick; 
+} elsif ($format eq "nhx" || $format eq "tabtree" || $format eq "lintree") {
+	# Import to Bio::TreeI/O
+	if ($subtree eq 'pruned') { $newick = $tree -> to_newick;}
+	my $io = IO::String -> new($newick);
+	my $treeIO = Bio::TreeIO -> new(-fh => $io, -format => 'newick');
+	switch ($format) {
+		#case 'nhx' {$treeout = Bio::TreeIO -> new (-format 'nhx');}
+	}
+}
+
+print $out;
 	

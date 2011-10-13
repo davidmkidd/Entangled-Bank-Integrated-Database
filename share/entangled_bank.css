@@ -12,7 +12,8 @@
 	div.main {
 		border: 3px groove;
 		width: 853 px;
-		padding: 5px;
+		padding: 6px;
+		padding-bottom: 3px;
 	}
 
 	#ebheader {
@@ -32,6 +33,22 @@
 		font-size: smaller;
 	}
 	
+	#output_div {
+		clear: both;
+		border-top: 3px groove;
+		padding-top: 6px;
+		padding-left: 3px;
+		padding-bottom: 0px;
+	}
+	
+	
+	#find_main_div {
+		clear: both;
+		border-bottom: 3px groove;
+		padding: 12px;
+		padding-left: 3px;
+	}
+	
 	#ebimage {
 		border: grey 1px solid;
 		margin-bottom: 1px;
@@ -45,9 +62,10 @@
 	
 	#cart {
 		padding-left: 3px;
-		border-bottom: 3px groove;
+		border-bottom: 3px;
 		padding-top: 6px;
 		padding-bottom: 6px;
+		font-size: smaller;
 	}
 	
 	div.margin5px {
@@ -264,8 +282,8 @@
 	}
 	
 	
-	td.find_c2 {
-		width: 515px;
+	.find {
+		width: 527px;
 	}
 	
 	td.query_c2_footer {
@@ -310,7 +328,7 @@
 	
 	#find_div {
 		overflow: auto;
-		width: 517px;
+		width: 527px;
 		height: 80px; 
         border: 1px gray solid; 
         padding:0px; 

@@ -197,7 +197,15 @@ function html_obj_name($obj) {
 		echo "<input type='button' name='delete' class='delete' value='Delete' onClick='deleteOutput(\"$id\")'/>";
 		
 		# OK
-		echo "<input id='submit-button' type='submit' class='button-standard' onClick='addOutput(\"$id\")' value='OK' />";
+		switch ($term) {
+			case 'biotable' :
+				echo "<input id='submit-button' type='submit' class='button-standard' onClick='addBiotableOutput(\"$id\")' value='OK' />";
+				break;
+			default:
+				echo "<input id='submit-button' type='submit' class='button-standard' onClick='addOutput(\"$id\")' value='OK' />";
+				break;
+		}
+		
 
 		echo "</td>";
 	}
@@ -358,25 +366,26 @@ function html_output_biotree($db_handle, $output, $outputs, $source) {
 	
 	function html_output_dbformat($output) {
 	
+		#FORMAT
 		if ($output['format']) {
 			$f = $output['format'];
+			$d = $output['delineator'];
 		} else {
-			$f = 'csv';
+			$f = 'delineated';
 		}
 		echo "<tr>";
 		echo "<td class='query_title'>Format</td>";
-		$formats = array('csv','tab-delineated','dbf');
-		#print_r($formats);
-		echo "<td>";
+		$vals = array('comma-delineated (*.csv)','tab-delineated (*.txt)','dBase (*.dbf)');
 
+		echo "<td>";
 		echo "<SELECT id='format' name='db_format' class='query_options'>";
-		foreach ($formats as $dbformat) {
-			if ($dbformat == $f) {
+		foreach ($vals as $val) {
+			if ($val == $f) {
 				$selected = 'SELECTED';
 			} else {
 				$selected = '';
 			}
-		echo "<OPTION $selected value='$dbformat'>$dbformat</OPTION>";
+			echo "<OPTION $selected value='$val'>$val</OPTION>";
 		}
 		echo "</SELECT>";
 		echo "</td>";
@@ -1202,14 +1211,14 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		if ($fieldtitle == (count($fields) . ' Fields')) $fieldtitle = '';
 		echo "<td class = 'query_field'>";
 
-		$fname = $field['fname'];
-		$fdesc = $field['fdesc'];
+		$fname = $field['name'];
+		$fdesc = $field['desc'];
 		$ftype = $field['ftype'];
-		$dtype = $field['dtype'];
-		$falias = $field['falias'];
+		$dtype = $field['ebtype'];
+		$falias = $field['alias'];
 		
 		#FIELD RETURN
-		$i = $field['frank'];
+		$i = $field['rank'];
 		// Is field in an existing query?
 		if ($qfields && in_array($fname, $qfields)) {
 			$check = ' CHECKED ';
@@ -1855,19 +1864,20 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 
 #=======================================================================================================================
 
-function html_find($db_handle, $name_search, $sources) {
+function html_entangled_bank_find($db_handle, $name_search, $sources) {
 	
 	//print_r($name_search);
 	
 	# OUTER FROM TABLE
 	echo "<table border='0'>";
 	echo "<tr>";
-	echo "<td class='option_title_plus'>Found</td>";
+	echo "<td class='query_title'>Found</td>";
 	
-	echo "<td class='find_c2'>";
+	echo "<td class='find'>";
 	
 	# RESULTS TABLE
-	echo "<p id='find_msg'> Hidden...</p>";
+	echo "<p id='find_msg'>hidden...</p>";
+	
 	echo "<DIV id='find_div'>";
 	echo "<TABLE border='0'>";
 
@@ -1923,7 +1933,7 @@ function html_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $name_search) {
+function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs) {
 	
 		# name_search is an array of name and sources returned by an names search
 		
@@ -1960,30 +1970,34 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 			//html_name_search($db_handle, $name_search, $sources);
 		}
 		
-		echo "<div class='margin5px'>";
-
 		# FIND
+		echo "<div id='find_main_div'>";
 		$title = "Quick find for which sources names are in. Comma seperate names.";
 		echo "<table border='0'>";
 		echo "<tr>";
-		echo "<td class='query_title' title='$title'>Find</td>";
-		echo "<td class='find_c2'><INPUT type='text' id='name_search' name='name_search' value='$val' /></td>";
-		echo "<td><input type='button' class='button-standard' value='Go' onClick='submitform(\"find\")'></td>";
+		echo "<td class='query_title' title='$title'>Find Names</td>";
+		echo "<td class='find'><INPUT type='text' id='name_search' name='name_search' class='find' value='$val' /></td>";
+		echo "<td><input type='button' class='button-standard' value='Go' onClick='submitForm(\"find\")'></td>";
 		echo "</tr>";
 		echo "</table>";
-
 		# DISPLAY FIND
-		if ($name_search) html_find($db_handle, $name_search, $sources);
+		if ($name_search) html_entangled_bank_find($db_handle, $name_search, $sources);
+		# END FIND
+		echo "</div>";
+
 		
 		# QUERY
-
+		html_cart($qobjects, $sources, $names);
+		html_cart_queries($qobjid, $qobjects, $sources);
+		
+		echo "<div id='query_div' class='margin5px'>";
+		
 		echo "<table border='0'>";
 		echo "<tr>";
 		$title = "Build query to subset data";
 		echo "<td  class='query_title_minus' title='$title'>New Query</td>";
 		$title = "Which names are in what sources?";
-		echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"bionames\")'><img src='./image/systema.gif' class='query_type_button'/></a></td>";
-	
+		echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitForm(\"bionames\")'><img src='./image/systema.gif' class='query_type_button'/></a></td>";
 		if (!empty($biotree)) {
 			$title = "Are these names in this tree? What is the least common ancestor? What names descend from the least common ancestor?";
 			echo "<td class='qtype' title='$title' align='center'><a href='javascript: openSelect(\"biotree\")'><img src='./image/tree.gif' class='query_type_button' /> </a></td>" ;
@@ -1995,42 +2009,45 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		if (!empty($biogeographic)) {
 			$title = "For which names is there data here?";
 			//http://www.google.co.uk/imgres?q=map+blue+marble+clear+background&hl=en&biw=1440&bih=785&tbs=isz:m&tbm=isch&tbnid=gbVFJa91hd_vOM:&imgrefurl=http://oceanmotion.org/html/background/climate.htm&docid=ruZBy3lxCY6e0M&w=350&h=350&ei=D8RcTsOIMdC58gPn9Y3UAw&zoom=1&iact=rc&dur=307&page=2&tbnh=132&tbnw=133&start=28&ndsp=29&ved=1t:429,r:11,s:28&tx=75&ty=81
-			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"biogeographic\")'><img src='./image/blue-planet.gif' class='query_type_button'/> </a></td>" ;
+			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitForm(\"biogeographic\")'><img src='./image/blue-planet.gif' class='query_type_button'/> </a></td>" ;
 		}
-
 		if (!empty($biotemporal)) {
 			//http://farm4.static.flickr.com/3605/3639291429_f19524c475.jpg
 			$title = "For which names is there data for the input period?";
-			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitform(\"biotemporal\")'><img src='./image/clock.gif' class='query_type_button'/> </a></td>" ;
-		}
-		
+			echo "<td class='qtype' title='$title' align='center'><a href='javascript: submitForm(\"biotemporal\")'><img src='./image/clock.gif' class='query_type_button'/> </a></td>" ;
+		}	
 		echo "</tr>";
+		
 		echo "<tr>";
-		echo "<td></td>
-			<td class='qtype_text'>Names</td>
-			<td class='qtype_text'>Tree</td>
-			<td class='qtype_text'>Attributes</td>
-			<td class='qtype_text'>Geography</td>
-			<td class='qtype_text'>Time</td>";
+		echo "<td></td><td class='qtype_text'>Names</td>";
+		if (!empty($biotree)) echo "<td class='qtype_text'>Tree</td>";
+		if (!empty($biotable)) echo "<td class='qtype_text'>Attributes</td>";
+		if (!empty($biogeographic)) echo "<td class='qtype_text'>Geography</td>";
+		if (!empty($biotemporal)) echo "<td class='qtype_text'>Time</td>";
 		echo "</tr>";
 		echo "</table>";
-
+		echo "</div>";
 		# QTYPE HIDDEN INPUT
 		echo "<INPUT type='hidden' name='qterm' id = 'qterm' value='none' />";
 		
 		# SOURCE SELECTOR
 		html_query_select_source ($sources,'biotree');
 		html_query_select_source ($sources,'attribute');
-		echo "<hr>";
+		
 		
 		# OUTPUTS
+		echo "<div id='output_div'>";
 		echo "<table border='0'>";
 		echo "<tr>";
 		echo "<td class='query_title' title='$title'>New Output</td>";
 		html_output_source($sources);
 		echo "</tr>";
 		echo "</table>";
+		html_cart_outputs($output_id, $outputs, $qobjects);
 		echo "</div>";
+		# LINK TO OUTPUT ZIP FILE 
+		if ($stage == 'write') html_write($zip);#
+		
 	}
 
 #=======================================================================================================================
@@ -2039,12 +2056,11 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		echo "<div id='$term" , "_select_div' style='display: none;'>";
 		echo "<table border='0'>";
 		echo "<tr>";
-		if ($term == 'biotree') {
-			$width = 190;
-		} else {
-			$width = 310;
-		}
-		echo "<td style='width: $width px'></td>";
+		echo "<td class='query_title'></td>";
+		echo "<td class ='qtype'></td>";
+		
+		if ($term == 'attribute') echo "<td class ='qtype'></td>";
+		
 		echo "<td>";
 		html_query_select_source2($sources, $term);
 		echo "</td>";
@@ -2228,7 +2244,7 @@ function html_select_table_fields($db_handle, $formname, $form_all, $form_cancel
 
 #=================================================================================================================
 
-function html_output_biotable($db_handle, $output, $outputs, $source) {
+function html_output_biotable($db_handle, $output, $source) {
 	
 	echo '<script src="./scripts/table_utils.js" type="text/javascript"></script>';
 	
@@ -2238,8 +2254,10 @@ function html_output_biotable($db_handle, $output, $outputs, $source) {
 	#$form_all = 'allfields';
 	$form_cancel = 'cancel';
 	$form_objname = 'objname';
-
-	$fields = $source['fields'];
+	$sfields = $source['fields'];
+	//print_r($output);
+	//echo "<br>";
+	
 	//print_r($fields);
 	//$dtypes = get_source_dtypes($db_handle, $source);
 	html_output_dbformat($output);
@@ -2250,9 +2268,10 @@ function html_output_biotable($db_handle, $output, $outputs, $source) {
 	echo "<td class='query_title'>Fields</td>";
 	echo "<td>";
 	echo "<SELECT id='$form_name' name='$form_name' $disabled MULTIPLE size='8' class='query_options'>";
-	foreach ($fields as $field) {
-		$fname = $field['fname'];
-		echo "<OPTION value='$fname'>$fname</OPTION>";
+	foreach ($sfields as $sfield) {
+		$fname = $sfield['name'];
+		$alias = $sfield['alias'];
+		echo "<OPTION value='$fname'>$alias</OPTION>";
 	}
 	echo "</SELECT>";
 	echo "<td>";
@@ -2262,14 +2281,25 @@ function html_output_biotable($db_handle, $output, $outputs, $source) {
 	echo "<BUTTON type='button' $disabled id='" . $form_name . "_allout' name='$form_name' class='button-standard' onClick='rem_all(this)'><<</BUTTON>";
 	echo "</td>";
 	//fields in output
-	$fields = $output['fields'];
 	
 	echo "<td>";
 	echo "<SELECT id='$form_name" . "_add' name='$form_name" . "_add[]' MULTIPLE size='8' class='query_options'>";
-			foreach (fields as $field) {
-				$checked = "";
-				"<OPTION value='$field'>";
-			}
+	
+	if ($output['fields']) {
+		$fields = $output['fields'];
+		foreach (fields as $field) {
+			$sfield = get_field($field, $sfields);
+			$fname = $sfield['name'];
+			$alias = $sfield['alias'];
+			"<OPTION value='$fname'>$alias</OPTION>";
+		}
+	} else {
+		foreach ($sfields as $sfield) {
+		$fname = $sfield['name'];
+		$alias = $sfield['alias'];
+		echo "<OPTION value='$fname'>$alias</OPTION>";
+	}		
+	}
 	echo "</SELECT>";
 	echo "</td>";
 	echo "</tr>";
@@ -2346,7 +2376,7 @@ function html_output_set($db_handle, $output, $outputs, $sources) {
 	switch ($sterm) {
 		case "biotable" :
 			# select traits to output
-			html_output_biotable($db_handle, $output, $outputs, $source);
+			html_output_biotable($db_handle, $output, $source);
 			break;	
 		case "biogeographic" :
 			html_output_biogeographic($output, $outputs, $source);
@@ -2390,7 +2420,7 @@ function html_select_sources($db_handle) {
 	echo "<tr>";
 	echo "<td class='query_title' title='$title'>Sources</td>";
 	echo "<td class='query_form'>";
-	echo "<SELECT id='select_sources' class='eb' name='qsources' SIZE=7  MULTIPLE='multiple'>";
+	echo "<SELECT id='select_sources' class='eb' name='sourceids[]' SIZE=7  MULTIPLE='multiple'>";
 	if(!$result) {
 		echo "<OPTION>No Data Sets Available</OPTION>";
 	} else {
@@ -2409,7 +2439,7 @@ function html_select_sources($db_handle) {
 					$title = 'Relational';
 					break;
 			}
-			$img = 'tree.gif';
+			//$img = 'tree.gif';
 			echo "<OPTION value=$row[0] title='$title'>$row[1]</OPTION>";
 		}
 	}

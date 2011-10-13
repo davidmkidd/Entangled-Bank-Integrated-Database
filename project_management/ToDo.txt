@@ -49,6 +49,10 @@ Output
 	Tree
 	- pruned tree loses names of internal nodes in Bio::Tree > Bio::Phylo
 	- migrate subtree extraction to SQL
+	Table
+	- Dbase output formats
+	- Something wierd when removing fields from output
+	- reorder fields in output
 	
 CSS Styling
 

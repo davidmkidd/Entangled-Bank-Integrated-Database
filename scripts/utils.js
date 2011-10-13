@@ -70,6 +70,14 @@ function addOutput(id) {
 	document.ebankform.submit();
 }
 
+function addBiotableOutput(id) {
+	var item = document.getElementById('fields_add');
+	for (var i = 0; i < item.length; i++) {
+		item.options[i].selected = true;
+	}
+	document.ebankform.submit();
+}
+
 function editOutput(id) {
 	var item = document.getElementById('stage');
 	item.value = 'setoutput';
@@ -95,6 +103,11 @@ function returnOutput(n) {
 		item.value = 'write';
 		document.ebankform.submit();
 	}
-	
+}
 
+function submitForm (id) {
+	//alert(id);
+	var qterm = document.getElementById('qterm');
+	qterm.value = id;
+	document.ebankform.submit();
 }

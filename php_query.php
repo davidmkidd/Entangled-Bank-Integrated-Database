@@ -283,7 +283,7 @@
 			$qfname = $query['field'];
 			//echo "qfname: $qfname";
 			$qfield = get_field($qfname, $fields);
-			$dtype = $qfield['dtype'];
+			$dtype = $qfield['ebtype'];
 			//echo ", dtype: $dtype<br />";
 			# WHERE CLAUSES
 			switch ($dtype) {
@@ -402,7 +402,7 @@
 		
 		foreach ($queries as $query) {
 			$field = $query['field'];
-			$dtype = $query['dtype'];
+			$dtype = $query['ebtype'];
 			if ($first == true) $str = $str . " AND";
 		
 			# WHERE CLAUSES

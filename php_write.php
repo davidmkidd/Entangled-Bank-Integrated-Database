@@ -46,7 +46,7 @@ function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $source
 	array_push($files_to_zip, $fn);
 	$zn = "ebdata_$oid.zip";
 	
-	echo "zipping files ", implode(", ", $files_to_zip), " to $zn<br>";
+	//echo "zipping files ", implode(", ", $files_to_zip), " to $zn<br>";
 	
 	$res = create_zip($files_to_zip, $out_path . '/' . $zn, true);
 	
@@ -444,85 +444,39 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	//echo "<BR>";
 	
 	$source = get_obj($sources, $output['sourceid']);
-	$term = $source['term'];
+	//$term = $source['term'];
 	$dbloc = $source['dbloc'];
 	$namefield = $source['namefield'];
-	
-	$format = $output['db_format'];
-	$filename = $output['filename'];
-	
-	# OS HARDCODE
-	#$outpath = substr($config['tmp_path'], strpos($config['tmp_path'],'/') + 1) . '/';
+	$db_format = $output['db_format'];
 	
 	if ($names) {
 		$names_arr = array_to_postgresql($names,'text');
 		}
-		
-	$outpath = $config['out_path'];	
-	$filename = "$outpath/$filename.csv";
-	#echo "write::filename: $filename<br>";
+	
+	
 	$columns = $output['fields'];
-	array_unshift($columns, $namefield);
+	//array_unshift($columns, $namefield);
 	$colstr = array_dbcols($columns, null, true);
 	$str = "SELECT $colstr FROM $dbloc";
 	if ($names) $str = $str . " WHERE $namefield = ANY($names_arr)";
-	#echo "write_biotable ". count($columns) . " to $filename<br>";
+	//echo "$str<br>";
 	$res = pg_query($str);
-	$c = write_csv($res, $filename, $columns);
-	$outfiles = array($filename);
-	$output['outfiles'] = $outfiles;
+	
+	switch ($db_format) {
+		case 'comma-delineated (*.csv)':
+			$c = write_delineated($config, $res, $output);
+			break;			
+		case 'tab-delineated (*.txt)':
+			$c = write_delineated($config, $res, $output);
+			break;
+		case 'dBase (*.dbf)':
+			$c = write_dbase($config, $res, $output, $source);
+			break;
+		default:
+			echo "write_biotable: database format not recognised";
+			break;
+	}
 }
-
-#=================================================================================================================
-/*
- function write_biotree_old($config, $output) {
- 	
- 	// Get session variables
-	$sid = session_id();
-	$spath = $config['out_tree_path'];
-	$spath = session_save_path();
-	#echo "spath $spath<br>";
-	
-	# LINUX HARDCODE
-	//if (strpos ($spath, ";") !== FALSE)
-	#$spath = substr ($spath, strpos ($spath, ";")+1);
-	#echo "spath $spath<br>";
-	
-	$filename = $output['filename'];
-	switch ($output['format']) {
-		case 'newick':
-			$filename = $outpath . $filename . '.tre';
-			$outfiles = array($filename);
-			break;
-		case 'nhx':
-			$filename = $outpath . $filename . '.nhx';
-			$outfiles = array($filename);
-			break;
-		case 'tabtree':
-			$filename = $outpath . $filename . '.tab';
-			$outfiles = array($filename);
-			break;
-		case 'linree':
-			$filename = $outpath . $filename . '.lin';
-			$outfiles = array($filename);
-			break;
-		default;
-		}
-	# Save output id to session
-	$_SESSION['output_id'] = $output['id'];
-	session_write_close(); 
-	#echo "<br>*** Before PERL ***<br>";
-	//$spath = $spath . "/" . $filename;
-	$str = $config['perl_path'] . "/perl " . $config['write_tree_path'];
-	$str = $str . "eb_write_tree.pl $sid $spath 2>&1";
-	#echo "<br>PERL: $str<br>";
-	$out = shell_exec($str);
-	echo "$out<br>";
-	#echo "<br>*** After PERL ***<br>";
-	$outfiles = array($filename);
- 	
- 	return $outfiles;
- }*/
  
  #=================================================================================================================
 
@@ -534,7 +488,7 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	$spath = session_save_path();
 	$outpath = $config['out_path'] . "/";
 	$perl_script_path = $config['perl_script_path'];
-	echo "perl_script_path $perl_script_path<br>";
+	//echo "perl_script_path $perl_script_path<br>";
 	
 	# LINUX HARDCODE
 	//if (strpos ($spath, ";") !== FALSE)
@@ -596,24 +550,25 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	# Convert and/or prune
 	$subtree = $output['subtree'];
 	$format = $output['format'];
-	//echo "$format, $subtree<br>";
+	//echo "tree, $tree<br>";
 	
 	if ($format != 'newick' || $subtree == 'pruned') {
-		echo "<br>*** BEGIN PERL:*** <br>";
+		session_write_close(); 
+		echo "<br>*** BEGIN PERL ***<br>";
 		$str = "$perl_script_path/write_tree.pl $sid $spath $tree $subtree $format 2>&1";
 		//$str = "$perl_script_path/write_tree.pl";
 		$out = shell_exec($str);
 		echo "$out<br>";
 		//echo "Perl command: $str<br>";
 		//$tree = shell_exec($str);
-		//echo "$tree<br>";
+		//echo "$out<br>";
 		echo "<br>*** END PERL ***<br>";
 	} 
 	
-	echo "Writing tree to $filename<BR>";
+	//echo "Writing tree to $filename<BR>";
 	# WRITE TREE FILE
 	$fh = fopen($filename, 'w') or die ("failed to open tree file fo writing");
-	fwrite($fh, $tree);
+	fwrite($fh, $out);
 	fclose($fh);
 	
  	$output['outfiles'] = $outfiles;
@@ -623,54 +578,101 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 
 #=================================================================================================================
 
-function write_csv($result, $file, $columns) {
+function write_delineated($config, $res, &$output) {
 
-	if (!$result) {
-		echo "write_result error: result is empty<br>.";
+	if (!$res) {
+		echo "write_delineated error: result is empty<br>.";
 		exit;
-		
-		} else {
+	} else {
 
-		#WRITES QUERY RESULT TO FILE
-		# Open file for writing
-		
-		#echo "file: $file<br>";
-			
-		$fh = fopen($file, "w+") or die ("Failed to open $file: $php_errormsg");
-		
-		#Write column headers
-		$first = 1;
-		foreach ($columns as $column) {
-			if ($first == 1) {
-				$mystr = $column;
-				$first = 0;
+	$file = $output['filename'];
+	$db_format = $output['db_format'];
+	$fields = $output['fields'];
+	$outpath = $config['out_path'];
+	
+	if ($db_format == 'comma-delineated (*.csv)') {
+		$file = "$outpath/$file.csv";
+		$del = ",";
+	} else {
+		$file = "$outpath/$file.txt";
+		$del = "\t";
+	}
+	
+	#WRITE TO FILE	
+	$fh = fopen($file, "w+") or die ("write_delineated: failed to open $file: $php_errormsg");
+
+	#Write column headers
+	$first = 1;
+	foreach ($fields as $field) {
+		if ($first == 1) {
+			$mystr = $field;
+			$first = 0;
+			} else {
+			$mystr = $mystr . $del . $field;
+			}
+		}
+	$mystr = $mystr . "\n";
+	fwrite($fh, $mystr);
+	
+	#Write Data
+	$c = 0;
+	while ($row = pg_fetch_row($res)) {
+		$c++;
+		for ($i = 0; $i <= count($fields); $i++) {
+			if ($i == 0) {
+				$mystr = $row[$i];
 				} else {
-				$mystr = $mystr . "," . $column;
+				$mystr = $mystr . $del . $row[$i];
 				}
 			}
 		$mystr = $mystr . "\n";
 		fwrite($fh, $mystr);
-		
-		#Write Data
-		$c = 0;
-		while ($row = pg_fetch_row($result)) {
-			$c++;
-			for ($i = 0; $i <= count($columns); $i++) {
-				if ($i == 0) {
-					$mystr = $row[$i];
-					} else {
-					$mystr = $mystr . ", $row[$i]";
-					}
-				}
-			$mystr = $mystr . "\n";
-			fwrite($fh, $mystr);
-			}
-		# Close file	
-		fclose($fh);
-		}
-	return $c; #n records
 	}
+	# Close file	
+	fclose($fh);
+	}
+	$output['n'] = $c;
+	$output['outfiles'] = array($file);
+	}
+
+#=================================================================================================================
+
+function write_dbase($config, $res, &$output, $source) {
 	
+	# Writes table to dbf
+	if (!$res) {
+		echo "write_dbase error: result is empty<br>.";
+		exit;
+	} else {
+
+	$file = $output['filename'];
+	$fields = $output['fields'];
+	$outpath = $config['out_path'];
+	$file = "$outpath/$file.dbf";
+	$sfields = $source['fields'];
+	
+	# FIELD DEFINTION ARRAY
+	$def = array();
+	foreach ($fields as $field) {
+		$myfield = get_field($field, $sfields);
+		switch ($myfield['ebtype']) {
+			case 'rangefield':
+				$arr = array($myfield['ebtype'], "N", 8,3);
+				break;
+			default:
+				echo "write_dbase: field dtype not recognised";
+				return;
+				break;
+		}
+	}
+
+// creation
+if (!dbase_create($file, $def)) {
+  echo "Error, can't create the database\n";
+}
+	
+	}
+}
 
 #=================================================================================================================
 	

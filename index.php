@@ -49,6 +49,7 @@ echo '</head>';
 
 #BODY
 echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
+echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
 echo "<body onload='loadScript()'>";
 echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, true);
@@ -113,17 +114,19 @@ $output_sid = $_SESSION['output_sid'];        // OUTPUT SOURCE
 $output_id = $_SESSION['output_id'];          // OUTPUT ID
 if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
 if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
+
 $files_to_delete = $_SESSION['files_to_delete'];
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            PRE-FORM PROCESSING
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
-echo "Pre-form processing: ";
+//echo "Pre-form processing: ";
 //if ($qobjects) print_r($qobjects);
-echo "stage: $stage";
+//echo "stage: $stage";
 //echo ", qobjid: $qobjid<br>";
-echo "<br>";
+//echo "<br>";
+
 # Get Current qobject
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 if ($output_id) $output = get_obj($outputs, $output_id);
@@ -313,8 +316,8 @@ if ($names) $_SESSION['names'] = $names;
 #                                                                            SHOPPING CART
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 //echo "pre-cart stage: $stage<br>";
-if ($stage != 'finish' && $stage != 'sources')  
-	html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $object_id, $outputs, $stage);
+//if ($stage != 'finish' && $stage != 'sources')  
+	//html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $object_id, $outputs, $stage);
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                                 FORM
@@ -334,16 +337,13 @@ echo "<br/>";*/
 	
 /*echo "sources:<br>";
 print_r($sources);
-echo "<BR>";*/
-	
+echo "<BR>";
+	*/
 //if ($qterm == 'finish') $stage = 'finish';
 
 if ($stage == 'sources') {
-	# Select name source or input names
-	#$mytimes = add_key_val($mytimes, "begin_select_sources", microtime(TRUE));
 	html_select_sources($db_handle);
 	echo "<input type = 'hidden' name ='stage' value='getsources'>";
-	#$mytimes = add_key_val($mytimes, "end_select_sources", microtime(TRUE));
 	}
 	
 #MANAGE QUERIES
@@ -354,7 +354,7 @@ if ($stage == 'manage') {
 
 # NEW QUERY
 if ($stage == 'main' || $stage == 'write') {
-	html_entangled_bank_main($db_handle, $qobjects, $sources, $names, $name_search);
+	html_entangled_bank_main($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs);
 	echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
 	}
 
@@ -368,12 +368,6 @@ if ($stage == 'qset') {
 # OUTPUT DIALOGS
 if ($stage == 'setoutput') html_output_set($db_handle, $output, $outputs, $sources);
 
-# OUTPUT CART
-if ($stage == 'main' || $stage=='write') html_cart_outputs($output_id, $outputs, $qobjects);	
-
-# LINK TO OUTPUT ZIP FILE 
-if ($stage == 'write') html_write($zip);#
-
 # UNIQUE ID FOR FORM INSTANCE
 echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';
 
@@ -382,9 +376,6 @@ echo '</form>';
 
 #Print mytimes array
 $mytimes = add_key_val($mytimes, "end_page", microtime(TRUE));
-#print_arr($mytimes);
-//echo "endform<br>";
-//print_r($outputs);
 
 # FOOTER
 html_entangled_bank_footer();
