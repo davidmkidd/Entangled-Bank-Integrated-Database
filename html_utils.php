@@ -166,12 +166,13 @@ function html_obj_name($obj) {
 		echo "<td class='query_title'>Spatial format</td>";
 		echo "<td class = 'query_option'>";
 		echo "<SELECT name='sp_format' class='eb'>";
-		echo "<OPTION SELECTED value='shapefile'> ESRI Shapefile</OPTION>";
+		echo "<OPTION SELECTED value='shapefile'>ESRI Shapefile</OPTION>";
+		echo "<OPTION SELECTED value='none'>ESRI Shapefile</OPTION>";
 		echo "<OPTION value='mapinfo'> MapInfo</OPTION>";
-		echo "<OPTION value='dgn'> DGN</OPTION>";
-		echo "<OPTION value='dxf'> DXF</OPTION>";
-		echo "<OPTION value='gml'> Geographic Markup Language (GML)</OPTION>";
-		echo "<OPTION value='kml'> Keyhole Markup Language (KML)</OPTION>";
+		echo "<OPTION value='dgn'>DGN</OPTION>";
+		echo "<OPTION value='dxf'>DXF</OPTION>";
+		echo "<OPTION value='gml'>Geographic Markup Language (GML)</OPTION>";
+		echo "<OPTION value='kml'>Keyhole Markup Language (KML)</OPTION>";
 		echo "</SELECT>";		
 		echo "</td>";
 		echo "</tr>";
@@ -367,15 +368,19 @@ function html_output_biotree($db_handle, $output, $outputs, $source) {
 	function html_output_dbformat($output) {
 	
 		#FORMAT
-		if ($output['format']) {
-			$f = $output['format'];
+		//print_r ($output);
+		//echo "<br>";
+		
+		if ($output['db_format']) {
+			$f = $output['db_format'];
 			$d = $output['delineator'];
 		} else {
 			$f = 'delineated';
 		}
 		echo "<tr>";
 		echo "<td class='query_title'>Format</td>";
-		$vals = array('comma-delineated (*.csv)','tab-delineated (*.txt)','dBase (*.dbf)');
+		//$vals = array('comma-delineated (*.csv)','tab-delineated (*.txt)','dBase (*.dbf)');
+		$vals = array('comma-delineated (*.csv)','tab-delineated (*.txt)');
 
 		echo "<td>";
 		echo "<SELECT id='format' name='db_format' class='query_options'>";
@@ -1933,7 +1938,7 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs) {
+function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs, $zip) {
 	
 		# name_search is an array of name and sources returned by an names search
 		
@@ -2047,7 +2052,7 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		html_cart_outputs($output_id, $outputs, $qobjects);
 		echo "</div>";
 		# LINK TO OUTPUT ZIP FILE 
-		if ($stage == 'write') html_write($zip);#
+		if ($zip) html_write($zip);#
 		
 	}
 
@@ -2256,7 +2261,12 @@ function html_output_biotable($db_handle, $output, $source) {
 	$form_cancel = 'cancel';
 	$form_objname = 'objname';
 	$sfields = $source['fields'];
+	
 	//print_r($output);
+	//echo "<br>";
+	$fields = $output['fields'];
+	$sfield = get_field($fields[0], $sfields);
+	//print_r($sfield);
 	//echo "<br>";
 	
 	//print_r($fields);
@@ -2288,11 +2298,13 @@ function html_output_biotable($db_handle, $output, $source) {
 	
 	if ($output['fields']) {
 		$fields = $output['fields'];
-		foreach (fields as $field) {
+		foreach ($fields as $field) {
 			$sfield = get_field($field, $sfields);
+			//print_r($sfield);
+			//echo "<br>";
 			$fname = $sfield['name'];
 			$alias = $sfield['alias'];
-			"<OPTION value='$fname'>$alias</OPTION>";
+			echo "<OPTION value='$fname'>$alias</OPTION>";
 		}
 	} else {
 		foreach ($sfields as $sfield) {
@@ -2343,6 +2355,22 @@ function html_output_source($sources) {
 
 #================================================================================================================
 
+function html_output_source_name($source) {
+	
+	$sname = $source['name'];
+	echo "<tr>";
+	echo "<td class='query_title'>";
+	echo "Source";
+	echo "</td>";
+	echo "<td class='eb'>";
+	echo "<input type='text' disabled='disabled' readonly='readonly' value='$sname' class='eb'/>";
+	echo "</td>";
+	echo "</tr>";
+}
+
+
+#================================================================================================================
+
 function html_output_set($db_handle, $output, $outputs, $sources) {
 	
 	# SWITCH INTERFACE BY SOURCE TYPE
@@ -2353,7 +2381,7 @@ function html_output_set($db_handle, $output, $outputs, $sources) {
 	$outname = $output['name'];
 	
 	if (!$outname) {
-		$outname = get_next_name($outputs, $source['term']);
+		$outname = get_next_output_name($outputs, $source);
 		//echo "outname: $outname";
 		$output['name'] = $outname;
 	}
@@ -2374,6 +2402,9 @@ function html_output_set($db_handle, $output, $outputs, $sources) {
 	html_output_buttons($output);
 	echo "</tr>";
 	
+	# SOURCE
+	html_output_source_name($source);
+	
 	switch ($sterm) {
 		case "biotable" :
 			# select traits to output
@@ -2389,8 +2420,22 @@ function html_output_set($db_handle, $output, $outputs, $sources) {
 			html_output_biorelational($db_handle, $output, $outputs, $source);
 			break;
 		}
-		
 	echo "</table>";
+	
+	if ($sterm == 'biorelational') {
+		echo "<table>";
+		echo "<tr>";
+		echo "<td class='query_title'>";
+		echo "Notes";
+		echo "</td>";
+		echo "<td>";
+		echo "A set of data tables will be exported in the GPDD schema.<br>";
+		echo "See the <a href='https://www.imperial.ac.uk/cpb/gpdd2/GPDD%20User%20Guide.doc'>GPDD User Guide</a> for further information.<br>";
+		echo "</td>";
+		echo "</tr>";
+		echo "</table>";
+	}
+
 	echo "</div>";
 	
 	echo "<input id='stage' type='hidden' name='stage' value='outputvalidate'>";

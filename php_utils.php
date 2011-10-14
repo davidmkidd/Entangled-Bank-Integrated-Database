@@ -452,6 +452,13 @@ function get_column_names ($db_handle, $table) {
 	
 }
 
+#=================================================================================================================
+
+function instr($haystack, $needle) { 
+  $pos = strpos($haystack, $needle, 0); 
+  if ($pos != 0) return true; 
+  return false; 
+} 
 
 #=================================================================================================================
 
@@ -465,6 +472,19 @@ function get_next_name($objs, $type) {
 	return $type . "_" . $i;
 	}
 
+	
+#=================================================================================================================
+	
+	
+function get_next_output_name($outputs, $source) {
+	# NEEDS AMENDING TO CHECK IF NAME IS type + numeral, if so get next highest integer
+	//echo "$type<br>";
+	$name = str_replace(' ', '_', $source['name']);
+	$i = 1;
+	foreach ($outputs as $obj) if (instr($name, $obj['name'])) $i++;
+	//echo "$type $i<br>";
+	return $name . "_" . $i;
+	}
 	
 #=================================================================================================================
 

@@ -4,7 +4,7 @@
 
 function html_cart($qobjects, $sources, $names) {
 	
-	//echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
+	# LIST OF SOURCES, NAMES AND SERIES
 	
 	# CART
 	echo "<div id='cart'>";
@@ -60,7 +60,7 @@ function html_cart_series($qobjects) {
 
 function html_cart_query($qobjects, $sources) {
 
-	# QUERIES
+	
 //	echo "qobj: ";
 	//print_r($qobjects);
 //	echo "<br>";
@@ -148,7 +148,10 @@ function html_cart_outputs($output_id, $outputs, $qobjects) {
 	//print_r ($outputs);	
 	//echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
 	if ($outputs) {
-			# OUTPUTS
+		
+		echo "<input type='hidden' id='output_id' name='output_id' value=''>";
+		
+		# OUTPUTS
 		$n = count($outputs);
 		$q = count($qobjects);
 		echo "<div id='output_cart'>";
@@ -157,8 +160,8 @@ function html_cart_outputs($output_id, $outputs, $qobjects) {
 		echo "<td class='query_title'>";
 		echo "Outputs";
 		echo "</td>";
-		
 		echo "<td>";
+		$first = true;
 		if ($n == 0) {
 			# NO OUTPUTS
 			$title = 'No Outputs';
@@ -169,11 +172,12 @@ function html_cart_outputs($output_id, $outputs, $qobjects) {
 				# IF EQ QOBJID OR NEW THEN LARGE
 				$name = $output['name'];
 				$id = $output['id'];
+				if ($first == false) echo "&nbsp;";
 				if ($output['status'] !== 'new' && $output['id'] !== $output_id) {
 					# NON-ACTIVE QUERY
 					$class = 'non-active';
 					//echo "<a>";
-					echo "<a href='javascript: editOutput(\"$id\")'>";
+					echo "<a href='javascript: editOutput(\"$id\");'>";
 					html_query_image($output['term'], $class, $name, 'output');
 				} else {
 					# ACTIVE QUERY
@@ -182,10 +186,11 @@ function html_cart_outputs($output_id, $outputs, $qobjects) {
 					html_query_image($output['term'], $class , $name, 'output');
 				}
 				echo "</a>";
+				$first = false;
 			}
 			# RETURN DATA
 			$title = 'Return Data';
-			echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' alt='return data' title='$title' class='query_type_button_non_active';></img></a>";
+			echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' alt='return data' title='$title';></img></a>";
 		}
 		echo "</td>";
 		echo "</tr>";

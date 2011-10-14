@@ -78,11 +78,33 @@ function addBiotableOutput(id) {
 	document.ebankform.submit();
 }
 
+function editQuery(id) {
+	
+	// Opens query for editing
+	var item = document.getElementById('qterm');
+	item.value = 'qedit';
+	var item = document.getElementById('stage');
+	//alert(item.value);
+	item.value = 'qedit';
+	var item = document.getElementById('qedit_objid');
+	item.value = id;
+/*	    if(document.ebankform.onsubmit &&
+    !document.ebankform.onsubmit())
+    {
+        return;
+    }*/
+ document.ebankform.submit();
+	
+}
+
+
 function editOutput(id) {
 	var item = document.getElementById('stage');
 	item.value = 'setoutput';
+	alert (item.value);
 	var item = document.getElementById('output_id');
 	item.value = id;
+	alert (item.value);
 	document.ebankform.submit();
 }
 

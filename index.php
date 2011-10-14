@@ -49,7 +49,7 @@ echo '</head>';
 
 #BODY
 echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
-echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
+//echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
 echo "<body onload='loadScript()'>";
 echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, true);
@@ -181,7 +181,7 @@ if ($stage == 'qdelete') {
 	# If no queries unset names
 	$names = null;
 	# If re-run queries 
-	echo "Query $idx deleted, ", count($qobjects) , " in stack";
+	//echo "Query $idx deleted, ", count($qobjects) , " in stack";
 	foreach ($qobjects as $qobject) {
 		echo ", running queries";
 		$out = query($db_handle, $qobject, $qobjects, $names, $sources);
@@ -307,7 +307,11 @@ if ($stage == 'outputvalidate' && $output_id) {
 }
 
 # WRITE OUTPUT FILES
-if ($stage == 'write') $zip = write_outputs($db_handle, $config, $names, $qobjects, $outputs, $sources);
+if ($stage == 'write') {
+	$zip = write_outputs($db_handle, $config, $names, $qobjects, $outputs, $sources);
+} else {
+	$zip = null;
+}
 
 if ($names) $_SESSION['names'] = $names;
 //if ($outputs) $_SESSION['outputs'] = $outputs;
@@ -354,7 +358,7 @@ if ($stage == 'manage') {
 
 # NEW QUERY
 if ($stage == 'main' || $stage == 'write') {
-	html_entangled_bank_main($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs);
+	html_entangled_bank_main($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs, $zip);
 	echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
 	}
 

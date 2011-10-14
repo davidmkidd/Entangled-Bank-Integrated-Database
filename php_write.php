@@ -6,7 +6,7 @@ function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $source
 
 	# WRITES ALL OUTPUTS TO COMPRESSED ARCHIVE
 	
-	echo "Begin write outputs<br>";
+	//echo "Begin write outputs<br>";
 	
 	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
 	$oid = substr(md5(uniqid()),0,4);
@@ -17,6 +17,7 @@ function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $source
 	foreach ($outputs as $output) {
 		$filename = str_replace(" ","_",$output['name']) . "_$oid";
 		$output['filename'] = $filename;
+		unset ($output['outfiles']);
 		//$outputs = save_obj($outputs, $output);
 		//$_SESSION['outputs'] = $outputs;
 		write_output($db_handle, $config, $qobjects, $names, &$output, $sources);
@@ -24,7 +25,8 @@ function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $source
 		$_SESSION['outputs'] = $outputs;
 	}
 	
-	//print_r($outputs);
+	//print_r($outputs[0]['outfiles']);
+	//echo "<br>";
 	
 	# ADD OUTPUTS TO README AND FILES_TO_ZIP
 	$files_to_zip = array();
@@ -99,36 +101,19 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$term = $source['term'];
 		$dbloc = $source['dbloc'];
 		$namefield = $source['namefield'];
-	
-		//print_r($output);
-		
 		$format= $output['sp_format'];
 		$filename = $output['filename'];
 		$outfilename = $filename;
-		# echo "format: $format<BR>";
-		#$mids = get_mids($qobjects);
-		#echo $qobjects[0]['series'];
+		$outpath = $config['out_path']. "/";;
+
 		$str = "SELECT * FROM $dbloc";
 		if ($names) {
 			$names_arr = array_to_postgresql($names,'text');
 			$str = $str . " WHERE $namefield = ANY($names_arr)";
 		}
 		
-//		if ($mids) {
-//			$str = "SELECT * 
-//				FROM $dbloc d, gpdd.main m, gpdd.taxon t
-//				WHERE m.\"TaxonID\" = t.\"TaxonID\"
-//				AND d.$namefield = t.binomial";
-//			$arr = array_to_postgresql($mids,'numeric');
-//			$str = $str . " WHERE m.\"MainID\" = ANY($arr)";
-//		}
-		
-		//echo "$str<br>";
-		//$res = pg_query($db_handle, $str);
-		//$n = pg_num_rows($res);
-		# HARDCODE
 		#$outpath = substr($config['tmp_path'], strpos($config['tmp_path'],'/') + 1) . '/';
-		$outpath = "/ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/";
+		//$outpath = "/ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/";
 		
 		switch ($format) {
 			case 'shapefile' :
@@ -201,13 +186,17 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$cmdstr = $cmdstr . $db_connect;
 		$cmdstr = $cmdstr . ' -sql "' . $str . '" 2>&1"';
 
-		#echo "<BR>$cmdstr<br>";
+		//echo "<BR>$cmdstr<br>";
 		$out = shell_exec($cmdstr);
 		#$out = shell_exec($cmdstr . " 2> output");
 		#echo $out ? $out : join("", file("output"));
-		#echo "out: $out<br>";
+		echo "out: $out<br>";
 		#$outfiles = array('/ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/' . $outfilename);
-		$output['outfiles'] = $outfiles;
+		if (!$output['outfiles']) {
+			$output['outfiles'] = $outfiles;
+		} else {
+			array_push($output['outfiles'], $outfiles);
+		}
 	}
 #=================================================================================================================
 	
@@ -215,29 +204,31 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		
 		$oid = $_SESSION['oid'];
 		$source = get_obj($sources, $output['sourceid']);
-		$mids = get_mids($qobjects);
+		$mids = query_get_mids($qobjects);
 		$midsarr = array_to_postgresql($mids, 'numeric');
 		$outpath = $config['outpath'];
 		$outfiles = array();
 		
 		# GPDD tables
-		$db_format = $output['db_format'];
+/*		$db_format = $output['db_format'];
 		switch ($db_format) {
-			case 'csv':
+			case 'comma-delineated (*.csv)':
 				$db_ext = ".csv";
 				break;
+			case 'tab-delineated (*.txt)':
+				$db_ext = ".txt";
+				break;				
 			default:
 				echo "format not supported<br>";
 				break;
-		}
+		}*/
 		
 		# MAIN
 		$str = "SELECT * FROM gpdd.main WHERE \"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.main');
-		$filename = $config['out_path'] . str_replace(" ","_", $output['name']) . "_gpdd_main_$oid$db_ext";
-		$c = write_csv($res, $filename, $cols);
-		array_push($outfiles, $filename);
+		$output['filename'] = str_replace(" ","_", $output['name']) . "_gpdd_main_$oid";
+		write_delineated(config, $res, $output);
 		
 		# TAXON
 		$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
@@ -245,9 +236,8 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 			AND m.\"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.taxon');
-		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_taxon_$oid$db_ext";
-		$c = write_csv($res, $filename, $cols);
-		array_push($outfiles, $filename);
+		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_taxon_$oid";
+		write_delineated(config, $res, $output);
 		
 		# DATASOURCE
 		$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d
@@ -255,9 +245,8 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 			AND m.\"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.datasource');
-		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_datasource_$oid$db_ext";
-		$c = write_csv($res, $filename, $cols);
-		array_push($outfiles, $filename);
+		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_datasource_$oid";
+		write_delineated(config, $res, $output);
 		
 		# LOCATION
 		$str = "SELECT l.* FROM gpdd.main m, gpdd.location l
@@ -265,9 +254,8 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 			AND m.\"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.location');
-		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_location_$oid$db_ext";
-		$c = write_csv($res, $filename, $cols);
-		array_push($outfiles, $filename);
+		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_location_$oid";
+		write_delineated(config, $res, $output);
 		
 		# DATA
 		
@@ -289,9 +277,8 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$res = pg_query($db_handle, $str);
 		$cols = array('DataID',"MainID", "Populations","PopulationUntransformed","SampleYear","TimePeriod",
 			"Generation","SeriesStep","DecimalYearBegin","DecimalYearEnd");
-		$filename = $config['out_path'] . str_replace(" ","_",$output['name']) . "_gpdd_data_$oid$db_ext";
-		$c = write_csv($res, $filename, $cols);
-		array_push($outfiles, $filename);
+		$output['filename'] =  str_replace(" ","_",$output['name']) . "_gpdd_data_$oid";
+		write_delineated(config, $res, $output);
 		
 		# LOCATION GEOGRAPHIC
 		$filename_pt = str_replace(" ","_",$output['name']) . "_gpdd_location_pt$oid";
@@ -464,13 +451,11 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	
 	switch ($db_format) {
 		case 'comma-delineated (*.csv)':
-			$c = write_delineated($config, $res, $output);
-			break;			
 		case 'tab-delineated (*.txt)':
-			$c = write_delineated($config, $res, $output);
-			break;
+			write_delineated($config, $res, $output);
+			break;			
 		case 'dBase (*.dbf)':
-			$c = write_dbase($config, $res, $output, $source);
+			$write_dbase($config, $res, $output, $source);
 			break;
 		default:
 			echo "write_biotable: database format not recognised";
@@ -632,14 +617,19 @@ function write_delineated($config, $res, &$output) {
 	fclose($fh);
 	}
 	$output['n'] = $c;
-	$output['outfiles'] = array($file);
+	if (!$output['outfiles']) {
+		$output['outfiles'] = array($file);
+	} else {
+		array_push($output['outfiles'],$file);
 	}
+}
 
 #=================================================================================================================
 
 function write_dbase($config, $res, &$output, $source) {
 	
 	# Writes table to dbf
+	# UNFINISHED
 	if (!$res) {
 		echo "write_dbase error: result is empty<br>.";
 		exit;
@@ -650,18 +640,26 @@ function write_dbase($config, $res, &$output, $source) {
 	$outpath = $config['out_path'];
 	$file = "$outpath/$file.dbf";
 	$sfields = $source['fields'];
+	$def = array();
 	
 	# FIELD DEFINTION ARRAY
-	$def = array();
 	foreach ($fields as $field) {
 		$myfield = get_field($field, $sfields);
-		switch ($myfield['ebtype']) {
-			case 'rangefield':
-				$arr = array($myfield['ebtype'], "N", 8,3);
+		
+		switch ($myfield['dbtype']) {
+			case 'numeric':
+			case 'float':
+			case 'float8':
+			case (substr($ftype, 0, 3) == 'int'):
+				$fdef = array();
+				break;
+			case (substr($ftype,-4) == 'char'):
+			case 'text':
+			case 'varchar':
+				$ftype = 'text';
 				break;
 			default:
-				echo "write_dbase: field dtype not recognised";
-				return;
+				//echo "html_table_query: unrecognised DB field type - $ftype<br>";
 				break;
 		}
 	}
