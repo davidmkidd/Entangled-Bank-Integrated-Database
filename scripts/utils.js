@@ -133,3 +133,74 @@ function submitForm (id) {
 	qterm.value = id;
 	document.ebankform.submit();
 }
+
+
+function textareaFormat(id) {
+	
+	//	Adds/removes double quotes from textbox
+	var item = document.getElementById(id);
+	var str = item.value;
+	//alert(str);
+	
+	switch (id) {
+		case 'names_list':
+			sel_item = 'names_format';
+			break;
+		case 'series_list':
+			sel_item = 'series_format';
+			break;
+	} 
+	
+	var sel = document.getElementById(sel_item);
+	
+	switch (sel.value) {
+		case '0':
+			// commas to new line
+			var rx = new RegExp( ',', "g" )
+			str = str.replace(rx, "\n");
+			rx = null;
+			// remove quotes
+			var rx = new RegExp( '"', "g" )
+			str = str.replace(rx, "");
+			break;
+		case '1':
+			// Delineate
+			var rx = new RegExp( '"', "g" )
+			str = str.replace(rx, "");			
+			var rx = new RegExp( "\\n", "g" )
+			str = str.replace(rx, "\"\n\"");
+			str = '"' + str + '"';
+			rx = null;
+			// new line
+			var rx = new RegExp( ',', "g" )
+			str = str.replace(rx, "\n");
+			break;
+		case '2':
+			// comma
+			var rx = new RegExp( "\\n", "g" )
+			str = str.replace(rx, ",");
+			str = '"' + str + '"';
+			rx = null;
+			// remove quotes
+			var rx = new RegExp( '"', "g" )
+			str = str.replace(rx, "");
+			break;
+		case '3':
+			// comma
+			var rx = new RegExp( "\\n", "g" )
+			str = str.replace(rx, ",");
+			str = '"' + str + '"';
+			rx = null;
+			// delineate
+			var rx = new RegExp( '"', "g" )
+			str = str.replace(rx, "");
+			rx = null;
+			var rx = new RegExp( ",", "g" )
+			str = str.replace(rx, "\",\"");
+			str = '"' + str + '"';
+			break;	
+	
+	}
+	item.value = str;
+}
+

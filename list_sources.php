@@ -17,7 +17,7 @@ echo '<html>';
 
 #HEAD
 echo '<head>';
-echo "<title>Sources</title>";
+echo "<title>Source Info</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #BODY
@@ -42,9 +42,10 @@ foreach($sources as $source) {
 	}
 }
 //echo "$nmids<br>";
-//echo "<h3>Sources</h3>";
 
-echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
+echo "<h4>Sources Summary</h4>";
+
+/*echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 echo '<big>Shopping Cart </big>';
 
 
@@ -58,7 +59,7 @@ if (!$names) {
 		}
 	}
 //echo "<HR>";
-echo "<br>";
+echo "<br>";*/
 	
 $s_id = array();
 $s_name = array();
@@ -77,7 +78,8 @@ foreach ($sources as $source) {
 
 	$val = "<a href= " . $source['www'] . "target=_blank> " . $source['name'] . "</a>";
 	array_push($s_name, $val);
-	array_push($s_type, html_query_image($source, 30, null, 'source', true));
+	array_push($s_type, html_query_image($source['term'], 'non-active',null, 'source', true));
+
 	// array_push($s_type, $source['term']);
 	array_push($s_code, $source['code']);
 	
@@ -168,7 +170,7 @@ foreach ($sources as $source) {
 	
 $arr = array('id'=>$s_id, 'type'=>$s_type, 'name'=>$s_name, 'code'=>$s_code, 'in source*'=>$s_n, 'selected*'=>$s_ns);
 
-echo "<br>";
+//echo "<br>";
 html_arr_to_table($arr);
 echo "<br>";
 echo "*Table - names <br>";

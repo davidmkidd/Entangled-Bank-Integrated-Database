@@ -5,27 +5,53 @@ function html_info($db_handle, $qobjects, $sources, $names) {
 	# LIST OF SOURCES, NAMES AND SERIES
 	
 	# DIV
-	echo "<div id='cart'>";
+	echo "<div id='info'>";
 	
-	# INFO
+	# OUTER TABLE
 	echo "<table border='0'>";
+	
+	# HEADERS;
 	echo "<tr>";
-	echo "<td class='query_title'>Info</td>";
+	echo "<td class='query_title'></td>";
 	echo "<td>";
-	# SOURCES
+	
+	# INNER TABLE
+	echo "<table border='0' class='info'>";
+	echo "<th title='sources' class='info'>Sources</th>";
+	echo "<th title='names' class='info'>Names</th>";
+	if (count($qobjects) > 0) {
+		foreach ($sources as $source) {
+			$t = $source['name'];
+			$c = $source['code'];
+			//$class = 'info_' . $source['term'];
+			echo "<th class='info' title='$t'>$c</th>";
+		}
+	}
+
+	
+	# INFO FOR SOURCES
+	echo "<tr>";
+	
+	# N SOURCES
 	$i = count($sources);
-	$t = "Sources";
-	echo "<a href='list_sources.php?" . SID . "'  target='_blank' title='$t'>$i</a>";
+	$t = "Number of sources";
+	echo "<td class='info_basic'>";
+	echo "<a href='list_sources.php?" . SID . "' title='$t' target='_blank'>$i</a>";
+	echo "</td>";
+	
 	# NAMES
 	$i = count($names);
-	$t = "Names";
-	echo "/<a href='list_names.php?" . SID . "'  target='_blank' title='$t'>$i</a>";
-	//echo "<br>";
-	
+	if ($i == 0) $i = 'all';
+	$t = "Names returned by query";
+	echo "<td class='info_basic'>";
+	echo "<a href='list_names.php?" . SID . "' title='$t' target='_blank' >$i</a>";
+	echo "</td>";
+		
 	#SOURCES
-	if (!empty($qobjects)) {
+	if (count($qobjects) > 0) {
 		if ($names) $arr = array_to_postgresql($names, 'text');
 		foreach ($sources as $source) {
+			//echo "<td class='info'>";
 			switch ($source['term']) {
 				case 'biotable':
 				case 'biogeographic':
@@ -38,14 +64,18 @@ function html_info($db_handle, $qobjects, $sources, $names) {
 					html_info_biotree($db_handle, $source, $names);
 					break;
 			}
+			//echo "</td>";
 		}		
 	}
 
-
-	echo "</td>";
 	echo "</tr>";
 	# QUERIES
-	//html_cart_queries($qobjid, $qobjects);	
+	//html_cart_queries($qobjid, $qobjects);
+	echo "</table>";
+	
+	# OUTER TABLE
+	echo "</td>";
+	echo "</tr>";	
 	echo "</table>";
 	echo "</div>";
 	
@@ -55,7 +85,7 @@ function html_info($db_handle, $qobjects, $sources, $names) {
 
 function html_info_biotree($db_handle, $source, $names) {
 	
-	$t = $source['name'];
+	$t = 'Names in ' . $source['name'];
 	$tree = $source['tree_id'];
 	$sid = $source['id'];
 	//print_r($source);
@@ -67,7 +97,7 @@ function html_info_biotree($db_handle, $source, $names) {
 	}
 	$res = pg_query($db_handle, $str);
 	$row = pg_fetch_row($res);
-	echo " | <a href='biotree_info.php?id=$sid' title='$t' target='_blank'>$row[0]</a>";
+	echo "<td class='info_biotree'><a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>$row[0]</a></td>";
 	
 }
 
@@ -75,7 +105,14 @@ function html_info_biotree($db_handle, $source, $names) {
 
 function html_info_biotable($db_handle, $source, $names) {
 
-	$t = $source['name'];
+	$sid = $source['id'];
+	$t = 'Names in ' . $source['name'];
+	if ($source['term'] == 'biotable') {
+		$class = 'info_biotable';
+	} else {
+		$class = 'info_biogeographic';
+	}
+	
 	$str = 'SELECT Count(*) FROM ' . $source['dbloc'];
 	if ($names) {
 		$arr = array_to_postgresql($names, 'text');
@@ -83,33 +120,35 @@ function html_info_biotable($db_handle, $source, $names) {
 	}
 	$res = pg_query($db_handle, $str);
 	$row = pg_fetch_row($res);
-	echo " | <a title='$t'>$row[0]";
+	echo "<td class='$class'><a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>$row[0]</td>";
 }
 
 # ------------------------------------------------------------------------------------------------------------
 
 function html_info_gpdd($db_handle, $source, $qobjects) {
-	
+	$sid = $source['id'];
 	If (count($qobjects) > 0) {
 		
 		$mids = query_get_mids($qobjects);
-		$t = $source['name'];
 		if (!$mids) {
-			echo "| <a title='$t names'>0</a>";
-			echo "/<a title='$t series'>0</a>";
+			$t = 'Names in ' . $source['name'];
+			echo "<td class='info_biorelational'><a title='$t'>0</a>";
+			$t = 'Series in ' . $source['name'];
+			echo "/<a title='$t series'>0</a></td>";
 		} else {
 			$arr = array_to_postgresql($mids,'numeric');
 			$str = "SELECT COUNT(*) FROM (
 					SELECT DISTINCT t.\"TaxonID\" 
 					FROM gpdd.taxon t, gpdd.main m 
-					WHERE m.\"MainID\" = ANY($arr)) as foo";
+					WHERE m.\"TaxonID\" = t. \"TaxonID\"
+					AND m.\"MainID\" = ANY($arr)) as foo";
 			$res = pg_query($db_handle, $str);
 			$row = pg_fetch_row($res);
-			echo " | <a title='$t names'>$row[0]</a>/";		
-			//echo ', <a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
-			echo "<a href='table_series.php?" . SID . "'  target='_blank' title='$t series'>", count($mids), '</a>';
-			//echo ' <a href="table_series_by_names.php?' . SID . '"  target="_blank"> (by name)</a>';
-			//echo '<a href="sql_series.php?' . SID . '"  target="_blank"> (sql)</a>';
+			$t = 'Names in ' . $source['name'];
+			echo "<td class='info_biorelational'><a href='entangled_bank_source_info.php?id=$sid' title='$t names' target='_blank'>$row[0]</a>/";
+			$t = 'Series in ' . $source['name'];	
+			echo "<a href='entangled_bank_source_info.php?id=$sid' title='$t series' target='_blank'>", count($mids), '</a></td>';
+
 
 		}
 	}

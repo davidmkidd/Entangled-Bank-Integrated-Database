@@ -15,6 +15,11 @@
 		padding: 6px;
 		padding-bottom: 3px;
 	}
+	
+	textarea.names_list {
+		width: 350px;
+		height: 150px;
+	}
 
 	#ebheader {
 		text-align: center;
@@ -59,6 +64,10 @@
 		margin-bottom: 5px;
 	}
 	
+	#names_info {
+		height: 200px;
+	}
+	
 	
 	#cart {
 		padding-left: 3px;
@@ -76,6 +85,10 @@
 	
 	.eb {
 		width: 250px;
+	}
+	
+	.eb_info {
+		width: 350px;
 	}
 	
 	
@@ -238,6 +251,12 @@
 		align: left;
 	}
 	
+	.query_title_image {
+		width: 105px;
+		vertical-align: middle;
+		horizontal-align: center;
+	}
+	
 	td.query_field {
 		vertical-align: middle;
 		width: 350px;
@@ -375,4 +394,69 @@
 	
 	.button-standard {
 		width: 60px;
+	}
+	
+	table.info {
+		border-collapse:collapse;
+	}
+	
+	th.info {
+		font-size: small;
+		text-align: center;
+		border: 1px gray solid;
+		padding-left: 2px;
+		padding-right: 2px;
+		background-color: rgb(234, 234, 234);
+	}
+	
+	td.info_basic {
+		font-size: small;
+		text-align: center;
+		border: 1px gray solid;
+		padding-left: 3px;
+		padding-right: 3px;
+		background-color: white;
+	}
+	
+	.info_biotree {
+		font-size: small;
+		text-align: center;
+		border: 1px gray solid;
+		padding-left: 3px;
+		padding-right: 3px;
+		background-color: palegreen;
+	}
+	
+	.info_biotable {
+		font-size: small;
+		text-align: center;
+		border: 1px gray solid;
+		padding-left: 3px;
+		padding-right: 3px;
+		background-color: tan;
+	}
+	
+	.info_biogeographic{
+		font-size: small;
+		text-align: center;
+		border: 1px gray solid;
+		padding-left: 3px;
+		padding-right: 3px;
+		background-color: skyblue;
+	}
+	
+	.info_biorelational{
+		font-size: small;
+		text-align: center;
+		border: 1px gray solid;
+		padding-left: 3px;
+		padding-right: 3px;
+		background-color: pink;
+	}
+	
+	th.query_title {
+		width: 105px;
+		vertical-align: middle;
+		align: left;
+		font-style: normal;
 	}
