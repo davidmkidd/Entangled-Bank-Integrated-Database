@@ -1994,6 +1994,7 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		
 		# QUERY
 		html_cart($qobjects, $sources, $names);
+		html_info($db_handle, $qobjects, $sources, $names);
 		html_cart_queries($qobjid, $qobjects, $sources);
 		
 		echo "<div id='query_div' class='margin5px'>";
