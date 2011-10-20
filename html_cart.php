@@ -145,9 +145,9 @@ function html_info_gpdd($db_handle, $source, $qobjects) {
 			$res = pg_query($db_handle, $str);
 			$row = pg_fetch_row($res);
 			$t = 'Names in ' . $source['name'];
-			echo "<td class='info_biorelational'><a href='entangled_bank_source_info.php?id=$sid' title='$t names' target='_blank'>$row[0]</a>/";
+			echo "<td class='info_biorelational'><a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>$row[0]</a>/";
 			$t = 'Series in ' . $source['name'];	
-			echo "<a href='entangled_bank_source_info.php?id=$sid' title='$t series' target='_blank'>", count($mids), '</a></td>';
+			echo "<a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>", count($mids), '</a></td>';
 
 
 		}

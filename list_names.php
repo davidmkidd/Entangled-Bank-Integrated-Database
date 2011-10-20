@@ -24,7 +24,37 @@ echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
 echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, false);
 
+
 $names = $_SESSION['names'];
+
+if (!$names) {
+	$db_handle = eb_connect_pg($config);
+	$names = array();
+	$sources = $_SESSION['sources'];
+	$str = "SELECT DISTINCT(name) FROM (";
+	$i = 0;
+	foreach ($sources as $source) {
+		if ($i > 0) $str = $str . " UNION ALL";
+		switch ($source['term']) {
+			case 'biotable':
+			case 'biogeographic':
+				$str = $str . " SELECT " . $source['namefield'] . " AS name FROM " . $source['dbloc'];
+				break;
+			case 'biotree':
+				$str = $str . " SELECT label  AS name FROM biosql.node WHERE tree_id=" . $source['tree_id'];
+				break;
+			case 'biorelational':
+				$str = $str . " SELECT t.binomial AS name FROM gpdd.taxon t, gpdd.main m WHERE m.\"TaxonID\"=t.\"TaxonID\"";
+				break;
+		}
+		$i++;
+	}
+	$str = $str . ") AS name";
+	//echo "$str<br>";
+	$res = pg_query($db_handle, $str);
+	$names = pg_fetch_all_columns($res);
+}
+
 sort($names);
 $c = count($names);
 
