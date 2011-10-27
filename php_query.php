@@ -279,12 +279,17 @@
 		# WHERE CONDTIONS
 		# nseries?
 		$nseries_type = 'no';
+		$i = 0;
 		foreach ($queries as $query) {
 			$qfname = $query['field'];
 			//echo "qfname: $qfname";
 			$qfield = get_field($qfname, $fields);
 			$dtype = $qfield['ebtype'];
 			//echo ", dtype: $dtype<br />";
+			
+			if ($i > 0) $str = $str . " AND";
+			$i++;
+			
 			# WHERE CLAUSES
 			switch ($dtype) {
 				case 'rangefield':
@@ -625,19 +630,19 @@
 					switch ($treenodes) {
 						case 'all':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";	
+							$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";	
 							break;
 						case 'tip':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx = right_idx - 1";
-							$str = $str . " AND label IN ($names_array)";
+							$str = $str . " AND label = ANY ($names_array)";
 							break;
 						case 'internal':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx <> right_idx - 1";
-							$str = $str . " AND label IN ($names_array)";
+							$str = $str . " AND label = ANY ($names_array)";
 							break;
 						}
 					} else {
@@ -646,21 +651,21 @@
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";	
+							$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";	
 							break;
 						case 'tip':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx = right_idx - 1";
 							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";
+							$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";
 							break;
 						case 'internal':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
 							$str = $str . " WHERE tree_id = $tree_id";
 							$str = $str . " AND left_idx <> right_idx - 1";
 							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label IN ($names_array)";
+							$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";
 							break;
 						}								
 					}

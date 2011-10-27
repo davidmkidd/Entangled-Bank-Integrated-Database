@@ -2,6 +2,11 @@
   
 /*  *[title] { font:blue; color:green; padding: 1px; }*/
   
+  form {
+  	padding-bottom: 0px;
+  	margin-bottom: 0px;
+  }
+  
   body { 
 	background-color: rgb(204, 204, 204);
 	font-family: Trebuchet MS, sans-serif;
@@ -43,14 +48,30 @@
 		border-top: 3px groove;
 		padding-top: 6px;
 		padding-left: 3px;
-		padding-bottom: 0px;
+		padding-bottom: 6px;
 	}
 	
-	
+	#blurb {
+		font-size: small;
+		border: 3px ridge;
+		padding-left: 5px;
+		padding-right: 5px;
+		padding-top: 2px;
+		padding-bottom: 3px;
+		background-color: Gainsboro;
+	}
 	#find_main_div {
 		clear: both;
 		border-bottom: 3px groove;
 		padding: 12px;
+		padding-left: 3px;
+	}
+	
+	#info_div {
+		margin-top: 5px;
+	}
+	
+	#inner_table_div {
 		padding-left: 3px;
 	}
 	
@@ -68,6 +89,9 @@
 		height: 200px;
 	}
 	
+	#info_queries {
+		padding-left: 5px;
+	}
 	
 	#cart {
 		padding-left: 3px;
@@ -85,6 +109,11 @@
 	
 	.eb {
 		width: 250px;
+	}
+	
+	.eb_select {
+		width: 250px;
+		height: 120px;
 	}
 	
 	.eb_info {
@@ -164,12 +193,12 @@
 		
 	}
 	
-	.query_type_button {
+	img.query_type_button {
 		border: 1px solid;
-		border-color: rgb(104, 104, 104);
+		border-color: gray;
 	}
 	
-	.query_type_button_non_active {
+	img.query_type_button_non_active {
 		border: 1px solid;
 		border-color: rgb(104, 104, 104);
 		height: 40px;
@@ -262,6 +291,7 @@
 		width: 350px;
 	}
 	
+	
 	td.query_image {
 		width: 105px;
 		vertical-align: middle;
@@ -282,6 +312,12 @@
 		width: 145px;
 		vertical-align: middle;
 		align: right;
+	}
+	
+	textarea.eb_sql {
+		width: 570px;
+		height: 150px;
+		readonly: readonly;
 	}
 	
 	td.query_sources {

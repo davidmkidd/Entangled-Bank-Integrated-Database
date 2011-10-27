@@ -70,18 +70,6 @@ echo "<td class='query_title' title='$t'>Names</td>";
 echo "<td>$c</td>";
 echo "</tr>";
 
-echo "<tr>";
-$t = "Names list format";
-echo "<td class='query_title' title='$t'>Format</td>";
-echo "<td>";
-echo "<SELECT id='format' class='eb_info' onChange='textareaFormat(\"names_list\")'>";
-echo "<OPTION value='0'>Not Delineated with New Line Separator</OPTION>";
-echo "<OPTION value='1'>Delineated with New Line Separator</OPTION>";
-echo "<OPTION value='2'>Not Delineated with Comma Separator</OPTION>";
-echo "<OPTION value='3'>Delineated with Comma Separator</OPTION>";
-echo "</SELECT>";
-echo "<td>";
-echo "</tr>";
 
 $i = 0;
 $str = "";
@@ -101,6 +89,19 @@ echo "<textarea id='names_list' class='names_list'>$str</textarea>";
 echo "</td>";
 echo "</tr>";
 
+echo "<tr>";
+$t = "Names list format";
+echo "<td class='query_title' title='$t'>Format</td>";
+echo "<td>";
+echo "<SELECT id='names_format' class='eb_info' onChange='textareaFormat(\"names_list\")'>";
+echo "<OPTION value='0'>Not Delineated with New Line Separator</OPTION>";
+echo "<OPTION value='1'>Delineated with New Line Separator</OPTION>";
+echo "<OPTION value='2'>Not Delineated with Comma Separator</OPTION>";
+echo "<OPTION value='3'>Delineated with Comma Separator</OPTION>";
+echo "</SELECT>";
+echo "<td>";
+echo "</tr>";
+html_queries_sql($_SESSION['qobjects']);
 echo "</table>";
 echo "<br>";
 html_entangled_bank_footer();

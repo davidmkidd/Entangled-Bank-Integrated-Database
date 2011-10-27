@@ -101,10 +101,10 @@ function editQuery(id) {
 function editOutput(id) {
 	var item = document.getElementById('stage');
 	item.value = 'setoutput';
-	alert (item.value);
+	//alert (item.value);
 	var item = document.getElementById('output_id');
 	item.value = id;
-	alert (item.value);
+	//alert (item.value);
 	document.ebankform.submit();
 }
 
@@ -140,7 +140,7 @@ function textareaFormat(id) {
 	//	Adds/removes double quotes from textbox
 	var item = document.getElementById(id);
 	var str = item.value;
-	//alert(str);
+	//alert(id);
 	
 	switch (id) {
 		case 'names_list':

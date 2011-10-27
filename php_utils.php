@@ -589,7 +589,7 @@ function get_sources($db_handle, $ids, $type) {
 			'dbloc'=>$dbloc,
 			'n'=>$row[5],
 			'code'=>$row[8],
-			'term'=>$row[9],
+			'term'=>$row[10],
 			);
 		
 		if (!empty($row[6])==1) $source = add_key_val($source, 'www', $row[6]);

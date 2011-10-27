@@ -162,7 +162,6 @@ if ($sterm == 'biorelational') {
 	echo "</tr>";
 }
 
-
 $i = 0;
 $str = "";
 foreach($names_in_query as $name) {

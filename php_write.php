@@ -202,56 +202,73 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 	
 	function write_biorelational($db_handle, $config, $qobjects, &$output, $sources, $names) {
 		
+		echo "write_biorelational: begin ";
+		
 		$oid = $_SESSION['oid'];
 		$source = get_obj($sources, $output['sourceid']);
 		$mids = query_get_mids($qobjects);
-		$midsarr = array_to_postgresql($mids, 'numeric');
+		if ($mids) {
+			if (!empty($mids)) {
+				$midsarr = array_to_postgresql($mids, 'numeric');
+			} else {
+				$midsarr = array();
+			}
+		}
 		$outpath = $config['outpath'];
 		$outfiles = array();
 		
-		# GPDD tables
-/*		$db_format = $output['db_format'];
-		switch ($db_format) {
-			case 'comma-delineated (*.csv)':
-				$db_ext = ".csv";
-				break;
-			case 'tab-delineated (*.txt)':
-				$db_ext = ".txt";
-				break;				
-			default:
-				echo "format not supported<br>";
-				break;
-		}*/
-		
 		# MAIN
-		$str = "SELECT * FROM gpdd.main WHERE \"MainID\" = ANY($midsarr)";
+		$str = "SELECT * FROM gpdd.main";
+		if ($midsarr) $str = $str . "WHERE \"MainID\" = ANY($midsarr)";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.main');
 		$output['filename'] = str_replace(" ","_", $output['name']) . "_gpdd_main_$oid";
-		write_delineated(config, $res, $output);
+		write_delineated($config, $res, $output);
 		
 		# TAXON
-		$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
+		if ($midsarr) {
+			$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
 			WHERE m.\"TaxonID\" = t.\"TaxonID\"
 			AND m.\"MainID\" = ANY($midsarr)";
+		} else {
+			$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
+			WHERE m.\"TaxonID\" = t.\"TaxonID\"
+			AND t.\"TaxonID\" IS NOT NULL";
+		}
+		
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.taxon');
 		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_taxon_$oid";
-		write_delineated(config, $res, $output);
+		write_delineated($config, $res, $output);
 		
 		# DATASOURCE
-		$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d
-			WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
-			AND m.\"MainID\" = ANY($midsarr)";
+		if ($midsarr) {
+			$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d
+				WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
+				AND m.\"MainID\" = ANY($midsarr)";
+		} else {
+			$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d, gpdd.taxon t
+				WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
+				AND m.\"TaxonID\" = t.\"TaxonID\"
+				AND t.binomial IS NOT NULL";
+		}
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.datasource');
 		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_datasource_$oid";
-		write_delineated(config, $res, $output);
+		write_delineated($config, $res, $output);
 		
 		# LOCATION
-		$str = "SELECT l.* FROM gpdd.main m, gpdd.location l
+		if ($midsarr) {
+			$str = "SELECT l.* FROM gpdd.main m, gpdd.location l
 			WHERE m.\"LocationID\" = l.\"LocationID\"
 			AND m.\"MainID\" = ANY($midsarr)";
+		} else {
+			$str = "SELECT l.* FROM gpdd.main m, gpdd.location l, gpdd.taxon t
+			WHERE m.\"LocationID\" = l.\"LocationID\"
+			AND m.\"TaxonID\" = t.\"TaxonID\"
+			AND t.binomial IS NOT NULL";
+		}
+
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.location');
 		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_location_$oid";
@@ -260,7 +277,7 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		# DATA
 		
 		# Temporal limits
-		
+		if ($midsarr) {
 		$str = "SELECT d.\"DataID\",
 			d.\"MainID\",
 			d.\"Population\",
@@ -274,6 +291,23 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 			FROM gpdd.data d, gpdd.timeperiod t
 			WHERE d.\"TimePeriodID\" = t.\"TimePeriodID\"
 			AND d.\"MainID\" = ANY($midsarr)";
+		} else {
+			$str = "SELECT d.\"DataID\",
+			d.\"MainID\",
+			d.\"Population\",
+			d.\"PopulationUntransformed\",
+			d.\"SampleYear\",
+			t.\"TimePeriod\",
+			d.\"Generation\",
+			d.\"SeriesStep\",
+			d.\"DecimalYearBegin\",
+			d.\"DecimalYearEnd\"
+			FROM gpdd.data d, gpdd.timeperiod t, gpdd.main m, gpdd.taxon t
+			WHERE d.\"TimePeriodID\" = t.\"TimePeriodID\"
+			AND d.\"MainID\" = m.\"MainID\"
+			AND m.\"TaxonID\" = m.\"TaxonID\"
+			AND t.binomial IS NOT NULL";
+		}
 		$res = pg_query($db_handle, $str);
 		$cols = array('DataID',"MainID", "Populations","PopulationUntransformed","SampleYear","TimePeriod",
 			"Generation","SeriesStep","DecimalYearBegin","DecimalYearEnd");
@@ -509,24 +543,32 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 		default;
 		}
 	
-	# Get LCA tree
-	if ($names) {
-		$names_arr = array_to_postgresql($names,'text');
-		$str = "SELECT biosql.pdb_lca($tree_id, $names_arr)";
+
+	# Get NEWICK string
+	
+	if ($output['subtree'] == 'subtree') {
+		# LCA Subtree array
+		if ($names) {
+			$arr = array_to_postgresql($names,'text');
+			$str = "SELECT biosql.pdb_lca_subtree_label($tree_id, $arr)";
+		} else {
+			$str = "SELECT label FROM biosql.node WHERE tree_id = $tree_id)";
+		}
+		//echo "str: $str<br>";
+		$res = pg_query($str);
+		$lcanames = pg_fetch_all_columns($res);
+		$arr = array_to_postgresql($lcanames, 'text');
 	} else {
-		$str = "SELECT node_id FROM biosql.tree WHERE tree_id = $tree_id";
+		$arr = array_to_postgresql($names, 'text');
+	}
+		
+	# PRUNED
+	if ($output['brqual'] == 'none') {
+		$str = "SELECT biosql.pdb_as_newick_label($tree_id, $arr)";
+	} else {
+		$str = "SELECT biosql.pdb_as_newick_label($tree_id, $arr, $brqual, FALSE)";
 	}
 
-	$res = pg_query($str);
-	$row = pg_fetch_row($res);
-	$lca = $row[0];
-	
-	# Get NEWICK string for lca
-	if ($output['brqual'] == 'none') {
-		$str = "SELECT biosql.pdb_as_newick_label($lca)";
-	} else {
-		$str = "SELECT biosql.pdb_as_newick_label($lca, $brqual, FALSE)";
-	}
 	//echo "str: $str<br>";
 	$res = pg_query($str);
 	$row = pg_fetch_row($res);
@@ -535,25 +577,22 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	# Convert and/or prune
 	$subtree = $output['subtree'];
 	$format = $output['format'];
-	//echo "tree, $tree<br>";
 	
-	if ($format != 'newick' || $subtree == 'pruned') {
+	//echo "format: $format<br>";
+	if ($format !== 'newick') {
 		session_write_close(); 
-		echo "<br>*** BEGIN PERL ***<br>";
-		$str = "$perl_script_path/write_tree.pl $sid $spath $tree $subtree $format 2>&1";
-		//$str = "$perl_script_path/write_tree.pl";
-		$out = shell_exec($str);
-		echo "$out<br>";
-		//echo "Perl command: $str<br>";
-		//$tree = shell_exec($str);
-		//echo "$out<br>";
-		echo "<br>*** END PERL ***<br>";
+		echo "<br>***BEGIN PERL***<br>";
+		$str = "$perl_script_path\convert_tree.pl $sid $spath $tree $format 2>&1";
+		//echo "$perl_script_path\convert_tree.pl $sid $spath $tree $format 2>&1";
+		$tree = shell_exec($str);
+		echo "$tree<br>";
+		echo "<br>***END PERL***<br>";
 	} 
-	
+	//echo "tree, $tree<br>";
 	//echo "Writing tree to $filename<BR>";
 	# WRITE TREE FILE
 	$fh = fopen($filename, 'w') or die ("failed to open tree file fo writing");
-	fwrite($fh, $out);
+	fwrite($fh, $tree);
 	fclose($fh);
 	
  	$output['outfiles'] = $outfiles;

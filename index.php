@@ -127,6 +127,10 @@ $files_to_delete = $_SESSION['files_to_delete'];
 //echo ", qobjid: $qobjid<br>";
 //echo "<br>";
 
+//echo "names: " . !empty($names);
+//print_r($names);
+//echo "<br>";
+
 # Get Current qobject
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 if ($output_id) $output = get_obj($outputs, $output_id);
@@ -298,6 +302,7 @@ if ($stage == 'outputvalidate' && $output_id) {
 	$output = validate_output($db_handle, $output, $outputs, $sources);
 	$outputs = save_obj($outputs, $output);
 	if ($output['status'] == 'valid') {
+		//echo $output['name'], " validated<br>";
 		$stage = 'main';
 	} else {
 		$stage = 'newoutput';

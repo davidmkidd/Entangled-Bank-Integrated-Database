@@ -568,26 +568,9 @@ function validate_names($db_handle, $qobject, $sources) {
 					$output['brqual'] = $brqual;
 					}
 					
-				// ADD STRING
-/*				if (array_key_exists('format', $output)) {
-					if (array_key_exists('brqual', $output)) {
-						$str = "SELECT name FROM biosql.term WHERE term_id = " . $output['brqual'];
-						$res = pg_query($db_handle, $str);
-						$row = pg_fetch_row($res);
-						$as_string = "RETURN " . $output['subtree'] . "(bioname) FROM "
-							. $source['name'] . " WITH '$row[0]' AS " . $output['format'];
-					} else {
-						$as_string = "RETURN " . $output['subtree'] . "(bioname) FROM "
-							. $source['name'] . " AS " . $output['format'];
-					}
-				} else {
-					$as_string = "RETURN ? FROM " . $source['name'];
-				}
-				$output['as_string'] = $as_string;*/
 				break;
 			}
-		//print_r($output);
-		//echo "<BR>";
+
 		$output['status'] = 'valid';
 	
 		return $output;
