@@ -60,6 +60,18 @@ function deleteOutput(id) {
 	document.ebankform.submit();
 }
 
+function deleteAllOutputs() {
+	var item = document.getElementById('stage');
+	item.value = 'outputdeleteall';
+	document.ebankform.submit();
+}
+
+function deleteAllQueries() {
+	var item = document.getElementById('stage');
+	item.value = 'querydeleteall';
+	document.ebankform.submit();
+}
+
 function cancelOutput(id) {
 	var item = document.getElementById('stage');
 	item.value = 'outputcancel';
@@ -79,7 +91,6 @@ function addBiotableOutput(id) {
 }
 
 function editQuery(id) {
-	
 	// Opens query for editing
 	var item = document.getElementById('qterm');
 	item.value = 'qedit';

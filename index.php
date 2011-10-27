@@ -197,6 +197,16 @@ if ($stage == 'qdelete') {
 	$stage = 'main';
 	}
 
+# DELETE ALL QUERIES
+if ($stage == 'querydeleteall') {
+	unset ($qobjects);
+	$names = null;
+	unset ($_SESSION['qobjects']);	
+	unset ($_SESSION['names']);	
+	$stage = 'main';
+	}
+	
+	
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
 //echo "pre qset qobjid: $qobjid<br>";
 if ($stage == 'qset' && !$qobjid) {
@@ -297,6 +307,13 @@ if ($stage == 'outputdelete') {
 	$stage = 'main';
 	}
 
+# DELETE ALL OUTPUTs
+if ($stage == 'outputdeleteall') {
+	unset ($outputs);
+	$_SESSION['outputs'] = $outputs;	
+	$stage = 'main';
+	}
+	
 # VERIFY OUTPUT POSTED DATA TO OUTPUT
 if ($stage == 'outputvalidate' && $output_id) {
 	$output = validate_output($db_handle, $output, $outputs, $sources);

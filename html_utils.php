@@ -1990,9 +1990,9 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 			}
 		}
 		
-		# QUERY INFO
+		# INFO
 		html_info($db_handle, $qobjects, $sources, $names);
-		//html_cart_queries($qobjid, $qobjects, $sources);
+		html_info_queries($qobjid, $qobjects, $sources);
 		
 		echo "<div id='query_div' class='margin5px'>";
 		
@@ -2047,7 +2047,7 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		html_output_source($sources);
 		echo "</tr>";
 		echo "</table>";
-		html_cart_outputs($output_id, $outputs, $qobjects);
+		html_info_outputs($output_id, $outputs, $qobjects);
 		echo "</div>";
 		# LINK TO OUTPUT ZIP FILE 
 		if ($zip) html_write($zip);#
