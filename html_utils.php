@@ -154,7 +154,7 @@ function html_obj_name($obj) {
 	
 #=================================================================================================================
 	
-	function html_output_biorelational($db_handle, $output, $outputs, $sources) {
+	function html_output_biorelational($output) {
 		
 		# GPDD HARD CODE
 
@@ -162,17 +162,32 @@ function html_obj_name($obj) {
 		html_output_dbformat($output);
 		
 		# OUTPUT GEOGRAPHY
+		if ($output['sp_format']) {
+			$sp_output = $output['sp_format'];
+		} else {
+			$sp_output = 'shapefile';
+		}
+		//echo "$sp_output<br>";
+		$format = array(
+			'shapefile' => 'ESRI Shapefile',
+			'kml' => 'KML',
+			'mapinfo' => 'MapInfo',
+			'dgn' => 'DGN',
+			'dxf' => 'DXF',
+			'gml' => 'GML'
+			);
 		echo "<tr>";
 		echo "<td class='query_title'>Spatial format</td>";
 		echo "<td class = 'query_option'>";
 		echo "<SELECT name='sp_format' class='eb'>";
-		echo "<OPTION SELECTED value='shapefile'>ESRI Shapefile</OPTION>";
-		echo "<OPTION SELECTED value='none'>ESRI Shapefile</OPTION>";
-		echo "<OPTION value='mapinfo'> MapInfo</OPTION>";
-		echo "<OPTION value='dgn'>DGN</OPTION>";
-		echo "<OPTION value='dxf'>DXF</OPTION>";
-		echo "<OPTION value='gml'>Geographic Markup Language (GML)</OPTION>";
-		echo "<OPTION value='kml'>Keyhole Markup Language (KML)</OPTION>";
+		foreach ($format as $key => $value) {
+			if ($key == $sp_output) {
+				$selected = 'SELECTED';
+			} else {
+				$selected = '';
+			}
+			echo "<OPTION $selected value='$key'>$value</OPTION>";
+		}
 		echo "</SELECT>";		
 		echo "</td>";
 		echo "</tr>";
@@ -2526,9 +2541,9 @@ function html_select_source_network ($db_handle, $formname,$selobj) {
 	}
 	
 	# GPDD can be queried by taxa, geography, and tabularly by biotope and source.
-	echo "<input type='radio' name=$formname value='series'> Series Attributes<br>";
-	echo "<input type='radio' name=$formname value='location_pt'> Series Location (Point)<br>";
-	echo "<input type='radio' name=$formname value='location_bbox'> Series Location (Bounding Box<br>)";
+	echo "<input type='radio' name=$formname value='series'>Series Attributes<br>";
+	echo "<input type='radio' name=$formname value='location_pt'>Series Location (Point)<br>";
+	echo "<input type='radio' name=$formname value='location_bbox'>Series Location (Bounding Box<br>)";
 	}
 
 

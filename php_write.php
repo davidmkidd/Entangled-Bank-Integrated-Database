@@ -174,13 +174,6 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		#dl('php_ogr.so');
 		
 		# THIS WORKS
-//		$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "ESRI Shapefile"';
-//		$cmdstr = $cmdstr . ' /ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/d0e5_biogeographic_5';
-//		$cmdstr = $cmdstr . ' PG:"host=localhost user=entangled_bank_user dbname=entangled_bank password=m0nkeypu22le" -sql ';
-//		$cmdstr = $cmdstr . ' "SELECT * FROM msw05.msw05_geographic WHERE msw05_binomial =';
-//		$cmdstr = $cmdstr . ' ANY(ARRAY[\'Loxodonta africana\',\'Elephantidae\',\'Loxodonta\',\'Proboscidea\',\'Elephas maximus\',\'Elephas\',\'Loxodonta cyclotis\'])" 2>&1"';
-		
-		# THIS WORKS
 		$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '" ';
 		$cmdstr = $cmdstr . " $write_file ";
 		$cmdstr = $cmdstr . $db_connect;
@@ -190,7 +183,7 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$out = shell_exec($cmdstr);
 		#$out = shell_exec($cmdstr . " 2> output");
 		#echo $out ? $out : join("", file("output"));
-		echo "out: $out<br>";
+		//echo "out: $out<br>";
 		#$outfiles = array('/ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/' . $outfilename);
 		if (!$output['outfiles']) {
 			$output['outfiles'] = $outfiles;
@@ -202,7 +195,7 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 	
 	function write_biorelational($db_handle, $config, $qobjects, &$output, $sources, $names) {
 		
-		echo "write_biorelational: begin ";
+		//echo "write_biorelational: begin ";
 		
 		$oid = $_SESSION['oid'];
 		$source = get_obj($sources, $output['sourceid']);
@@ -214,18 +207,19 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 				$midsarr = array();
 			}
 		}
-		$outpath = $config['outpath'];
+		//$outpath = $config['outpath'];
 		$outfiles = array();
 		
-		# MAIN
+		# 1 MAIN
 		$str = "SELECT * FROM gpdd.main";
-		if ($midsarr) $str = $str . "WHERE \"MainID\" = ANY($midsarr)";
+		if ($midsarr) $str = $str . " WHERE \"MainID\" = ANY($midsarr)";
+		//echo "$str<br>";
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.main');
 		$output['filename'] = str_replace(" ","_", $output['name']) . "_gpdd_main_$oid";
-		write_delineated($config, $res, $output);
+		write_delineated_gpdd($config, $cols, $res, $output);
 		
-		# TAXON
+		# 2 TAXON
 		if ($midsarr) {
 			$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
 			WHERE m.\"TaxonID\" = t.\"TaxonID\"
@@ -239,9 +233,9 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.taxon');
 		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_taxon_$oid";
-		write_delineated($config, $res, $output);
+		write_delineated_gpdd($config, $cols, $res, $output);
 		
-		# DATASOURCE
+		# 3 DATASOURCE
 		if ($midsarr) {
 			$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d
 				WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
@@ -255,9 +249,9 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.datasource');
 		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_datasource_$oid";
-		write_delineated($config, $res, $output);
+		write_delineated_gpdd($config, $cols, $res, $output);
 		
-		# LOCATION
+		# 4 LOCATION
 		if ($midsarr) {
 			$str = "SELECT l.* FROM gpdd.main m, gpdd.location l
 			WHERE m.\"LocationID\" = l.\"LocationID\"
@@ -272,47 +266,48 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$res = pg_query($db_handle, $str);
 		$cols = get_column_names ($db_handle, 'gpdd.location');
 		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_location_$oid";
-		write_delineated(config, $res, $output);
+		write_delineated_gpdd($config, $cols, $res, $output);
 		
-		# DATA
+		# 5 DATA
 		
 		# Temporal limits
 		if ($midsarr) {
-		$str = "SELECT d.\"DataID\",
-			d.\"MainID\",
-			d.\"Population\",
-			d.\"PopulationUntransformed\",
-			d.\"SampleYear\",
-			t.\"TimePeriod\",
-			d.\"Generation\",
-			d.\"SeriesStep\",
-			d.\"DecimalYearBegin\",
-			d.\"DecimalYearEnd\"
-			FROM gpdd.data d, gpdd.timeperiod t
-			WHERE d.\"TimePeriodID\" = t.\"TimePeriodID\"
-			AND d.\"MainID\" = ANY($midsarr)";
+			$str = "SELECT d.\"DataID\",
+				d.\"MainID\",
+				d.\"Population\",
+				d.\"PopulationUntransformed\",
+				d.\"SampleYear\",
+				t.\"TimePeriod\",
+				d.\"Generation\",
+				d.\"SeriesStep\",
+				d.\"DecimalYearBegin\",
+				d.\"DecimalYearEnd\"
+				FROM gpdd.data d, gpdd.timeperiod t
+				WHERE d.\"TimePeriodID\" = t.\"TimePeriodID\"
+				AND d.\"MainID\" = ANY($midsarr)";
 		} else {
 			$str = "SELECT d.\"DataID\",
-			d.\"MainID\",
-			d.\"Population\",
-			d.\"PopulationUntransformed\",
-			d.\"SampleYear\",
-			t.\"TimePeriod\",
-			d.\"Generation\",
-			d.\"SeriesStep\",
-			d.\"DecimalYearBegin\",
-			d.\"DecimalYearEnd\"
-			FROM gpdd.data d, gpdd.timeperiod t, gpdd.main m, gpdd.taxon t
-			WHERE d.\"TimePeriodID\" = t.\"TimePeriodID\"
-			AND d.\"MainID\" = m.\"MainID\"
-			AND m.\"TaxonID\" = m.\"TaxonID\"
-			AND t.binomial IS NOT NULL";
+				d.\"MainID\",
+				d.\"Population\",
+				d.\"PopulationUntransformed\",
+				d.\"SampleYear\",
+				tp.\"TimePeriod\",
+				d.\"Generation\",
+				d.\"SeriesStep\",
+				d.\"DecimalYearBegin\",
+				d.\"DecimalYearEnd\"
+				FROM gpdd.data d, gpdd.timeperiod tp, gpdd.main m, gpdd.taxon t
+				WHERE d.\"TimePeriodID\" = tp.\"TimePeriodID\"
+				AND d.\"MainID\" = m.\"MainID\"
+				AND m.\"TaxonID\" = t.\"TaxonID\"
+				AND t.binomial IS NOT NULL";
 		}
+		//echo "$str<br>";
 		$res = pg_query($db_handle, $str);
-		$cols = array('DataID',"MainID", "Populations","PopulationUntransformed","SampleYear","TimePeriod",
+		$cols = array('DataID',"MainID", "Population","PopulationUntransformed","SampleYear","TimePeriod",
 			"Generation","SeriesStep","DecimalYearBegin","DecimalYearEnd");
 		$output['filename'] =  str_replace(" ","_",$output['name']) . "_gpdd_data_$oid";
-		write_delineated(config, $res, $output);
+		write_delineated_gpdd($config, $cols, $res, $output);
 		
 		# LOCATION GEOGRAPHIC
 		$filename_pt = str_replace(" ","_",$output['name']) . "_gpdd_location_pt$oid";
@@ -321,16 +316,20 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		#$outfilename_bbox = $filename_bbox ;
 		
 		$sp_format = $output['sp_format'];
+		//print_r($output);
+		//echo "<br>spformat: $sp_format<br>";
 		
 		switch ($sp_format) {
 			case 'shapefile' :
+				
 				$sp_outfiles = array(
-					$outpath . $filename_pt . '.shp',
-					$outpath . $filename_pt . '.shx',
-					$outpath . $filename_pt . '.dbf',
-					$outpath . $filename_bbox . '.shp',
-					$outpath . $filename_bbox . '.shx',
-					$outpath . $filename_bbox . '.dbf');
+					$config['out_path'] . "/" . $filename_pt . '.shp',
+					$config['out_path'] . "/" . $filename_pt . '.shx',
+					$config['out_path'] . "/" . $filename_pt . '.dbf',
+					$config['out_path'] . "/" . $filename_bbox . '.shp',
+					$config['out_path'] . "/" . $filename_bbox . '.shx',
+					$config['out_path'] . "/" . $filename_bbox . '.dbf'
+					);
 				$filename_pt = $filename_pt . '.shp';
 				$filename_bbox = $filename_bbox . '.shp';
 				$driver = 'ESRI Shapefile';
@@ -338,14 +337,14 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 				break;
 			case 'mapinfo':
 				$sp_outfiles = array(
-					$outpath . $filename_pt . '.dat',
-					$outpath . $filename_pt . '.id',
-					$outpath . $filename_pt . '.map',
-					$outpath . $filename_pt . '.tab',
-					$outpath . $filename_bbox . '.dat',
-					$outpath . $filename_bbox . '.id',
-					$outpath . $filename_bbox . '.map',
-					$outpath . $filename_bbox . '.tab');
+					$config['out_path'] . "/" . $filename_pt . '.dat',
+					$config['out_path'] . "/" . $filename_pt . '.id',
+					$config['out_path'] . "/" . $filename_pt . '.map',
+					$config['out_path'] . "/" . $filename_pt . '.tab',
+					$config['out_path'] . "/" . $filename_bbox . '.dat',
+					$config['out_path'] . "/" . $filename_bbox . '.id',
+					$config['out_path'] . "/" . $filename_bbox . '.map',
+					$config['out_path'] . "/" . $filename_bbox . '.tab');
 				$filename_pt = $filename_pt . '.tab';
 				$filename_bbox = $filename_bbox . '.tab';
 				$ext = '.tab';
@@ -355,24 +354,35 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 				$filename_pt = $filename_pt . '.dgn';
 				$filename_bbox = $filename_bbox . '.dgn';
 				$driver = 'DGN';
-				$sp_outfiles = array($outpath . $filename_pt, $outpath . $filename_bbox);
+				$sp_outfiles = array(
+					$config['out_path'] . "/" . $filename_pt,
+					$config['out_path'] . "/" .  $filename_bbox
+					);
 				break;
 			case 'dxf':
 				$filename_pt = $filename_pt . '.dxf';
 				$filename_bbox = $filename_bbox . '.dxf';
-				$sp_outfiles = array($outpath . $filename_pt, $outpath . $filename_bbox);
+				$sp_outfiles = array(
+					$config['out_path'] . "/" .  $filename_pt,
+					$config['out_path'] . "/" .  $filename_bbox
+					);
 				$driver = 'DXF';
 				$ext = '.dxf';
 				break;
 			case 'kml':
 				$filename_pt = $filename_pt . '.kml';
 				$filename_bbox = $filename_bbox . '.kml';
-				$sp_outfiles = array($outpath . $filename_pt, $outpath . $filename_bbox);
+				$sp_outfiles = array(
+					$config['out_path'] . "/" .  $filename_pt,
+					$config['out_path'] . "/" .  $filename_bbox);
 				$driver = 'KML';
 				$ext = '.kml';
 				break;
 			case 'gml':
-				$sp_outfiles = array($filename_pt . '.gml', $outpath . $filename_pt . '.xsd');
+				$sp_outfiles = array(
+					$config['out_path'] .  "/" . $filename_pt . '.gml',
+					$config['out_path'] . "/" .  $filename_pt . '.xsd'
+					);
 				$filename_pt = $filename_pt . '.gml';
 				$filename_bbox = $filename_bbox . '.gml';
 				$driver = 'GML';
@@ -383,78 +393,55 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 				break;
 			}
 		
-		array_merge($outfiles, $sp_outfiles);
-			
-		
 		$db_connect = ' PG:"host=' . $config['host'] . ' user=' . $config['user'] .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
+		
+		# LOCATION POINTS
+		# Fix for fieldname captialisation problem with ogr2ogr - sql statement
+		$str = "SELECT l.locationid
+			 FROM gpdd.location_pt l, gpdd.main m
+			 WHERE m.\"LocationID\" = l.locationid
+			 AND m.\"MainID\" = ANY($midsarr)";
+		$res = pg_query($db_handle, $str);
+		$arr = array_to_postgresql(pg_fetch_all_columns($res),'numeric');
+		$str = "SELECT * FROM gpdd.location_pt WHERE locationid = ANY($arr)";		
+		
 		$write_file = $config['out_path'] . "/$filename_pt";
 		if (file_exists($write_file)) unlink($write_file);
+		//array_push($output['outfiles'],$write_file);
+		$cmdstr = "\"\"C:\FWTools2.4.7\bin\ogr2ogr\" -f \"$driver\"";
+		$cmdstr = $cmdstr . " $write_file";
+		$cmdstr = $cmdstr . $db_connect;
+		$cmdstr = $cmdstr . ' -sql "' . $str . '"';
+		$cmdstr = $cmdstr . ' 2>&1"';
+		//echo "<BR>$cmdstr<br>";
+		$out = shell_exec($cmdstr);
+		//echo "out: $out<br>";
 		
-		# LOCATION TEST WORKS WHEN PASTED INTO CMD!
-//		$str =  'SELECT *
-//			 FROM gpdd.location_pt
-//			 WHERE \"LocationID\" = ANY(Array[1,2,3])';
-//		
-//		$write_file = $config['out_path'] . "/$filename_pt";
-//		if (file_exists($write_file)) unlink($write_file);
-//		$cmdstr = '"C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '"';
-//		$cmdstr = $cmdstr . ' /ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/test.shp';
-//		$cmdstr = $cmdstr . $db_connect;
-//		$cmdstr = $cmdstr . ' -sql "' . $str . '"';
-//		$cmdstr = $cmdstr . ' 2>&1"';
-//		#echo "<BR>pt: " . $cmdstr. "<br>";
-//		$out = shell_exec($cmdstr);
-		#echo "out: $out<br>";
+		# LOCATION BBOX
+		# Fix for fieldname captialisation problem with ogr2ogr - sql statement
+		$str = "SELECT l.locationid
+			 FROM gpdd.location_bbox l, gpdd.main m
+			 WHERE m.\"LocationID\" = l.locationid
+			 AND m.\"MainID\" = ANY($midsarr)";
+		$res = pg_query($db_handle, $str);
+		$arr = array_to_postgresql(pg_fetch_all_columns($res),'numeric');
+		$str = "SELECT * FROM gpdd.location_bbox WHERE locationid = ANY($arr)";		
 		
-//		$str =  'SELECT *
-//			 FROM gpdd.location_pt
-//			 WHERE \"LocationID\" = ANY(Array[1,2,3])';
-//		
-//		$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr"';
-//		$argstr = ' -f "' . $driver . '"';
-//		$argstr = $argstr . ' /ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/test.shp';
-//		$argstr = $argstr . $db_connect;
-//		$argstr = $argstr . ' -sql "' . $str . '"';
-//		$cmdstr = $cmdstr . escapeshellarg($argstr). ' 2>&1"';
-//		echo "<BR>cmd : " . $cmdstr . "<br>";
-//		$out = shell_exec($cmdstr);
-//		echo "out: $out<br>";
-		
-//		# LOCATION PT
-//		$str =  'SELECT l.*
-//			 FROM gpdd.main m, gpdd.location_pt l
-//			 WHERE m.\"LocationID\" = l.\"LocationID\"
-//			 AND m.\"MainID\" = ANY($midsarr)';
-//		$write_file = $config['out_path'] . "/$filename_pt";
-//		if (file_exists($write_file)) unlink($write_file);
-//		$cmdstr = '"C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '"';
-//		$cmdstr = $cmdstr . ' /ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/' . $filename_pt;
-//		$cmdstr = $cmdstr . ' PG:"host=' . $config['host'] . ' user=' . $config['user'];
-//		$cmdstr = $cmdstr .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
-//		$cmdstr = $cmdstr . " -sql \"" . $str . '"';
-//		$cmdstr = $cmdstr . ' 2>&1"';
-//		##echo "<BR>pt: " . $cmdstr. "<br>";
-//		$out = shell_exec($cmdstr);
-//		##echo "out: $out<br>";
-//		
-//	
-//		# LOCATION BBOX
-//		$str = "SELECT l.*
-//			 FROM gpdd.main m, gpdd.location_bbox l
-//			 WHERE m.\"LocationID\" = l.\"LocationID\"
-//			 AND m.\"MainID\" = ANY($midsarr)";
-//		$write_file = $config['out_path'] . "/$filename_pt";
-//		if (file_exists($write_file)) unlink($write_file);
-//		$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '"';
-//		$cmdstr = $cmdstr . ' /ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/' . $filename_bbox;
-//		$cmdstr = $cmdstr . ' PG:"host=' . $config['host'] . ' user=' . $config['user'];
-//		$cmdstr = $cmdstr .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
-//		$cmdstr = $cmdstr . ' -sql "' . $str . '"';
-//		$cmdstr = $cmdstr . ' 2>&1"';
-//		#echo "<BR>bbox: $cmdstr<br>";
-//		$out = shell_exec($cmdstr);
-		#echo "out: $out<br>";
-		$output['outfiles'] = $outfiles;
+		$write_file = $config['out_path'] . "/$filename_bbox";
+		if (file_exists($write_file)) unlink($write_file);
+		//array_push($output['outfiles'],$write_file);
+		$cmdstr = "\"\"C:\FWTools2.4.7\bin\ogr2ogr\" -f \"$driver\"";
+		$cmdstr = $cmdstr . " $write_file";
+		$cmdstr = $cmdstr . $db_connect;
+		$cmdstr = $cmdstr . ' -sql "' . $str . '"';
+		$cmdstr = $cmdstr . ' 2>&1"';
+		//echo "<BR>$cmdstr<br>";
+		$out = shell_exec($cmdstr);
+		//echo "out: $out<br>";
+		foreach ($sp_outfiles as $file) array_push($output['outfiles'], $file);
+		//array_merge($output['outfiles'], $sp_outfiles);
+		//print_r($output['outfiles']);
+		//echo "<br>";
 	}
 	
 #=================================================================================================================
@@ -626,6 +613,70 @@ function write_delineated($config, $res, &$output) {
 	$fh = fopen($file, "w+") or die ("write_delineated: failed to open $file: $php_errormsg");
 
 	#Write column headers
+	$first = 1;
+	foreach ($fields as $field) {
+		if ($first == 1) {
+			$mystr = $field;
+			$first = 0;
+		} else {
+			$mystr = $mystr . $del . $field;
+		}
+	}
+	$mystr = $mystr . "\n";
+	fwrite($fh, $mystr);
+	
+	#Write Data
+	$c = 0;
+	while ($row = pg_fetch_row($res)) {
+		$c++;
+		for ($i = 0; $i <= count($fields); $i++) {
+			if ($i == 0) {
+				$mystr = $row[$i];
+			} else {
+				$mystr = $mystr . $del . $row[$i];
+			}
+		}
+		$mystr = $mystr . "\n";
+		fwrite($fh, $mystr);
+	}
+	# Close file	
+	fclose($fh);
+	}
+	$output['n'] = $c;
+	if (!$output['outfiles']) {
+		$output['outfiles'] = array($file);
+	} else {
+		array_push($output['outfiles'],$file);
+	}
+}
+
+
+#=================================================================================================================
+
+function write_delineated_gpdd($config, $fields, $res, &$output) {
+
+	if (!$res) {
+		echo "write_delineated error: result is empty<br>.";
+		exit;
+	} else {
+
+	$file = $output['filename'];
+	//$db_format = $output['db_format'];
+	//$fields = $output['fields'];
+	$outpath = $config['out_path'];
+	
+	if ($db_format == 'comma-delineated (*.csv)') {
+		$file = "$outpath/$file.csv";
+		$del = ",";
+	} else {
+		$file = "$outpath/$file.txt";
+		$del = "\t";
+	}
+	
+	
+	#WRITE TO FILE	
+	$fh = fopen($file, "w+") or die ("write_delineated: failed to open $file: $php_errormsg");
+	//echo "writing $file<br>";
 	$first = 1;
 	foreach ($fields as $field) {
 		if ($first == 1) {

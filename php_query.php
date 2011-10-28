@@ -868,7 +868,7 @@ return $qobject;
 			$str = $str . "	FROM gpdd.main m, gpdd.location_pt l, gpdd.taxon t";
 			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
 			$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
-			$str = $str . "	WHERE m.\"LocationID\" = l.\"LocationID\"";
+			$str = $str . "	WHERE m.\"LocationID\" = l.locationid";
 			$str = $str . "	AND m.\"TaxonID\" = t.\"TaxonID\"";
 			$str = $str . "	AND t.binomial IS NOT NULL";
 		}
@@ -880,7 +880,7 @@ return $qobject;
 			$str = $str . "	FROM gpdd.main m, gpdd.location_bbox l, gpdd.taxon t";
 			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
 			$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
-			$str = $str . "	WHERE m.\"LocationID\" = l.\"LocationID\"";
+			$str = $str . "	WHERE m.\"LocationID\" = l.locationid";
 			$str = $str . "	AND m.\"TaxonID\" = t.\"TaxonID\"";
 			$str = $str . "	AND t.binomial IS NOT NULL";
 		}
@@ -1097,8 +1097,8 @@ return $qobject;
 					$str = $str . ", (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
 					
 					$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-					if (in_array(26, $qsources)) $str = $str . " AND m.\"LocationID\" = p.\"LocationID\"";
-					if (in_array(27, $qsources)) $str = $str . " AND m.\"LocationID\" = b.\"LocationID\"";
+					if (in_array(26, $qsources)) $str = $str . " AND m.\"LocationID\" = p.locationid";
+					if (in_array(27, $qsources)) $str = $str . " AND m.\"LocationID\" = b.locationid";
 					
 					
 					switch ($s_operator) {

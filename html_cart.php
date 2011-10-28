@@ -3,7 +3,7 @@
 function html_info($db_handle, $qobjects, $sources, $names) {
 	
 	# INFORMATION ON SOURCES, NAMES AND QUERIES
-	
+	//echo "names: " . count($names) . "<br>";
 	
 	# DIV
 	echo "<div id='info_div'>";
@@ -52,22 +52,24 @@ function html_info($db_handle, $qobjects, $sources, $names) {
 		switch ($source['term']) {
 			case 'biotable':
 			case 'biogeographic':
-				$str = "SELECT " . $source['namefield'] . " AS name FROM " . $source['dbloc'];
+				$str = "SELECT DISTINCT " . $source['namefield'] . " AS name FROM " . $source['dbloc'];
 				if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
 				break;
 			case 'biotree':
-				$str = "SELECT label AS name FROM biosql.node WHERE tree_id=" . $source['tree_id'];
+				$str = "SELECT DISTINCT label AS name FROM biosql.node WHERE tree_id=" . $source['tree_id'];
 				if ($names) $str = $str . " AND label = ANY($arr)";
 				break;
 			case 'biorelational':
-				$str = "SELECT t.binomial AS name FROM gpdd.taxon t, gpdd.main m WHERE m.\"TaxonID\"=t.\"TaxonID\"";
+				$str = "SELECT DISTINCT t.binomial AS name FROM gpdd.taxon t, gpdd.main m WHERE m.\"TaxonID\"=t.\"TaxonID\"";
 				if ($names) $str = $str . " AND t.binomial IS NOT NULL AND t.binomial = ANY($arr)";
+				
 				break;
 		}
-		//echo "str: $str<br>";
+		
 		$res = pg_query($db_handle, $str);
 		array_push($snames, pg_fetch_all_columns($res)) ;
 		$allnames = array_merge($allnames, pg_fetch_all_columns($res));
+		//echo $source['name'], ": ", count(pg_fetch_all_columns($res)) , ", all: ", count($allnames), "<br>";
 	}
 	
 	
