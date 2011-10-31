@@ -167,92 +167,6 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 }
 
 # ------------------------------------------------------------------------------------------------------------
-
-//function html_cart($qobjects, $sources, $names) {
-//	
-//	# LIST OF SOURCES, NAMES AND SERIES
-//	
-//	# CART
-//	echo "<div id='cart'>";
-//	
-//	# ICON
-//	//echo "<table border='0' style='display: inline'>";
-//	//echo "<th class='query_title' align='left' height='65px'>";
-//	//$title = "Data Cart";
-//	//echo "<img src='./image/shoppingCartIcon.gif' alt='Cart'/>";
-//	//echo "</th>";
-//	//echo "</table>";
-//	
-//	# INFO
-//	echo "<table border='0'>";
-//	echo "<tr>";
-//	echo "<td class='query_title'>Status</td>";
-//	echo "<td>";
-//	# SOURCES
-//	html_cart_sources($sources);
-//	# QUERIES
-//	//html_cart_query($qobjects, $sources);
-//	# NAMES
-//	html_cart_names($names);
-//	# SERIES
-//	html_cart_series($qobjects);
-//	echo "</td>";
-//	echo "</tr>";
-//	# QUERIES
-//	//html_cart_queries($qobjid, $qobjects);	
-//	echo "</table>";
-//	echo "</div>";
-//}
-//# ------------------------------------------------------------------------------------------------------------
-//
-//function html_cart_series($qobjects) {
-//	
-//	If (count($qobjects) > 0) {
-//		$mids = query_get_mids($qobjects);
-//		if (!$mids) { 
-//			echo " | 0 series";
-//		} else {
-//			//echo "<td class = 'cart_menu'>";
-//			echo ' <a href="list_series.php?' . SID . '"  target="_blank"> ' . count($mids) . " series</a>";
-//			echo '<a href="table_series.php?' . SID . '"  target="_blank"> (table)</a>';
-//			echo ' <a href="table_series_by_names.php?' . SID . '"  target="_blank"> (by name)</a>';
-//			echo '<a href="sql_series.php?' . SID . '"  target="_blank"> (sql)</a>';
-//			//echo "</td>";
-//		}
-//	}
-//}
-//
-//# ------------------------------------------------------------------------------------------------------------
-//
-//function html_cart_query($qobjects, $sources) {
-//
-//	
-////	echo "qobj: ";
-//	//print_r($qobjects);
-////	echo "<br>";
-//	
-//	if ($qobjects) {
-//		$c = count($qobjects);
-//		if ($qobjects[$c - 1]['status'] == 'new') $c = $c - 1;
-//		}
-//		
-//	switch ($c) {
-//		case 0:
-//			echo " | 0 queries";
-//			break;
-//		case 1:
-//			#echo  " | <a href='query_table.php?" . SID . "' target='_blank'> 1 query</a>";
-//			echo  " | 1 query";
-//			break;
-//		default:
-//			#echo " | <a href='query_table.php?" . SID . "' target='_blank'>" . $c . " queries</a>";
-//			echo " | " . $c . " queries";
-//			break;
-//		}
-//	
-//	}
-
-# ------------------------------------------------------------------------------------------------------------
 	
 	function html_info_queries($qobjid, $qobjects, $sources) {
 		
@@ -268,12 +182,6 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 			$title = "Your queries - click to edit or delete";
 			echo "<td class='query_title' title='$title'>Queries</td>";
 			echo "<td id='info_queries'>";
-		//	$n = count($qobjects);
-		//	if ($n == 0) {
-				# NO QOBJECTS
-		//		$title = 'No queries';
-		//		echo "<img src='./image/no-query.gif' alt='$title' title='$title' class='query_type_button_non_active'>";
-		//	} else {
 				# QOBJECTS	
 			$c = 0;
 			foreach ($qobjects as $qobject) {
@@ -294,7 +202,7 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 					echo "<a>";
 					html_query_image($qobject['term'], $class , $name);
 				}
-				echo "</a>";
+				echo "</a>&nbsp;";
 				$c++;
 			}
 			$t = "Delete all queries";
@@ -307,7 +215,6 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 		echo "</table>";
 		echo "</div>";
 		}
-
 	}
 	
 # ------------------------------------------------------------------------------------------------------------

@@ -788,33 +788,36 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 
 	//print_r($qobjects[1]);
 	
-	echo '<script src="./scripts/names_utils.js" type="text/javascript"></script>';
+	//echo '<script src="./scripts/names_utils.js" type="text/javascript"></script>';
 	
 	//html_query_header($qobject, $sources);
 	//html_query_name($qobject);
 	
 	echo "<table border = '0'>";
 	
+	#ALL NAMES
+	echo "<tr>";
+	$title = "Return all names that in sources";
+	echo "<td class='query_title' title='$title'>All Names</td>";
+	echo "<td>";
+	if ($qobject['allnames'] == 'on') {
+		echo "<input type='checkbox' CHECKED id='allnames' name='allnames' onClick='checkAllNames()'/>";
+	} else {
+		echo "<input type='checkbox' id='allnames' name='allnames' onClick='checkAllNames()'/>";
+	}
+	echo "</td>";
+	echo "</tr>";
+	
 	# FIND
 	echo "<tr>";
 	$title = "Case sensitive search for names containing text.";
 	echo "<td class='query_title' title='$title'>Find</td>";
 	echo "<td>";
-	echo "<INPUT type='text' class='eb' id = 'findval' name='findval' value=''>";
-	echo "&nbsp;<BUTTON type='button' id='findbtn' class='button-standard' name='findbtn' onClick='findNames()' onChange='clear()'>Find</BUTTON><br>";
+	echo "<INPUT type='text' class='eb' id='findval' name='findval' value=''>";
+	echo "&nbsp;<BUTTON type='button' id='findbtn' class='button-standard' name='findbtn' onClick='findSourceNames()' onChange='clear()'>Find</BUTTON><br>";
 	echo "</td>";
-	//echo "<tr>";
-	echo "<td>";
-	if ($qobject['allnames'] == 'on') {
-		echo "<input type='checkbox' CHECKED id='allnames' name='allnames' onClick='checkAllNames()'>All Names</INPUT>";
-	} else {
-		echo "<input type='checkbox' id='allnames' name='allnames' onClick='checkAllNames()'>All Names</INPUT>";
-	}
-	echo "</td>";
-	//echo "</tr>";
 	echo "</tr>";
 
-	//echo "<INPUT type='hidden' id='tree_id' value='$tree_id' />";
 	
 	# INNER TABLE
 	echo "<tr>";
@@ -823,14 +826,16 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	echo "<td class='query_title'>Names</td>";
 	echo "<td>";
 	$title ='Names found';
-	echo "<SELECT name='tree' id='tree_items' MULTIPLE class='eb_select' title='$title'>";
+	echo "<SELECT id='names' name='names' MULTIPLE class='eb_select' title='$title'>";
 	echo "</SELECT>";
 	echo "</td>";
 	
 	# Add Buttons
 	echo "<td>";
-	echo "<BUTTON type='button' class='button-standard' id='tree_add' name='tree_add' onClick='treeAdd()'>></BUTTON><br>";
-	echo "<BUTTON type='button' class='button-standard'  id='tree_all' name='tree_all' onClick='treeAll()'>>></BUTTON><br>";
+	echo "<BUTTON type='button' class='button-standard' id='names_add' onClick='namesAdd()'>></BUTTON><br>";
+	//echo "<BUTTON type='button' class='button-standard'  id='names_all' onClick='namesAll()'>>></BUTTON><br>";
+	$t = 'Clear names';
+	echo "<BUTTON type='button' class='button-standard'  id='names_clear' onClick='namesClear()'>Clear</BUTTON><br>";
 	echo "</td>";
 	
 	# Names Text Area
@@ -896,7 +901,7 @@ function html_query_nsources ($qobject, $sources){
 	$nop = $qobject['noperator'];
 	if ($qobject['term'] == 'biotemporal') $disabled = "disabled='disabled'";
 	
-	echo "<SELECT name='noperator' $disabled>";
+	echo "<SELECT id='noperator' name='noperator' $disabled>";
 	if (!$nop || $nop == '>=') {
 		echo "<option value='<='> <= </option>";
 		echo "<option value='='> = </option>";
@@ -2768,7 +2773,7 @@ function html_write($zip) {
 				break;
 		}
 		
-		echo "<img src='./image/$img' alt='$op' title='$op' class='$class'/>";
+		echo "<img src='./image/$img' alt='$op' title='$op' class='$class'/>&nbsp;";
 		
 	}
 	

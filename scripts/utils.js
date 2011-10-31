@@ -215,3 +215,121 @@ function textareaFormat(id) {
 	item.value = str;
 }
 
+/**
+ * Utilities for html_query_tree
+ */
+
+function findSourceNames() {
+	
+	// Adds find names returns to names textarea
+	//alert("!");
+	var findval = document.getElementById('findval');
+	var sources = document.getElementsByName('qsources[]');
+	var n = document.getElementById('nsources');
+	var op = document.getElementById('noperator');
+	var names = document.getElementById('names');
+	
+	var sids = '';
+	var str = '';
+	var c = 0;
+	//alert(findval);
+	
+	for (var i = 0; i <= sources.length - 1; i++) {
+		if (sources[i].checked == true) {
+			if (c > 0) {
+				sids = sids + '+';
+			}
+			sids = sids + sources[i].value;
+			c++;
+		}
+	}
+	
+	var url = "http://localhost/entangled-bank/api/sourcenames.php?sids=" + sids;
+	url = url + '&query=' + findval.value + '&n=' + n.value + '&op=\'' + op.value + '\'';
+	
+	// LINUX HARDCODE
+	//url = "http://129.31.4.53/entangled-bank/api/treelabels.php?tree=" + tree_id.value + 
+	//"&query=" + findval.value + "&filter=" + str2;
+	
+	//alert(url);
+	
+	var request = new XMLHttpRequest();
+	request.open("GET", url , false);
+	request.send(null);
+		
+	//alert(request.status);
+	if (request.status != 200) {
+		alert("Error " + request.status + ": " + request.statusText);
+	} else {
+		var data = request.responseText;
+		names.options.length = 0;
+		//alert(data.substring(1));
+		var ret = JSON.parse(data);
+		//alert(ret);
+		for (var i = 0; i <= ret.length - 1; i++) {
+			label = ret[i].replace(/["']{1}/gi,"");
+			label = label.substring(1, label.length - 2);
+			names.options[i] = new Option(label, label);
+		}			
+	}
+	}
+
+
+function checkAllNames() {
+	//alert("!");
+	
+	if (document.getElementById("allnames").checked == true) {
+		document.getElementById("taxa").disabled = true;
+		if (document.getElementById("invalid_taxa")) document.getElementById("invalid_taxa").disabled = true;
+		//alert(document.getElementById("names").disabled);
+		document.getElementById("names").disabled = true;
+		//alert(document.getElementById("names").disabled);
+		document.getElementById("findval").disabled = true;
+		document.getElementById("findbtn").disabled = true;
+		document.getElementById("names_add").disabled = true;
+		document.getElementById("names_all").disabled = true;
+	} else {
+		document.getElementById("taxa").disabled = false;
+		if (document.getElementById("invalid_taxa")) document.getElementById("invalid_taxa").disabled = false;
+		document.getElementById("findval").disabled = false;
+		document.getElementById("findbtn").disabled = false;
+		document.getElementById("names").disabled = false;
+		document.getElementById("names_add").disabled = false;
+		document.getElementById("names_all").disabled = false;
+	}
+}
+
+
+
+function namesAdd() {
+	var names = document.getElementById('names');
+	var taxa = document.getElementById('taxa');
+	var sel = new Array();
+	
+	for (var i = 0; i <= names.length - 1; i++) {
+		if (names.options[i].selected == true) {
+			sel.push(names.options[i].value);
+		}
+	}
+	// Check if in taxa, add if not
+	// Parse for commas
+	if (taxa.value.length == 0) {
+		for (var i = 0; i <= sel.length - 1; i++) {
+			if (i > 0) taxa.value = taxa.value + ',\n';
+			taxa.value = taxa.value + sel[i];
+		}
+	} else {
+		var in_taxa = taxa.value.split(',');
+		for (var i = 0; i <= sel.length - 1; i++){
+			var match = false;
+			for (j = 0; j <= in_taxa.length -1; j++) {
+				if (sel[i] == in_taxa[j]) match = true;
+			}
+			if (match == false) taxa.value = taxa.value + ',\n' + sel[i];
+		}
+	}
+}
+
+function namesClear(){
+	document.getElementById('taxa').value = '';
+}

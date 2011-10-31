@@ -200,7 +200,7 @@
 	
 	img.query_type_button_non_active {
 		border: 1px solid;
-		border-color: rgb(104, 104, 104);
+		border-color: gray;
 		height: 40px;
 	}
 	
@@ -218,7 +218,7 @@
 	
 	.query_type_button_non_active_interquery {
 		border: 1px solid;
-		border-color: rgb(104, 104, 104);
+		border-color: gray;
 		height: 40px;
 	}
 	

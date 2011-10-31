@@ -794,7 +794,7 @@ return $qobject;
 					$str = $str . " (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
 					$str = $str . " WHERE l.$s_col::geometry $s_op geom::geometry";
 					$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
-					$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
+					$str = $str . " AND m.\"LocationID\" = l.locationid";
 					$str = $str . " AND t.binomial IS NOT NULL";					
 					break;
 					
@@ -806,7 +806,7 @@ return $qobject;
 					$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
 					$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
 					$str = $str . " WHERE t.\"TaxonID\" = m.\"TaxonID\"";
-					$str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
+					$str = $str . " AND m.\"LocationID\" = l.locationid";
 					$str = $str . " AND t.binomial IS NOT NULL";
 					break;				
 			}
