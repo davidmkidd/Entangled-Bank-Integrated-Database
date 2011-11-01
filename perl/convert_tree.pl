@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 #
 # $Id: convert_tree.pl 270 2011-06-21
@@ -61,14 +61,14 @@ use IO::String;
 # =======================================
 my $sid = $ARGV[0];    # PHP session id
 my $spath = $ARGV[1];  # PHP session dir
-my $newick = $ARGV[2];  # newick string
-my $format = $ARGV[3];  # output format
+
+my $format = $ARGV[2];  # output format
 
 my $session = PHP::Session->new($sid, { save_path => $spath });
+my $newick = $session->get('newick');  # newick string
 my $names = $session->get('names');
-#print $sid . ", " , $spath . "\n";
-print "Welcome from PERL<br>";
 
+##print "Welcome from PERL<br>";
 
 # =======================================
 # Internal Variables 
@@ -99,22 +99,22 @@ if ($format eq "nexus" || $format eq "xml" || $format eq "svg") {
 	# Write from Bio:Phylo::Forest::Tree
 	#print "Write from Bio:Phylo::Forest::Tree\n";
 	switch ($format) {
-		case "newick" { $out = $tree ->	to_newick;}
+		#case "newick" { $out = $tree ->	to_newick;}
 		case "nexus" { $out = $tree ->to_nexus;}
 		case "xml" { $out = $tree ->to_xml;}
 		case "svg" { $out = $tree ->to_svg;}
 	}
 	
 } elsif ($format eq "nhx" || $format eq "tabtree" || $format eq "lintree") {
+	
 	# Import to Bio::TreeI/O
-	#if ($subtree eq 'pruned') { $newick = $tree -> to_newick;}
+	
 	my $io = IO::String -> new($newick);
 	my $treeIO = Bio::TreeIO -> new(-fh => $io, 
 							-format => $format);
 	$tree = $treeIO->next_tree;
 	
-	
-	print keys(%out);
+	#print keys(%out);
 }
 
 print $out;

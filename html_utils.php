@@ -786,7 +786,8 @@ function html_query_join($formname, $qobj) {
 
 function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 
-	//print_r($qobjects[1]);
+	#print_r($qobjects);
+	#echo "<br>";
 	
 	//echo '<script src="./scripts/names_utils.js" type="text/javascript"></script>';
 	
@@ -800,8 +801,9 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	$title = "Return all names that in sources";
 	echo "<td class='query_title' title='$title'>All Names</td>";
 	echo "<td>";
-	if ($qobject['allnames'] == 'on') {
+	if ($qobject['allnames'] == true) {
 		echo "<input type='checkbox' CHECKED id='allnames' name='allnames' onClick='checkAllNames()'/>";
+		$disabled = "disabled='disabled'";
 	} else {
 		echo "<input type='checkbox' id='allnames' name='allnames' onClick='checkAllNames()'/>";
 	}
@@ -813,8 +815,8 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	$title = "Case sensitive search for names containing text.";
 	echo "<td class='query_title' title='$title'>Find</td>";
 	echo "<td>";
-	echo "<INPUT type='text' class='eb' id='findval' name='findval' value=''>";
-	echo "&nbsp;<BUTTON type='button' id='findbtn' class='button-standard' name='findbtn' onClick='findSourceNames()' onChange='clear()'>Find</BUTTON><br>";
+	echo "<INPUT type='text' class='eb' $disabled id='findval' name='findval' value=''>";
+	echo "&nbsp;<BUTTON type='button' $disabled id='findbtn' class='button-standard' name='findbtn' onClick='findSourceNames()' onChange='clear()'>Find</BUTTON><br>";
 	echo "</td>";
 	echo "</tr>";
 
@@ -825,17 +827,17 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	echo "<tr>";
 	echo "<td class='query_title'>Names</td>";
 	echo "<td>";
-	$title ='Names found';
-	echo "<SELECT id='names' name='names' MULTIPLE class='eb_select' title='$title'>";
+	$title ='0 names found';
+	echo "<SELECT id='names' name='names' $disabled MULTIPLE class='eb_select' title='$title'>";
 	echo "</SELECT>";
 	echo "</td>";
 	
 	# Add Buttons
 	echo "<td>";
-	echo "<BUTTON type='button' class='button-standard' id='names_add' onClick='namesAdd()'>></BUTTON><br>";
+	echo "<BUTTON type='button' class='button-standard' $disabled id='names_add' onClick='namesAdd()'>></BUTTON><br>";
 	//echo "<BUTTON type='button' class='button-standard'  id='names_all' onClick='namesAll()'>>></BUTTON><br>";
 	$t = 'Clear names';
-	echo "<BUTTON type='button' class='button-standard'  id='names_clear' onClick='namesClear()'>Clear</BUTTON><br>";
+	echo "<BUTTON type='button' class='button-standard' $disabled id='names_clear' onClick='namesClear()'>Clear</BUTTON><br>";
 	echo "</td>";
 	
 	# Names Text Area
@@ -848,12 +850,12 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	$t = "One name on each line.";
 	echo "<td>";
 	if (empty($taxa)) {
-		echo "<textarea id='taxa' name='taxa' class='eb_select' wrap='soft'></textarea>";
+		echo "<textarea id='taxa' $disabled name='taxa' class='eb_select' wrap='soft'></textarea>";
 	} else {
 		$mystr = "";
 		foreach ($taxa as $name) $mystr = $mystr . "$name\n";
 		//echo "<td>";
-		echo "<textarea id='taxa' name='taxa' class='eb_select' title='$t' wrap='soft'>" . chop($mystr, "\n") . "</textarea>";
+		echo "<textarea id='taxa' $disabled name='taxa' class='eb_select' title='$t' wrap='soft'>" . chop($mystr, "\n") . "</textarea>";
 		echo "</td>";
 	}
 	echo "</td>";
@@ -945,7 +947,6 @@ function html_query_nsources ($qobject, $sources){
 	//GPDD HARDCODE
 	if ($qobject['term'] == 'biotemporal') $n = 1;
 	
-	
 	echo "<SELECT id='nsources' name='nsources' $disabled>";
 	for ($i = 1; $i <= $n; $i++) {
 		if ($i == $n) {
@@ -956,11 +957,6 @@ function html_query_nsources ($qobject, $sources){
 		echo "<OPTION value='$i' $selected>$i</OPTION>";
 	}
 	echo "</SELECT>";
-	
-	//echo "<INPUT type=text id='nsources' name='nsources' $disabled size=3 value=$n onChange='changeNSources()'>";
-	//echo "<input type=button name='allbtn' value='all' onClick='checkAll(document.ebankform." . $form_id . ")'> ";
-	//echo "<input type=button name='clearbtn' value='clear' onClick='uncheckAll(document.ebankform." . $form_id . ")'>";
-	#echo " sources";
 }
 
 #=======================================================================================================================
@@ -1648,11 +1644,12 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 	function html_query_header ($qobject, $qobjects, $sources) {
 		
+		echo "<div id='query_header'>";
 		// Name and action buttons
 		html_query_header1 ($qobject, $qobjects);
 		// Sources
 		html_query_header2($qobject, $qobjects, $sources);
-
+		echo "</div>";
 	}
 	
 #=================================================================================================================
@@ -1670,16 +1667,16 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 
 		# QUERY NAME
 		echo "<td class='query_title' title='$title'>Name</td>";
-		echo "<td>";
-		echo "<INPUT type='text' id='objname' name='objname' class='eb' value='$objname' onChange='checkObjName()'>";
+		echo "<td class='eb_plus'>";
+		echo "<INPUT type='text' id='objname' name='objname' class='eb_plus' value='$objname' onChange='checkObjName()'>";
 		echo "</td>";
 		
 		# NOT
-		echo "<td class='query_not'>";
-		if ($not !== false) {
-			html_query_not($qobject);
-		}
-		echo "</td>";
+		//echo "<td class='query_not'></td>";
+		//if ($not !== false) {
+		//	html_query_not($qobject);
+		//}
+		//echo "</td>";
 		html_query_interoperator ($qobject, $qobjects);
 		echo "</tr>";
 		echo "</table>";
@@ -1711,7 +1708,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "<td class='eb_plus'>";
 		if ($qobject['term'] == 'biotree' || $qobject['term'] == 'biotable') {
 			$source = get_obj($sources, $qobject['sources'][0]);
-			echo "<input type='text' id='queryheader' class='eb' disabled='disabled' value='", $source['name'], "'></input><br>";
+			echo "<input type='text' id='queryheader' class='eb_plus' disabled='disabled' value='", $source['name'], "'></input><br>";
 		} else {
 			html_query_sources($qobject, $sources);
 		}
@@ -1850,7 +1847,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo "<tr>";
 	echo "<td class='query_title'>Names</td>";
 	echo "<td>";
-	$title ='Names found';
+	$title ='0 names found';
 	echo "<SELECT name='tree' id='tree_items' MULTIPLE SIZE=8 class='eb' title='$title'>";
 	echo "</SELECT>";
 	echo "</td>";
@@ -1861,12 +1858,12 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo "<BUTTON type='button' class='button-standard'  id='tree_all' name='tree_all' onClick='treeAll()'>>></BUTTON><br>";
 	# Remove Buttons
 	echo "<BUTTON type='button' class='button-standard'  id='tree_del' name='tree_del' onClick='treeDel()'><</BUTTON><br>";
-	echo "<BUTTON type='button' class='button-standard'  id='tree_delall' name='tree_delall' onClick='treeDelall()'><<</BUTTON><br>";
+	echo "<BUTTON type='button' class='button-standard'  id='tree_delall' name='tree_delall' onClick='treeDelAll()'><<</BUTTON><br>";
 	echo "</td>";
 	
 	# Taxa area
 	echo "<td>";
-	$title ='Names in query';
+	$title =' 0 names in query';
 	echo "<SELECT name=\"taxa[]\" id='taxa_items' MULTIPLE SIZE=8 class='eb' title='$title'>";
 	if (!empty($qnames)) {
 		foreach ($qnames as $qname) echo "<OPTION>$qname</OPTION>";
@@ -2501,21 +2498,6 @@ function html_select_sources($db_handle) {
 		echo "<OPTION>No Data Sets Available</OPTION>";
 	} else {
 		while ($row = pg_fetch_row($result)) {
-/*			switch ($row[2]) {
-				case 'biotable':
-					$title = 'Tablular';
-					break;
-				case 'biotree':
-					$title = 'Tree';
-					break;
-				case 'biogeographic':
-					$title = 'Geographic';
-					break;
-				case 'biorelational':
-					$title = 'Relational';
-					break;
-			}*/
-			//$img = 'tree.gif';
 			echo "<OPTION value=$row[0] title='$row[3]'>$row[1]</OPTION>";
 		}
 	}

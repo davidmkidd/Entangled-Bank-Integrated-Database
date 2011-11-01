@@ -58,9 +58,9 @@ function findNodes() {
 					//alert(label);
 					tree_items.options[i] = new Option(label, label);
 				}
+				i = i++;
+				tree_items.title = i + ' names found';
 			}
-
-			
 		}
 	}
 
@@ -157,13 +157,18 @@ function treeAdd() {
 		}
 	}
 	//Check if in taxa, add if not
+	c = 0;
 	for (var i = 0; i <= treesel.length - 1; i++){
 		var match = false;
 		for (j = 0; j <= taxa.length -1; j++) {
 			if (treesel[i] == taxa.options[j].value) match = true;
 		}
-		if (match == false) taxa.options[taxa.options.length] = new Option(treesel[i], treesel[i]);
+		if (match == false) {
+			taxa.options[taxa.options.length] = new Option(treesel[i], treesel[i]);
+			c++;
+		}
 	}
+	taxa.title = taxa.options.length + ' names in query';
 }
 
 
@@ -174,9 +179,10 @@ function treeAll() {
 	if (taxa.length !== 0) taxa.length = 0;
 	//alert(tree.length);
 	for (i = 0; i <= tree.length - 1; i++) {
-		alert(tree.options[i].value);
+		//alert(tree.options[i].value);
 		taxa.options[taxa.options.length] = new Option(tree.options[i].value, tree.options[i].value);
 	}
+	taxa.title = taxa.options.length + ' names in query';
 }
 
 function treeDel (){
@@ -184,11 +190,13 @@ function treeDel (){
 	for (i = 0; i <= taxa.length - 1; i++) {
 		if (taxa.options[i].selected == true) taxa.remove(i);
 	}
+	taxa.title = taxa.options.length + ' names in query';
 }
 
-function treeDelall() {
+function treeDelAll() {
 	var taxa = document.getElementById('taxa_items');
 	taxa.length = 0;
+	taxa.title = taxa.options.length + ' names in query';
 }
 
 function selAll() {
@@ -205,5 +213,8 @@ function selAll() {
 		}
 		document.ebankform.submit();
 	}
-	
 }
+
+
+
+

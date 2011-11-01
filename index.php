@@ -187,7 +187,7 @@ if ($stage == 'qdelete') {
 	# If re-run queries 
 	//echo "Query $idx deleted, ", count($qobjects) , " in stack";
 	foreach ($qobjects as $qobject) {
-		echo ", running queries";
+		//echo ", running queries";
 		$out = query($db_handle, $qobject, $qobjects, $names, $sources);
 		$qobjects = save_obj($qobjects,$out[0]);
 		$names = $out[1];
@@ -298,6 +298,8 @@ if ($stage == 'outputcancel') {
 	$stage = 'main';
 }
 
+
+
 # DELETE OUTPUT
 if ($stage == 'outputdelete') {
 	$idx = obj_idx($outputs, $output_id);
@@ -306,6 +308,9 @@ if ($stage == 'outputdelete') {
 	$_SESSION['outputs'] = $outputs;	
 	$stage = 'main';
 	}
+	
+//print_r($outputs);
+//echo "<br>";
 
 # DELETE ALL OUTPUTs
 if ($stage == 'outputdeleteall') {

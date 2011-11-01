@@ -257,20 +257,19 @@ function findSourceNames() {
 	request.open("GET", url , false);
 	request.send(null);
 		
-	//alert(request.status);
 	if (request.status != 200) {
 		alert("Error " + request.status + ": " + request.statusText);
 	} else {
 		var data = request.responseText;
 		names.options.length = 0;
-		//alert(data.substring(1));
 		var ret = JSON.parse(data);
-		//alert(ret);
 		for (var i = 0; i <= ret.length - 1; i++) {
 			label = ret[i].replace(/["']{1}/gi,"");
 			label = label.substring(1, label.length - 2);
 			names.options[i] = new Option(label, label);
-		}			
+		}
+		i++;
+		names.title = i + " names found";
 	}
 	}
 
@@ -287,7 +286,7 @@ function checkAllNames() {
 		document.getElementById("findval").disabled = true;
 		document.getElementById("findbtn").disabled = true;
 		document.getElementById("names_add").disabled = true;
-		document.getElementById("names_all").disabled = true;
+		document.getElementById("names_clear").disabled = true;
 	} else {
 		document.getElementById("taxa").disabled = false;
 		if (document.getElementById("invalid_taxa")) document.getElementById("invalid_taxa").disabled = false;
@@ -295,7 +294,7 @@ function checkAllNames() {
 		document.getElementById("findbtn").disabled = false;
 		document.getElementById("names").disabled = false;
 		document.getElementById("names_add").disabled = false;
-		document.getElementById("names_all").disabled = false;
+		document.getElementById("names_clear").disabled = false;
 	}
 }
 

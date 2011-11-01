@@ -6,7 +6,7 @@ function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $source
 
 	# WRITES ALL OUTPUTS TO COMPRESSED ARCHIVE
 	
-	//echo "Begin write outputs<br>";
+	//echo "Begin write " . count($outputs) . " outputs<br>";
 	
 	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
 	$oid = substr(md5(uniqid()),0,4);
@@ -20,19 +20,18 @@ function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $source
 		unset ($output['outfiles']);
 		//$outputs = save_obj($outputs, $output);
 		//$_SESSION['outputs'] = $outputs;
-		write_output($db_handle, $config, $qobjects, $names, &$output, $sources);
+		write_output($db_handle, $config, $qobjects, $names, $output, $sources);
 		$outputs = save_obj($outputs, $output);
 		$_SESSION['outputs'] = $outputs;
 	}
 	
-	//print_r($outputs[0]['outfiles']);
+	//print_r($outputs);
 	//echo "<br>";
 	
 	# ADD OUTPUTS TO README AND FILES_TO_ZIP
 	$files_to_zip = array();
 	foreach ($outputs as $output) {
 		$outfiles = $output['outfiles'];
-		//if ($output['term'] == 'biotree') $outfiles[0] = $config['out_path'] . "/" . $outfiles[0];
 		$files_to_zip = array_merge($files_to_zip, $outfiles);
 	}
 	
@@ -75,16 +74,16 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 	
 	switch ($term) {
 		case 'biotable':
-			$outfiles = write_biotable($db_handle, $config, &$output, $sources, $names);
+			$outfiles = write_biotable($db_handle, $config, $output, $sources, $names);
 			break;
 		case 'biogeographic':
-			$outfiles = write_biogeographic($db_handle, $config, $qobjects, &$output, $sources, $names);
+			$outfiles = write_biogeographic($db_handle, $config, $qobjects, $output, $sources, $names);
 			break;	
 		case 'biotree':
-			write_biotree($db_handle, $config, &$output, $sources, $names);
+			write_biotree($db_handle, $config, $output, $sources, $names);
 			break;
 		case 'biorelational' :
-			write_biorelational($db_handle, $config, $qobjects, &$output, $sources, $names);
+			write_biorelational($db_handle, $config, $qobjects, $output, $sources, $names);
 			break;
 		}
 	#echo "n: $n";
@@ -490,11 +489,9 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
  	
  	# Get session variables
 	$sid = session_id();
-	//$spath = $config['out_tree_path'];
 	$spath = session_save_path();
 	$outpath = $config['out_path'] . "/";
 	$perl_script_path = $config['perl_script_path'];
-	//echo "perl_script_path $perl_script_path<br>";
 	
 	# LINUX HARDCODE
 	//if (strpos ($spath, ";") !== FALSE)
@@ -505,12 +502,9 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	$filename = $output['filename'];
 	$output_sid = $output['sourceid']; 
 	$brqual = $output['brqual'];
-	//echo "output: <br>";
-	//print_r($output);
-	//echo "<br>";
+	$format = $output['format'];
 
-	
-	switch ($output['format']) {
+	switch ($format) {
 		case 'newick':
 			$filename = $outpath . $filename . '.tre';
 			$outfiles = array($filename);
@@ -523,11 +517,25 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 			$filename = $outpath . $filename . '.tab';
 			$outfiles = array($filename);
 			break;
-		case 'linree':
+		case 'lintree':
 			$filename = $outpath . $filename . '.lin';
 			$outfiles = array($filename);
 			break;
+		case 'nexus':
+			$filename = $outpath . $filename . '.nex';
+			$outfiles = array($filename);
+			break;
+		case 'xml':
+			$filename = $outpath . $filename . '.xml';
+			$outfiles = array($filename);
+			break;
+		case 'svg':
+			$filename = $outpath . $filename . '.svg';
+			$outfiles = array($filename);
+			break;
+			
 		default;
+			break;
 		}
 	
 
@@ -559,21 +567,19 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	//echo "str: $str<br>";
 	$res = pg_query($str);
 	$row = pg_fetch_row($res);
-	$tree = $row[0];	
-	
-	# Convert and/or prune
-	$subtree = $output['subtree'];
-	$format = $output['format'];
+	$tree = $row[0];
+
 	
 	//echo "format: $format<br>";
 	if ($format !== 'newick') {
+		$_SESSION['newick'] = $tree;
 		session_write_close(); 
-		echo "<br>***BEGIN PERL***<br>";
-		$str = "$perl_script_path\convert_tree.pl $sid $spath $tree $format 2>&1";
+		#echo "<br>***BEGIN PERL***<br>";
+		$str = "$perl_script_path\convert_tree.pl $sid $spath $format 2>&1";
 		//echo "$perl_script_path\convert_tree.pl $sid $spath $tree $format 2>&1";
 		$tree = shell_exec($str);
-		echo "$tree<br>";
-		echo "<br>***END PERL***<br>";
+		//echo "$tree<br>";
+		#echo "<br>***END PERL***<br>";
 	} 
 	//echo "tree, $tree<br>";
 	//echo "Writing tree to $filename<BR>";
