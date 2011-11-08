@@ -9,6 +9,9 @@ function findNodes() {
 	var findval = document.getElementById('findval');
 	var tree_id = document.getElementById('tree_id');
 	var nodefilter = document.getElementsByName('nodefilter');
+	var ebpath = document.getElementById('eb_path');
+	
+	//alert(ebpath.value);
 	
 	var str = '';
 	
@@ -20,14 +23,13 @@ function findNodes() {
 		}
 	}
 	
-	//alert(n);
-	
+
 	if (n == 0) {
 		alert('Find filter excluding all node type! Check one type at least.');
 	} else {
 		var str2 = str.substring(0, str.length-1);	
 		
-		url = "http://localhost/entangled-bank/api/treelabels.php?tree=" + tree_id.value + 
+		url = ebpath.value + "api/treelabels.php?tree=" + tree_id.value + 
 		"&query=" + findval.value + "&filter=" + str2;
 		
 		// LINUX HARDCODE
@@ -46,24 +48,25 @@ function findNodes() {
 		} else {
 			tree_items.options.length = 0;
 			var data = request.responseText;
-			//alert(data.substring(1));
-			if (data !== '[]') {		
+			var ret = JSON.parse(data);
+			//alert(ret.length);
+			if (ret.length > 0) {
 				data = data.substring(1);
 				data = data.substring(1, data.length - 1);
-				var labels = data.split(',');
-				//alert(labels.length);
-				for (var i = 0; i <= labels.length - 1; i++) {
-					//alert(labels[i]);
-					label = labels[i].replace(/["']{1}/gi,"");
-					//alert(label);
-					tree_items.options[i] = new Option(label, label);
+				//alert(data.length);
+				if (data.length > 0) {
+					//var labels = data.split(',');
+					for (var i = 0; i <= ret.length - 1; i++) {
+						label = ret[i].replace(/["']{1}/gi,"");
+						tree_items.options[i] = new Option(label, label);
+					}
+				} else {
 				}
-				i = i++;
-				tree_items.title = i + ' names found';
+				document.getElementById('findval_label').innerHTML = ' - ' + ret.length + ' names found';
+				tree_items.title = ret.length + ' names found';
 			}
 		}
 	}
-
 }
 
 
@@ -205,7 +208,8 @@ function selAll() {
 	// No taxa
 	//alert (taxa.length);
 	if (taxa.length == 0) {
-		alert ('At least one taxa required in query');
+		document.FindElementById('findval_label').innerHTML = 'No names selected to query';
+		//alert ('At least one taxa required in query');
 		return false;
 	} else {
 		for (var i = 0; i <= taxa.length - 1; i++) {

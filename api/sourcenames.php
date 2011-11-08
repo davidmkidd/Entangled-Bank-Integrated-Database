@@ -51,11 +51,6 @@
 	$res = pg_query($db_handle, $str);
 	$names = pg_fetch_all_columns($res);
 
-	//$out = "[";
-	//foreach ($names as $name) $out = $out . "\"$name\",";
-	//echo substr($out, 0, -1), "]";
-	
 	echo json_encode($names);
-
 
 ?>

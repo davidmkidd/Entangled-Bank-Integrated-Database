@@ -228,11 +228,12 @@ function findSourceNames() {
 	var n = document.getElementById('nsources');
 	var op = document.getElementById('noperator');
 	var names = document.getElementById('names');
+	var ebpath = document.getElementById('eb_path');
 	
 	var sids = '';
 	var str = '';
 	var c = 0;
-	//alert(findval);
+	//alert(ebpath);
 	
 	for (var i = 0; i <= sources.length - 1; i++) {
 		if (sources[i].checked == true) {
@@ -243,15 +244,9 @@ function findSourceNames() {
 			c++;
 		}
 	}
-	
-	var url = "http://localhost/entangled-bank/api/sourcenames.php?sids=" + sids;
+
+	var url = ebpath.value + "api/sourcenames.php?sids=" + sids;
 	url = url + '&query=' + findval.value + '&n=' + n.value + '&op=\'' + op.value + '\'';
-	
-	// LINUX HARDCODE
-	//url = "http://129.31.4.53/entangled-bank/api/treelabels.php?tree=" + tree_id.value + 
-	//"&query=" + findval.value + "&filter=" + str2;
-	
-	//alert(url);
 	
 	var request = new XMLHttpRequest();
 	request.open("GET", url , false);
@@ -263,13 +258,16 @@ function findSourceNames() {
 		var data = request.responseText;
 		names.options.length = 0;
 		var ret = JSON.parse(data);
-		for (var i = 0; i <= ret.length - 1; i++) {
+		//alert(ret);
+		if (ret.length > 0) {
+			for (var i = 0; i <= ret.length - 1; i++) {
 			label = ret[i].replace(/["']{1}/gi,"");
-			label = label.substring(1, label.length - 2);
+			label = label.substring(1, label.length - 1);
 			names.options[i] = new Option(label, label);
+			}
 		}
-		i++;
-		names.title = i + " names found";
+		names.title = ret.length + " names found";
+		document.getElementById('findval_label').innerHTML = ' - ' + ret.length + ' names found';
 	}
 	}
 
@@ -299,7 +297,6 @@ function checkAllNames() {
 }
 
 
-
 function namesAdd() {
 	var names = document.getElementById('names');
 	var taxa = document.getElementById('taxa');
@@ -314,7 +311,7 @@ function namesAdd() {
 	// Parse for commas
 	if (taxa.value.length == 0) {
 		for (var i = 0; i <= sel.length - 1; i++) {
-			if (i > 0) taxa.value = taxa.value + ',\n';
+			if (i > 0) taxa.value = taxa.value + '\n';
 			taxa.value = taxa.value + sel[i];
 		}
 	} else {
@@ -324,11 +321,72 @@ function namesAdd() {
 			for (j = 0; j <= in_taxa.length -1; j++) {
 				if (sel[i] == in_taxa[j]) match = true;
 			}
-			if (match == false) taxa.value = taxa.value + ',\n' + sel[i];
+			if (match == false) taxa.value = taxa.value + '\n' + sel[i];
 		}
 	}
 }
 
+function namesAddAll() {
+	var names = document.getElementById('names');
+	var taxa = document.getElementById('taxa');
+	var sel = new Array();
+	
+	for (var i = 0; i <= names.length - 1; i++) {
+			sel.push(names.options[i].value);
+	}
+	//alert(sel.length);
+	// Check if in taxa, add if not
+	// Parse for commas
+	if (taxa.value.length == 0) {
+		for (var i = 0; i <= sel.length - 1; i++) {
+			if (i > 0) taxa.value = taxa.value + '\n';
+			taxa.value = taxa.value + sel[i];
+		}
+	} else {
+		var in_taxa = taxa.value.split(',');
+		for (var i = 0; i <= sel.length - 1; i++){
+			var match = false;
+			for (j = 0; j <= in_taxa.length -1; j++) {
+				if (sel[i] == in_taxa[j]) match = true;
+			}
+			if (match == false) taxa.value = taxa.value + '\n' + sel[i];
+		}
+	}
+}
+
+
 function namesClear(){
 	document.getElementById('taxa').value = '';
+}
+
+
+function submitNamesQuery(id) {
+	
+	//alert(document.getElementById('taxa').value.length);
+	//alert(document.getElementById('invalid_taxa' + ', ' + document.getElementById('invalid_taxa').value.length));
+	
+	//Check text in names
+	if (document.getElementById('taxa').value.length != 0) {
+		// Add lastaction values
+		//alert('taxa length: ' + document.getElementById('taxa').value.length);
+		document.getElementById('lastaction').value = 'run';
+		document.getElementById('lastid').value = id;
+		document.ebankform.submit();
+	} else {
+		if (document.getElementById('invalid_taxa')) {
+			if (document.getElementById('invalid_taxa').value.length == 0) {
+				document.getElementById('findval_label').innerHTML = 'No text to search on';
+				return false;
+			} else {
+				//alert('taxa length: 0, invalid_taxa: ' + document.getElementById('invalid_taxa').value.length);
+				document.getElementById('lastaction').value = 'run';
+				document.getElementById('lastid').value = id;
+				document.ebankform.submit();				
+			}
+		} else {
+			//alert('taxa length: 0, no invalid_taxa');
+			document.getElementById('findval_label').innerHTML = 'No text to search on';
+			return false;
+		}
+	}
 }

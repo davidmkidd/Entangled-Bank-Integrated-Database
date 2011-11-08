@@ -72,11 +72,11 @@
 	$res = pg_query($db_handle, $str);
 	$labels = pg_fetch_all_columns($res);
 	//echo "$labels<br>";
-	$out = "[";
+/*	$out = "[";
 	foreach ($labels as $label) $out = $out . "\"$label\",";
-	echo substr($out, 0, -1), "]";
+	echo substr($out, 0, -1), "]";*/
 	
-	//echo json_encode($labels);
+	echo json_encode($labels);
 
 
 ?>

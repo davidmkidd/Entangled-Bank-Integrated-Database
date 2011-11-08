@@ -622,7 +622,7 @@
 				break;
 				
 			case 'lca':
-				$str = $str . " SELECT biosql.pdb_lca($tree_id, $names_array) AS bioname";
+				$str = $str . " SELECT biosql.pdb_node_id_to_label(biosql.pdb_lca($tree_id, $names_array)) AS bioname";
 				break;
 				
 			case "selected":

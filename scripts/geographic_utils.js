@@ -11,35 +11,22 @@
     	
     	
         map = new OpenLayers.Map('map');
-//        var wms = new OpenLayers.Layer.WMS( "OpenLayers WMS",
-//            "http://vmap0.tiles.osgeo.org/wms/vmap0?", {layers: 'basic'});
+
         var gphy = new OpenLayers.Layer.Google(
         	    "Google Physical",
         	    {type: google.maps.MapTypeId.TERRAIN}
-        	    // used to be {type: G_PHYSICAL_MAP}
         	);
     	var gmap = new OpenLayers.Layer.Google(
     	    "Google Streets", // the default
     	    {numZoomLevels: 20}
-    	    // default type, no change needed here
+
     	);
-/*    	var ghyb = new OpenLayers.Layer.Google(
-    	    "Google Hybrid",
-    	    {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
-    	    // used to be {type: G_HYBRID_MAP, numZoomLevels: 20}
-    	);*/
+
     	var gsat = new OpenLayers.Layer.Google(
     	    "Google Satellite",
     	    {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
-    	    // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
     	);
     	
-/*    	var aerial = new OpenLayers.Layer.Bing(
-    		"Bing Aerial",
-    		{
-    	    key: apiKey,
-    	    type: "Aerial"
-    	});*/
     	
     	map.addLayers([vectors, gphy, gmap ,gsat]);
     	
@@ -61,17 +48,8 @@
         map.addControl(new OpenLayers.Control.LayerSwitcher());
 
         var bounds = new OpenLayers.Bounds(-180, -90, 180, 90);
-        map.zoomToExtent(bounds.transform(wgs84, map.getProjectionObject()));
-        
-//        for (i = 0; i <= map.layers.length - 1; i++) {
-//        	alert(map.layers[i].name);
-//        	map.layers[i].refresh({force:true});
-//        }
-        
-        //alert(map.div.id);
-        //map.layers[0].refresh({force:true});
-        //map.layers[1].refresh({force:true});
-        //map.redraw();
+        map.setCenter(new OpenLayers.LonLat(0, 0), 1);
+        //map.zoomToExtent(bounds.transform(wgs84, map.getProjectionObject()));
         
     }
     

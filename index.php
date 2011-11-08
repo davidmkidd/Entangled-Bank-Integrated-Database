@@ -15,6 +15,7 @@ include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
 include "html_utils.php";
 include "php_utils.php";
 include "php_query.php";
+include "php_process.php";
 include "php_validate.php";
 include "php_write.php";
 include "html_cart.php";
@@ -31,6 +32,8 @@ echo "eb_path: $eb_path<br>";
 echo "html_path: $html_path<br>";
 echo "share_path: $share_path<br>";
 */
+
+
 set_time_limit(1200);
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,7 +45,7 @@ echo '<html>';
 
 #HEAD includes Javascript
 echo '<head>';
-echo "<title>Entangled Bank Integrated dDatabase</title>";
+echo "<title>Entangled Bank Integrated Database</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 #END HEAD
@@ -53,22 +56,35 @@ echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
 echo "<body onload='loadScript()'>";
 echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, true);
+	
+# --------------------------------------------------------------------------------------------------
+#                                           DATABASE CONNECTION
+# --------------------------------------------------------------------------------------------------
 
-# BEGIN FORM
+$db_handle = eb_connect_pg($config);
+if ($db_handle == false) {
+	# FOOTER
+	html_entangled_bank_footer();
+	#CLOSE MAIN DIV
+	echo "</div>";
+	echo "</body>";
+	echo '</html>';
+	echo exit;
+}
+
+# EB PATH FOR JS
+echo "<input type='hidden' id='eb_path' value='$eb_path' />";
+
+# ---------------------------------------------------------------------------------------------------
+#                                                   BEGIN FORM
+# ---------------------------------------------------------------------------------------------------
 
 echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php" 
 	onsubmit="document.getElementById(\'submit-button\').disabled = true;">';
-	
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-#                                                                           DATABASE
-# ---------------------------------------------------------------------------------------------------------------------------------------------
 
-#CONNECT TO DATABASE
-$db_handle = eb_connect_pg($config);
-##echo "$db_handle<br>";
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-#                                                                            _POST AND SESSION
-# ---------------------------------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------
+#                                                _POST AND SESSION
+# ---------------------------------------------------------------------------------------------------
 
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
@@ -81,10 +97,16 @@ foreach ($_POST as $key =>$value) {
 	$_SESSION[$key] = $value;
 	}
 
-# Recover SESSION variables
+# STAGE
 $stage = $_SESSION['stage'];					// Form Stage
 if (!$stage) $stage = 'sources';
-//echo "POST stage: $stage<br>";
+
+# LAST ACTION
+# for dealing with the back button
+$lastaction = $_SESSION['lastaction'];
+$lastid = $_SESSION['lastid'];
+
+//echo "last: $lastaction, $lastid<br>";
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
@@ -117,9 +139,9 @@ if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 
 $files_to_delete = $_SESSION['files_to_delete'];
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-#                                                                            PRE-FORM PROCESSING
-# ---------------------------------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------
+#                                                PRE-FORM PROCESSING
+# -----------------------------------------------------------------------------------------------------------
 
 //echo "Pre-form processing: ";
 //if ($qobjects) print_r($qobjects);
@@ -152,7 +174,12 @@ if ($stage == 'qset' && $qterm == 'find') {
 if ($qterm == 'finish') $stage = 'finish';
 
 # AFTER SOURCES
+
 if ($stage == 'getsources') {
+	# REFRESH AND BACK
+	if (!empty($qobjects)) {
+		if ($qobjects[count($qobjects) - 1]['status'] == 'new') unset($qobjects[count($qobjects) - 1]);
+	}
 	$sources = get_sources($db_handle, $sourceids, 'bio');
 	if ($sources) {
 		$_SESSION['sources'] = $sources;
@@ -208,33 +235,8 @@ if ($stage == 'querydeleteall') {
 	
 	
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
-//echo "pre qset qobjid: $qobjid<br>";
-if ($stage == 'qset' && !$qobjid) {
-	if ($oldtoken == $newtoken) {
-		$qobject = $qobjects[count($qobjects) - 1];
-		$qobjid = $qobject['id'];
-	} else {
-		if (!$qobjects) $qobjects = array();
-		//echo "Creating new qobject<br>";
-		# CREATE NEW QOBJECT
-		$qname = get_next_name($qobjects, $qterm);
-		$qobjid = md5(uniqid());
-		$qobject = array(
-			'id' => $qobjid,
-			'term' => $qterm,
-			'name' => $qname,
-			'status' => 'new'
-			);
-		
-		# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
-		if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
-		if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
-		//if ($_SESSION['query_sid']) $qobject['sources'] = array($_SESSION['query_sid']);
-		//$qobjid = $qobject['id'];
-		array_push($qobjects, $qobject);
-		$_SESSION['qobjects'] = $qobjects;
-	}
-}
+if ($stage == 'qset' && !$qobjid) $qobjid = qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobjects);
+
 	
 # QVERIFY - VERIFY QUERY
 if ($stage == 'qverify') {
@@ -299,7 +301,6 @@ if ($stage == 'outputcancel') {
 }
 
 
-
 # DELETE OUTPUT
 if ($stage == 'outputdelete') {
 	$idx = obj_idx($outputs, $output_id);
@@ -341,60 +342,23 @@ if ($stage == 'write') {
 }
 
 if ($names) $_SESSION['names'] = $names;
-//if ($outputs) $_SESSION['outputs'] = $outputs;
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-#                                                                            SHOPPING CART
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-//echo "pre-cart stage: $stage<br>";
-//if ($stage != 'finish' && $stage != 'sources')  
-	//html_cart($db_handle, $qobjid, $qobjects, $sources, $names, $object_id, $outputs, $stage);
+# --------------------------------------------------------------------------------------------------------
+#                                                    FORM HTML
+# --------------------------------------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-#                                                                                 FORM
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-
-//echo "html stage: $stage<br>";
-
-/*echo "post processing: ";
-print_r($qobjects);
-echo "<br/>";	*/
-	
-/*echo "post processing: ";
-print_r($output);
-echo "<br/>";
-print_r($outputs);
-echo "<br/>";*/
-	
-/*echo "sources:<br>";
-print_r($sources);
-echo "<BR>";
-	*/
-//if ($qterm == 'finish') $stage = 'finish';
-
-if ($stage == 'sources') {
-	html_select_sources($db_handle);
-	echo "<input type = 'hidden' name ='stage' value='getsources'>";
-	}
+# SELECT SOURCES
+if ($stage == 'sources') html_select_sources($db_handle);
 	
 #MANAGE QUERIES
-if ($stage == 'manage') {
-	$stage = html_manage($qobjects, $qmanage_err);
-	echo "<input id='stage' type='hidden' name ='stage' value='maction'>";
-}	
+// if ($stage == 'manage') $stage = html_manage($qobjects, $qmanage_err);	
 
-# NEW QUERY
-if ($stage == 'main' || $stage == 'write') {
+# MAIN INTERFACE
+if ($stage == 'main' || $stage == 'write') 
 	html_entangled_bank_main($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs, $zip);
-	echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
-	}
 
 # QUERY SETUP
-if ($stage == 'qset') {
-	echo "<div id='ebtool'>";
-	html_query_set($db_handle, $qobjid, $qobjects, $sources, $names);
-	echo "</div>";
-}
+if ($stage == 'qset') html_query_set($db_handle, $qobjid);
 
 # OUTPUT DIALOGS
 if ($stage == 'setoutput') html_output_set($db_handle, $output, $outputs, $sources);

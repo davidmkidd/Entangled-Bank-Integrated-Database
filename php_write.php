@@ -533,7 +533,6 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 			$filename = $outpath . $filename . '.svg';
 			$outfiles = array($filename);
 			break;
-			
 		default;
 			break;
 		}
@@ -578,7 +577,7 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 		$str = "$perl_script_path\convert_tree.pl $sid $spath $format 2>&1";
 		//echo "$perl_script_path\convert_tree.pl $sid $spath $tree $format 2>&1";
 		$tree = shell_exec($str);
-		//echo "$tree<br>";
+		echo "$tree<br>";
 		#echo "<br>***END PERL***<br>";
 	} 
 	//echo "tree, $tree<br>";

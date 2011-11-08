@@ -1,63 +1,85 @@
-New functionality
-	- Single names search to find out which sources names are in
-	- If only one query type possible go direct, e.g a table
+
+---------------------------
+ Entangled Bank To Do List
+---------------------------
+
+Data
+	- Galliformes (med)
+	- Ephippiger (low)
+	
+Entangled-bank.org
+	- Move to IC? (med/low)
+	- Update (high)
 
 Configuration 
-	- Windows and LINUX
+	- Soft code all Windows and LINUX configuration  (high)
+	- Sensible error on connect fail (fixed)
+	- Talk to Bioinfromatics support (med)
 
+Back Button
+	- Sensible response (high)
+
+Get Sources
+	 - sort select_sources by term (low)
+	 	
 Main
-	- Tool tips showing sources available for each query type
-	- Query by geography and time offered when only tree selected
+	- Tool tips showing sources available for each query type (fixed)
+	- Query by geography and time offered when only tree selected (fixed)
 
 Validation
-	Suggestions for invlaid names
+	- Suggestions for invalid names (low)
+	- all validation as javascript (high)
 	
-Info-Windows
-	Fix css
-
+Cross-browser compatability (med)
+	- XMLHttpRequests back compatability with < IE7 and other browsers
+	
 Query
 	General
-	- NULLs and NOT
-	- htmlspecialchars on database text fields in select boxes
-	- tool tips
-	- validation
-	- remove reset
-	- errs objects v javascript
-	- query types clean up
-	Get sources
-	 - sort list_sources by (table, geographic, tree, relational)
-	Cart
-	- petty format SQL
-	- SQL for UDig/J
-	- Hyperlinks from query name to query
+		- If only one possible source for a query go direct, i.e. one tree or table available (med: would need hidden field)
+		- NOT option on all queries (low: may be quite complex for multiple source queries)
+		- htmlspecialchars on database text fields in select boxes
+		- javascript find to get host path from config (fixed)
+		- petty format SQL (high)
+		- Spatial SQL for UDig/J (high)
+		- Hyperlink query list to query (fixed)
+		- Row headings on select tables (med: how would they look?)
+		- Empty names query currently adds Names SQL, should give verification error. (fixed)
 	Geography
-	- delete features
-	- Generalised range maps
-	- what happens when features cross a boundary?
+		- Open source layer fail to draw on intitalise (fixed)
+		- Clear query features (high: Clear button implemented needs better positioning)
+		- Generalised range maps (low)
+		- Queries that cross the Anti-Meridian (high: test what happens)
+		- Quick search using && only (fixed)
 	Tree
-	- < IE7 XMLHttpRequest
-	Table
-	- Set query in edit mode
-	
+		- XMLHttpRequest (fixed)
+	Attribute
+		- NULLs in attribute query (partial fix: single 'include nulls' option for all fields in a query)
+		- Set query in edit mode (fixed)
+		- Find for select fields. Would speed up attribute query load as all options for all fields would not need to be preloaded (med)
+
 Output
 	General
-	- delete created files/create temporary files
-	- extract write from html_write
-	- quick search using && only
-	Geography
-	- OGR2OGR shell escapes for GPDD
-	Tree
-	- pruned tree loses names of internal nodes in Bio::Tree > Bio::Phylo
-	- migrate subtree extraction to SQL
-	Table
-	- Dbase output formats
-	- Something wierd when removing fields from output
-	- reorder fields in output
+		- Delete created files/Create temporary files. Periodic chron function or on session end (high)
+		- Extract write from html_write (fixed)
 	
-CSS Styling
+	Geography
+		- OGR2OGR shell escapes for GPDD (fixed)
+	Tree
+		- Write to lintree, tab and nhx with Bio::TreeIO (low)
+		- Write to Nexml with BioPhylo (med)
+		- Migrate subtree extraction to SQL (fixed)
+	Table
+		- Dbase output formats (med)
+		- Something wierd when removing fields from output (?)
+		- Field order in output (low)
 
+CSS
+	- Convert px to em (high)
+	- Rationalise CSS classes and ids (med)
 
-
+---------------
+Test Names List
+---------------
 Mus famulus
 Glis glis
 Peromyscus leucopus

@@ -99,11 +99,12 @@ if ($format eq "nexus" || $format eq "xml" || $format eq "svg") {
 	# Write from Bio:Phylo::Forest::Tree
 	#print "Write from Bio:Phylo::Forest::Tree\n";
 	switch ($format) {
-		#case "newick" { $out = $tree ->	to_newick;}
+		#case "newick" { $out = $tree -> to_newick;}
 		case "nexus" { $out = $tree ->to_nexus;}
 		case "xml" { $out = $tree ->to_xml;}
 		case "svg" { $out = $tree ->to_svg;}
 	}
+	print $out;
 	
 } elsif ($format eq "nhx" || $format eq "tabtree" || $format eq "lintree") {
 	
@@ -111,11 +112,14 @@ if ($format eq "nexus" || $format eq "xml" || $format eq "svg") {
 	
 	my $io = IO::String -> new($newick);
 	my $treeIO = Bio::TreeIO -> new(-fh => $io, 
-							-format => $format);
+							-format => 'newick');
 	$tree = $treeIO->next_tree;
 	
-	#print keys(%out);
+	my $outIO = IO::String->new;
+	my $outTreeIO = Bio::TreeIO -> new(-format=>$format, -fh => $outIO);
+	$outTreeIO->write_tree($tree);
+	$outIO->print();
 }
 
-print $out;
+
 	
