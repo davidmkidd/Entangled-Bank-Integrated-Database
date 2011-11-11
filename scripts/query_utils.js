@@ -12,7 +12,6 @@ function checkObjName() {
 	} else {
 		name.value = name.value.replace(/ /g,"_");
 	}
-		
 }
 
 function is_int(value){ 

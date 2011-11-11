@@ -8,7 +8,6 @@
 		print_r($qobject);
 		echo "<br>";*/
 
-		
 		# QUERY PARAMETERS
 		$qterm = $qobject['term'];
 		$queryop = $qobject['queryoperator'];
@@ -145,13 +144,13 @@
 		}
 			
 		# RUN NAMES QUERY
-		//echo "query: $str<br>";
+		echo "query: $qstr<br>";
 		$res = pg_query($db_handle, $str);
 		$outnames = pg_fetch_all_columns($res, 0);
 		
 		# ADD SQL TO QOBJECT
 		//echo "query: $qstr<br>";
-		$qobject = query_add_names_sql($qobject, $qobjects, $qstr);
+		query_add_names_sql($qobject, $qobjects, $qstr);
 		$qobjects = save_obj($qobjects, $qobject);
 		
 		# GPDD SERIES QUERY
@@ -159,9 +158,8 @@
 		
 		if (!empty($outnames)) {
 			# RUN GPDD SERIES QUERY
-			$qobject = query_series($db_handle, $qobject, $qobjects, $outnames, $sources);
+			query_series($db_handle, $qobject, $qobjects, $outnames, $sources);
 			$qobjects = save_obj($qobjects, $qobject);
-			# RUN NAMES QUERY
 			$outnames = query_series_names($db_handle, $qobjects, $outnames, $sources);
 		} else {
 			# No Names
@@ -676,94 +674,43 @@
 	}
 # ====================================================================================================
 	
-	function query_add_names_sql($qobject, $qobjects, $qsql){
-		
-		//ADD SQL TO QUERY
-		//echo "$qsql<br>";
-		$qobject['sql_names_query'] = $qsql;
-		
-		//ADD FULL SQL
-		if ($qobjects && count($qobjects) > 1) {
-			$sql = $qobjects[count($qobjects) - 2]['sql_names'];
-			$op = $qobject['queryoperator'];
-			$sql = "$sql $op $qsql"; 
-			$sql = "SELECT bioname FROM ( \n$sql) AS foo";
-			$qobject['sql_names'] = $sql;
-			//$qobject = add_key_val($qobject, 'sql_names', $sql);
-		} else {
-			//$qobject = add_key_val($qobject, 'sql_names', $qsql);
-			$qobject['sql_names'] = $qsql;
-		}
-		//print_r ($qobject);
-		return $qobject;
-	}
-	# ====================================================================================================
+function query_add_names_sql(&$qobject, $qobjects, $qstr) {
 	
-function query_add_series_sql($qobject, $qobjects, $sources) {
-	
-		
-	if ($qobjects) {
-		$qobject = $qobjects[count($qobjects) - 1];
-		if ($qobject['status'] == 'new') $qobject = $qobjects[count($qobjects) - 2];
-		//NAMES
-		##$sql = "SELECT mid FROM (";
-		$sql = $sql . "SELECT m.\"MainID\" AS mid \nFROM gpdd.main m, gpdd.taxon t \nWHERE";
-		$sql = $sql . " m.\"TaxonID\" = t.\"TaxonID\" \nAND t.binomial IN ( \n";
-		$sql = $sql . $qobject['sql_names'] . ")";
-		# MAIN IDs
-		# Is the GPDD in any queries, if not pass
-		$gpdd = false;
-		foreach ($qobjects as $q) 
-			if (in_array(23, $q['sources']) || in_array(26, $q['sources']) || in_array(27, $q['sources'])) $gpdd = true;
-
-		$first = true;
-		if ($gpdd == true) {
-			$sql = $sql . " AND m.\"MainID\" IN (";
-			foreach ($qobjects as $q) {
-				$term = $q['term'];
-				//echo "adding " . $q['name'] . ", $term to sql<br>";
-				switch ($term) {
-					case 'biotable':
-						if (in_array(23,$q['sources'])) {
-							if ($first == false) {
-								$sql = "$sql " . $q['queryoperator'] . " ";
-							} else {
-								$first = false;
-							}
-							$sql = query_biotable_series($q, $sources, $sql);
-						}
-
-						break;
-					case 'biogeographic':
-						if (in_array(26,$q['sources']) || in_array(27,$q['sources'])) {
-							if ($first == false) {
-								$sql = "$sql " . $q['queryoperator'] . " ";
-							} else {
-								$first = false;
-							}
-							$sql =  query_biogeographic_series ($q, $sql);
-						}
-
-						break;
-					case 'biotemporal':
-						if ($first == false) {
-							$sql = "$sql " . $q['queryoperator'] . " ";
-						} else {
-							$first = false;
-						}
-						$sql =  query_biotemporal_series ($q, $sql);
-						break;
-				}
+	$qobject['sql_names_query'] = $qstr;
+	$str_names = '';
+	$i = 0;
+	$end = false;
+	foreach ($qobjects as $qobj) {
+		if ($qobj['id'] == $qobject['id']) $end = true;
+		if ($end == false) {
+			if ($i > 0) {
+				$str_names = $str_names . $qobj['queryoperator'];
 			}
-			$sql = $sql . ")";
+			$str_names = $str_names . $qobj['sql_names_query'];		
 		}
-		
-
-		$qobject = add_key_val($qobject, 'sql_series', $sql);
 	}
-
-return $qobject;
+	$qobject['sql_names_queries'] = $str_names;
 }
+# ====================================================================================================
+	
+function query_add_series_sql(&$qobject, $qobjects, $qstr) {
+	
+	$qobject['sql_series_query'] = $qstr;
+	$str_series = '';
+	$i = 0;
+	$end = false;
+	foreach ($qobjects as $qobj) {
+		if ($qobj['id'] == $qobject['id']) $end = true;
+		if ($end == false) {
+			if ($i > 0) {
+				$str_series = $str_series . $qobj['queryoperator'];
+			}
+			$str_series = $str_series . $qobj['sql_series_query'];			
+		}
+	}
+	$qobject['sql_series_queries'] = $str_series;
+}
+	
 	
 	
 	# ====================================================================================================
@@ -893,67 +840,52 @@ return $qobject;
 	
 	# ====================================================================================================
 	
-	function query_biotemporal ($qobject,$qobjects, $str){
+	function query_biotemporal ($qobject, $qobjects, $str){
 		
-		#echo "query_biotemporal: $str<br>";
-		$t_from_overlay = $qobject['t_from_overlay'];
-		$t_to_overlay = $qobject['t_from_overlay'];
-		$from_dtime = $qobject['from_dtime'];
-		$to_dtime = $qobject['to_dtime'];
+		//print_r($qobject);
+		//echo "<br>";
 		
-		$mids = query_get_mids($qobjects);
+		$operator = $qobject['toperator'];
+		$dtime = $qobject['dtime'];
+		if ($qobject['status'] == 'new') {
+			$mids = query_get_mids($qobjects, 'this');
+		} else {
+			$mids = query_get_mids($qobjects, 'last');
+		}
+		
 		if ($mids) $arr = array_to_postgresql($mids, 'numeric');
 		
-		$str = $str . "SELECT bioname 
-			FROM ( 
-				SELECT t.binomial AS bioname, 
-				MIN(d.\"DecimalYearBegin\") AS dstart, 
-				MAX(d.\"DecimalYearEnd\") AS dfinish
-				FROM gpdd.taxon t,
-				gpdd.main m,
-				gpdd.data d
-				WHERE m.\"MainID\" = d.\"MainID\"
-				AND m.\"TaxonID\" = t.\"TaxonID\"
-				AND t.binomial IS NOT NULL";
-			if ($arr) $str = $str .  " AND m.\"MainID\" = ANY($arr)";
-			$str = $str . " GROUP BY t.binomial";
+		# HERE
+		$str = $str . "SELECT bioname FROM (";
+		$str = $str . " SELECT t.binomial AS bioname,";
+		$str = $str . " MIN(d.\"DecimalYearBegin\") AS dstart,";
+		$str = $str . " MAX(d.\"DecimalYearEnd\") AS dfinish";
+		$str = $str . " FROM gpdd.taxon t,";
+		$str = $str . " gpdd.main m,";
+		$str = $str . " gpdd.data d";
+		$str = $str . " WHERE m.\"MainID\" = d.\"MainID\"";
+		$str = $str . " AND m.\"TaxonID\" = t.\"TaxonID\"";
+		$str = $str . " AND t.binomial IS NOT NULL";
+		if ($arr) $str = $str .  " AND m.\"MainID\" = ANY($arr)";
+		$str = $str . " GROUP BY t.binomial";
 		
 		
-		switch ($t_from_overlay) {
+		switch ($operator) {
 			case 'BEFORE':
-					$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500 AND MIN(d.\"DecimalYearEnd\") <= $from_dtime";
-					if ($qobject['t_2'] == 'on') {
-						if ($t_to_overlay == 'DURING') {
-						 	$str = $str . " AND MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearEnd\") >= $to_dtime";
-						} else {
-							$str = $str . " AND MAX(d.\"DecimalYearEnd\") <= $to_dtime";
-						}
-					}
+				$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500 AND MIN(d.\"DecimalYearEnd\") <= $dtime";
 				break;
 			case 'DURING':
-					$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500
-						AND (MIN(d.\"DecimalYearBegin\") <= $from_dtime AND MAX(d.\"DecimalYearEnd\") >= $from_dtime)";
-					if ($qobject['t_2'] == 'on') {
-						if ($t_to_overlay == 'DURING') {
-						 	$str = $str . " AND MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearEnd\") >= $to_dtime";
-						} else {
-							$str = $str . " AND MAX(d.\"DecimalYearEnd\") <= $to_dtime";
-						}
-					}
+				//$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500";
+				//$str = $str . " AND (MIN(d.\"DecimalYearBegin\") <= $dtime AND MAX(d.\"DecimalYearEnd\") >= $dtime)";
+				$str = $str . " HAVING (MIN(d.\"DecimalYearBegin\") <= $dtime AND MAX(d.\"DecimalYearEnd\") >= $dtime)";
 				break;
 			case 'AFTER':		
-					$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500
-						AND MIN(d.\"DecimalYearBegin\") >= $from_dtime";
-					if ($qobject['t_2'] == 'on') {
-						if ($t_to_overlay == 'DURING') {
-						 	$str = $str . " AND MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearEnd\") >= $to_dtime";
-						} else {
-							$str = $str . " AND MAX(d.\"DecimalYearEnd\") <= $to_dtime";
-						}
-					}
+				//$str = $str . " HAVING MAX(d.\"DecimalYearBegin\") >= 1500";
+				//$str = $str . " AND MIN(d.\"DecimalYearBegin\") >= $dtime";
+				$str = $str . " HAVING MIN(d.\"DecimalYearBegin\") >= $dtime";
 				break;
 		}
-		$str = $str . " ) AS foo";
+		$str = $str . ") AS foo";
 		#echo "$str<br>";
 		return ($str);
 	}
@@ -962,9 +894,9 @@ return $qobject;
 	
 	function query_biotemporal_series ($qobject,$str) {
 		
-		$t_overlay = $qobject['t_overlay'];
-		$from_dtime = $qobject['from_dtime'];
-		$to_dtime = $qobject['to_dtime'];
+		$t_overlay = $qobject['queryoperator'];
+		$dtime = $qobject['dtime'];
+
 		//print_r($mids);
 		#if ($mids) $arr = array_to_postgresql($mids, 'numeric');
 		
@@ -982,7 +914,7 @@ return $qobject;
 					WHERE m.\"MainID\" = d.\"MainID\"
 					GROUP BY m.\"MainID\"
 					HAVING MAX(d.\"DecimalYearBegin\") >= 1500
-					AND (MIN(d.\"DecimalYearEnd\") >= $from_dtime AND MAX(d.\"DecimalYearBegin\") <= $to_dtime)
+					AND (MIN(d.\"DecimalYearEnd\") >= $dtime AND MAX(d.\"DecimalYearBegin\") <= $dtime)
 					) AS foo";	
 				break;
 			case 'WITHIN':
@@ -1029,7 +961,7 @@ return $qobject;
 	
 	# ====================================================================================================
 	
-	function query_series ($db_handle, $qobject, $qobjects, $names, $sources){
+	function query_series ($db_handle, &$qobject, $qobjects, $names, $sources){
 	
 		#echo "begin query series<br>";
 		
@@ -1043,181 +975,135 @@ return $qobject;
 				}
 			}
 		}
-		if($run == false) return $qobject;
+		if($run == false) exit;
+	
+		$mids = query_get_mids($qobjects, 'last');
 		
-		$mids = query_get_mids($qobjects);
 		if ($mids && ($_SESSION['token'] == $_POST['token'])) {
 			if (count($qobjects) == 1) {
 				unset ($mids);
 			} else {
 				$mids = $qobjects[count($qobjects) - 2]['series'];
 			}
-
 		}
 		
 		if ($mids) $midsarr = array_to_postgresql($mids, 'numeric');
 		if ($names) $arr = array_to_postgresql($names, 'text');		
 		
-		if (!$mids) {
-			# SERIES
-			$str = "SELECT m.\"MainID\"
-				FROM gpdd.main m, gpdd.taxon t
-				WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-			if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-		} else {
-			$term = $qobject['term'];
-			#echo $qobject['term'] . "<br>";
-			
-			switch ($term){
-				case 'biotree':
-				case 'biotable':
-				case 'bionames':
-					# SERIES
-					$str = "SELECT m.\"MainID\"
-					FROM gpdd.main m, gpdd.taxon t
-					WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-					# MainIDs
-					#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
-					break;
-					
-				case 'biogeographic':
-					$qsources = $qobject['sources'];
-					$s_operator = $qobject['s_operator'];
-					$s_op = get_s_operator($s_operator);
-					$q_geometry = $qobject['q_geometry'];
-
-
-					# SELECT
-					$str = "SELECT m.\"MainID\"
-						FROM gpdd.main m,";
-					if (in_array(26, $qsources)) $str = $str . " gpdd.location_pt p,";		
-					if (in_array(27, $qsources)) $str = $str . " gpdd.location_bbox b,";
-					$str = $str . " gpdd.taxon t";
-					$str = $str . ", (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
-					
-					$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-					if (in_array(26, $qsources)) $str = $str . " AND m.\"LocationID\" = p.locationid";
-					if (in_array(27, $qsources)) $str = $str . " AND m.\"LocationID\" = b.locationid";
-					
-					
-					switch ($s_operator) {
-						case 'quickoverlap':
-						case 'quickwithin':
-							if (in_array(26, $qsources)) {
-								$source = get_source($db_handle, 26, null);
-								$str = $str . " AND p." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
-							}
-							if (in_array(27, $qsources)) {
-								$source = get_source($db_handle, 27, null);
-								$str = $str . " AND b." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
-							}
-							break;
-							
-						case 'overlap':
-						case 'within':
-							if (in_array(26, $qsources)) {
-								$source = get_source($db_handle, 26, null);
-								$str = $str . " AND $s_op(p." . $source['spatial_column'] . "::geometry, geom::geometry)";
-							}
-							if (in_array(27, $qsources)) {
-								$source = get_source($db_handle, 27, null);
-								$str = $str . " AND $s_op(b." . $source['spatial_column'] . "::geometry, geom::geometry)";
-							}
-							break;				
-					}
-					
-					//$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
-					$//str = $str . " AND m.\"LocationID\" = l.\"LocationID\"";
-					$str = $str . " AND t.binomial IS NOT NULL";	
-	
-					# MainIDs
-					#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
-					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-					break;
-					
-				case 'biotemporal':
-					$t_overlay = $qobject['t_overlay'];
-					$from_dtime = $qobject['from_dtime'];
-					$to_dtime = $qobject['to_dtime'];
-					# echo "$from_dtime - $to_dtime : $t_overlay<br>";
-		
-					switch ($t_overlay) {
-						case 'OVERLAP':
-							$str = $str . "SELECT mid
-							FROM ( 
-								SELECT m.\"MainID\" AS mid,
-								MIN(d.\"DecimalYearBegin\") AS dstart, 
-								MAX(d.\"DecimalYearEnd\") AS dfinish
-								FROM gpdd.taxon t,
-								gpdd.main m,
-								gpdd.data d
-								WHERE m.\"MainID\" = d.\"MainID\"
-								AND m.\"TaxonID\" = t.\"TaxonID\"
-								AND t.binomial IS NOT NULL ";
-							
-							#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
-							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-							
-							$str = $str . " GROUP BY m.\"MainID\"
-								HAVING MAX(d.\"DecimalYearBegin\") >= 1500
-								AND (MIN(d.\"DecimalYearEnd\") >= $from_dtime AND MAX(d.\"DecimalYearBegin\") <= $to_dtime)
-								) AS foo";
-							break;
-						case 'WITHIN':
-							$str = $str . "SELECT mid
-								FROM ( 
-								SELECT m.\"MainID\" AS mid,
-								MIN(d.\"DecimalYearBegin\") AS dstart, 
-								MAX(d.\"DecimalYearEnd\") AS dfinish
-								FROM gpdd.taxon t,
-								gpdd.main m,
-								gpdd.data d
-								WHERE m.\"MainID\" = d.\"MainID\"
-								AND m.\"TaxonID\" = t.\"TaxonID\"";
-							
-							#if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
-							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-							
-							$str = $str . " GROUP m.\"MainID\"
-								HAVING MAX(d.\"DecimalYearBegin\") >= 1500
-								AND (MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearBegin\") >= $from_dtime)
-								) AS foo";			
-							break;
-					}
-				default:
+		switch ($qobject['term']){
+			case 'biotree':
+			case 'biotable':
+			case 'bionames':
+				# SERIES
+				$str = "SELECT m.\"MainID\"";
+				$str = $str . " FROM gpdd.main m, gpdd.taxon t";
+				$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+				$qstr = $str;
+				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+				//if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY($midsarr)";
 				break;
-			}   #term
-		}
-		//echo "series query: $str<br>";
+				
+			case 'biogeographic':
+				$qsources = $qobject['sources'];
+				$s_operator = $qobject['s_operator'];
+				$s_op = get_s_operator($s_operator);
+				$q_geometry = $qobject['q_geometry'];
+
+				# SELECT
+				$str = "SELECT m.\"MainID\"";
+				$str = $str . " FROM gpdd.main m,";
+				if (in_array(26, $qsources)) $str = $str . " gpdd.location_pt p,";		
+				if (in_array(27, $qsources)) $str = $str . " gpdd.location_bbox b,";
+				$str = $str . " gpdd.taxon t";
+				$str = $str . ", (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
+				
+				$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+				if (in_array(26, $qsources)) $str = $str . " AND m.\"LocationID\" = p.locationid";
+				if (in_array(27, $qsources)) $str = $str . " AND m.\"LocationID\" = b.locationid";
+				
+				
+				switch ($s_operator) {
+					case 'quickoverlap':
+					case 'quickwithin':
+						if (in_array(26, $qsources)) {
+							$source = get_source($db_handle, 26, null);
+							$str = $str . " AND p." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
+						}
+						if (in_array(27, $qsources)) {
+							$source = get_source($db_handle, 27, null);
+							$str = $str . " AND b." . $source['spatial_column'] . "::geometry $s_op geom::geometry";
+						}
+						break;
+						
+					case 'overlap':
+					case 'within':
+						if (in_array(26, $qsources)) {
+							$source = get_source($db_handle, 26, null);
+							$str = $str . " AND $s_op(p." . $source['spatial_column'] . "::geometry, geom::geometry)";
+						}
+						if (in_array(27, $qsources)) {
+							$source = get_source($db_handle, 27, null);
+							$str = $str . " AND $s_op(b." . $source['spatial_column'] . "::geometry, geom::geometry)";
+						}
+						break;				
+				}
+				
+				$str = $str . " AND t.binomial IS NOT NULL";
+				$qstr = $str;
+				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+				//if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
+				break;
+				
+			case 'biotemporal':
+				$operator = $qobject['toperator'];
+				$dtime = $qobject['dtime'];
+				$str = $str . "SELECT mid FROM (";
+				$str = $str . " SELECT m.\"MainID\" AS mid,";
+				$str = $str . " MIN(d.\"DecimalYearBegin\") AS dstart,";
+				$str = $str . " MAX(d.\"DecimalYearEnd\") AS dfinish";
+				$str = $str . " FROM gpdd.taxon t,";
+				$str = $str . " gpdd.main m,";
+				$str = $str . " gpdd.data d";
+				$str = $str . " WHERE m.\"MainID\" = d.\"MainID\"";
+				$str = $str . " AND m.\"TaxonID\" = t.\"TaxonID\"";
+				$str = $str . " AND t.binomial IS NOT NULL";
+				$qstr = $str;
+				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+				//if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
+					
+				switch ($operator) {
+					case 'BEFORE':
+						$str2 = " GROUP BY m.\"MainID\" HAVING (MAX(d.\"DecimalYearBegin\") >= 1500";
+						$str2 = $str2 . " AND MAX(d.\"DecimalYearEnd\") <= $dtime)) AS foo";
+					break;
+					case 'AFTER':
+						$str2 = " GROUP BY m.\"MainID\" HAVING (MAX(d.\"DecimalYearBegin\") >= 1500";
+						$str2 = $str2 . " AND MAX(d.\"DecimalYearBegin\") >= $dtime)) AS foo";
+					break;
+					case 'DURING':
+						$str2 = " GROUP BY m.\"MainID\" HAVING (MAX(d.\"DecimalYearBegin\") >= $dtime";
+						$str2 = $str2 . " AND MIN(d.\"DecimalYearEnd\") <= $dtime)) AS foo";
+					break;
+				}
+				$str = $str . $str2;
+				$qstr = $qstr . $str2;
+				break;
+			default:
+			break;
+		}   #term
+		
+		//echo "qstr: $qstr<br>";
+		query_add_series_sql($qobject, $qobjects, $qstr);
+		
+		$top = $qobject['toperator'];
+		if ($midsarr) $str = "$str $top UNNEST($midsarr) as mid";	
+		
+		echo "series query: $str<br>";
 		$res = pg_query($str);
-		$ids = pg_fetch_all_columns($res, 0);
-
-
-		# INTERQUERY OPERATOR
-		
-		if (!$mids) {
-			$mids = $ids;                          #first mids query
-		} else {
-			$op = $qobject['queryoperator'];
-			switch ($op) {
-				case 'UNION':
-					 if ($ids) $mids = array_values(array_unique(array_merge($mids, $ids)));
-					break;
-				case 'MINUS':
-					if ($ids) $mids = array_values(array_diff($mids, $ids));
-					break;
-				case 'INTERSECT';
-					if ($ids) $mids = array_values(array_intersect($mids, $ids));
-					break;
-			}
-		}		
-		
-	$sql = "$sql $op $str";
-
-	$qobject = query_add_series_sql($qobject,$qobjects, $sources);
-	$qobject['series'] = $mids;
-	return $qobject;
+		$mids = pg_fetch_all_columns($res, 0);
+		$qobject['series'] = $mids;
+		//query_add_sql($qobject, $qobjects, $sources);
+	
 	}
 
 	
@@ -1254,7 +1140,12 @@ return $qobject;
 	
 	#=================================================================================================================
 
-function query_get_mids($qobjects) {
+function query_get_mids($qobjects, $query = 'this') {
+	
+	# RETURNS GPDD MAINIDs FROM A QUERY STACK
+	# $query	'this' returns mids for the last valid query
+	#           'last' returns mids for the penultimate query
+	# Returns Null if no mids
 	
 	$n = count($qobjects);
 	
@@ -1263,7 +1154,7 @@ function query_get_mids($qobjects) {
 			return null;
 			break;
 		case 1:
-			if ($qobjects[0]['series']) {
+			if ($qobjects[0]['series'] && $query == 'this') {
 				return $qobjects[0]['series'];
 				 null;
 			} else {
@@ -1272,9 +1163,17 @@ function query_get_mids($qobjects) {
 			break;
 		default:
 			if ($qobjects[$n - 1]['status'] == 'new') {
-				return $qobjects[$n - 2]['series'];
+				if ($query == 'this') {
+					return $qobjects[$n - 2]['series'];
+				} else {
+					return $qobjects[$n - 3]['series'];
+				}
 			} else {
-				return $qobjects[$n - 1]['series'];
+				if ($query == 'this') {
+					return $qobjects[$n - 1]['series'];
+				} else {
+					return $qobjects[$n - 2]['series'];
+				}
 			}
 			break;
 	}

@@ -89,11 +89,11 @@ echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php"
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
-//echo "old: $oldtoken, new: $newtoken<br>";
+echo "old: $oldtoken, new: $newtoken<br>";
 
 # Save submitted data to session variables
 foreach ($_POST as $key =>$value) {
-	//echo "$key => $value<br>";
+	echo "$key => $value<br>";
 	$_SESSION[$key] = $value;
 	}
 
@@ -106,7 +106,7 @@ if (!$stage) $stage = 'sources';
 $lastaction = $_SESSION['lastaction'];
 $lastid = $_SESSION['lastid'];
 
-//echo "last: $lastaction, $lastid<br>";
+echo "last: $lastaction, $lastid<br>";
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
@@ -165,7 +165,7 @@ if (empty($qobjects)) $qobjid = null;
 #echo "after get current qobject<br>";
 
 # NAME SEARCH
-if ($stage == 'qset' && $qterm == 'find') {
+if ($stage == 'find') {
 	$name_search = query_name_search($db_handle, $sources);
 	$stage = 'main';
 }
@@ -174,21 +174,7 @@ if ($stage == 'qset' && $qterm == 'find') {
 if ($qterm == 'finish') $stage = 'finish';
 
 # AFTER SOURCES
-
-if ($stage == 'getsources') {
-	# REFRESH AND BACK
-	if (!empty($qobjects)) {
-		if ($qobjects[count($qobjects) - 1]['status'] == 'new') unset($qobjects[count($qobjects) - 1]);
-	}
-	$sources = get_sources($db_handle, $sourceids, 'bio');
-	if ($sources) {
-		$_SESSION['sources'] = $sources;
-		$stage = 'main';
-	} else {
-		echo "<FONT COLOR='red'><b>Select one or more sources</FONT></b>";
-		$stage = 'getsources';
-	}
-}
+if ($stage == 'getsources') $stage = process_get_sources($db_handle, $sourceids, $qobjects);
 	
 # EDIT QUERY
 if ($stage == 'qedit') {
@@ -198,8 +184,8 @@ if ($stage == 'qedit') {
 
 # CANCELLING A QUERY
 if ($stage == 'qcancel') {
-	$c = count($qobjects) - 1;
-	if ($qobjects[$c]['status'] == 'new') unset($qobjects[$c]);
+	//$c = count($qobjects) - 1;
+	//if ($qobjects[$c]['status'] == 'new') unset($qobjects[$c]);
 	$qobjid = null;
 	$stage = 'main';
 }
@@ -212,15 +198,20 @@ if ($stage == 'qdelete') {
 	# If no queries unset names
 	$names = null;
 	# If re-run queries 
-	//echo "Query $idx deleted, ", count($qobjects) , " in stack";
-	foreach ($qobjects as $qobject) {
-		//echo ", running queries";
-		$out = query($db_handle, $qobject, $qobjects, $names, $sources);
-		$qobjects = save_obj($qobjects,$out[0]);
-		$names = $out[1];
+
+	if (!empty($qobjects)) {
+		foreach ($qobjects as $qobject) {
+			//echo ", running queries";
+			$out = query($db_handle, $qobject, $qobjects, $names, $sources);
+			$qobjects = save_obj($qobjects,$out[0]);
+			$names = $out[1];
+		}	
+		$_SESSION['qobjects'] = $qobjects;	
+		$_SESSION['names'] = $names;	
+	} else {
+		unset($names);
+		unset($_SESSION['names']);
 	}
-	$_SESSION['qobjects'] = $qobjects;	
-	$_SESSION['names'] = $names;	
 	$stage = 'main';
 	}
 
@@ -235,7 +226,7 @@ if ($stage == 'querydeleteall') {
 	
 	
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
-if ($stage == 'qset' && !$qobjid) $qobjid = qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobjects);
+if ($stage == 'qset' && !$qobjid) $qobjid = process_qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobjects);
 
 	
 # QVERIFY - VERIFY QUERY
@@ -355,7 +346,7 @@ if ($stage == 'sources') html_select_sources($db_handle);
 
 # MAIN INTERFACE
 if ($stage == 'main' || $stage == 'write') 
-	html_entangled_bank_main($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs, $zip);
+	html_entangled_bank_main($db_handle, $qobjects, $names, $name_search, $output_id, $outputs, $zip);
 
 # QUERY SETUP
 if ($stage == 'qset') html_query_set($db_handle, $qobjid);

@@ -464,8 +464,7 @@ function instr($haystack, $needle) {
 
 
 function get_next_name($objs, $type) {
-	# NEEDS AMENDING TO CHECK IF NAME IS type + numeral, if so get next highest integer
-	//echo "$type<br>";
+	
 	$i = 1;
 	foreach ($objs as $obj) if ($obj['term'] == $type && $obj['name']) $i++;
 	//echo "$type $i<br>";
@@ -489,6 +488,7 @@ function get_next_output_name($outputs, $source) {
 #=================================================================================================================
 
 function get_obj($objs, $id) {
+	if (!$objs) return null;
 	foreach ($objs as $obj) {
 		if ($obj['id'] == $id) return $obj;
 		}

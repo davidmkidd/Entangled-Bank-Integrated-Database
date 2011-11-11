@@ -92,8 +92,6 @@ function addBiotableOutput(id) {
 
 function editQuery(id) {
 	// Opens query for editing
-	var item = document.getElementById('qterm');
-	item.value = 'qedit';
 	var item = document.getElementById('stage');
 	//alert(item.value);
 	item.value = 'qedit';
@@ -139,6 +137,13 @@ function returnOutput(n) {
 }
 
 function submitForm (id) {
+	//alert(id);
+	var stage = document.getElementById('stage');
+	stage.value = id;
+	document.ebankform.submit();
+}
+
+function submitQuery(id) {
 	//alert(id);
 	var qterm = document.getElementById('qterm');
 	qterm.value = id;
@@ -389,4 +394,24 @@ function submitNamesQuery(id) {
 			return false;
 		}
 	}
+}
+
+function submitTemporalQuery(id) {
+	document.getElementById('lastaction').value = 'run';
+	document.getElementById('lastid').value = id;
+	document.ebankform.submit();	
+}
+
+
+function sqlDisplay() {
+	
+	//
+	//alert(document.getElementById('sql'));
+	// CHANGES SQL QUERY DISPLAYED 
+	var idx = document.getElementById('sql').selectedIndex;
+	//alert(idx);
+	var val = document.getElementById('sql').options[idx].value;
+	//alert(val);
+	document.getElementById('sqltext').value = document.getElementById(val).value;
+	//alert (document.getElementById('sqltext').text);
 }

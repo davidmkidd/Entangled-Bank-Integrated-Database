@@ -202,7 +202,7 @@ function treeDelAll() {
 	taxa.title = taxa.options.length + ' names in query';
 }
 
-function selAll() {
+function submitTreeQuery(id) {
 	// selects all taxa form submission
 	var taxa = document.getElementById('taxa_items');
 	// No taxa
@@ -215,6 +215,8 @@ function selAll() {
 		for (var i = 0; i <= taxa.length - 1; i++) {
 			taxa.options[i].selected = true;
 		}
+		document.getElementById('lastaction').value = 'run';
+		document.getElementById('lastid').value = id;
 		document.ebankform.submit();
 	}
 }

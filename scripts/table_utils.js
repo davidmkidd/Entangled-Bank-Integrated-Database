@@ -27,7 +27,7 @@
 	}
 
 
-	function validateBiotable() {
+	function submitTableQuery(id) {
 		
 		// VALIDATES BIOTABLE SUBMIT
 		// AT LEAST ONE _QUERY MUST BE CHECKED

@@ -456,7 +456,7 @@ function html_query_set($db_handle, $qobjid){
 	$qobjects = $_SESSION['qobjects'];
 	$sources = $_SESSION['sources'];
 	$names = $_SESSION['names'];
-	
+	//echo "nq: " . count($qobjects);
 	if ($qobjid) {
 		$qobject = get_obj($qobjects, $qobjid);
 	} else {
@@ -465,14 +465,16 @@ function html_query_set($db_handle, $qobjid){
 	//echo "html_query_set: ";
 	//print_r($qobject);
 	//echo "<br/>";
+	
 	echo "<div id='ebquery'>";
 	$term = $qobject['term'];
-
+	//echo "term: $term";
 	echo '<script src="./scripts/query_utils.js" type="text/javascript"></script>';
 
 	html_query_header($qobject, $qobjects, $sources);
 	
-	# Tool
+	
+	# TOOL
 	switch ($term) {
 		case 'bionames' :
 			html_query_bionames($db_handle, $qobject, $qobjects, $sources);
@@ -487,12 +489,15 @@ function html_query_set($db_handle, $qobjid){
 			html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names);
 			break;	
 		case 'biotemporal':
-			html_query_biotemporal($db_handle, $qobject, $qobjects, $sources, $names);
+			html_query_biotemporal($db_handle, $qobject, $sources);
 			break;
-		default:
-			echo "Invalid selectobj: term.<br>";
-			break;
+		//default:
+		//	echo "html_query_set::invalid query term $term<br>";
+		//	break;
 	}
+	//echo "term: $term";
+	html_query_sql($qobject);
+	
 	echo "</div>";
 	echo "<input type='hidden' id='stage' name='stage' value='qverify'>";
 	echo "<input type='hidden' id='qobjid' name ='qobjid' value=$qobjid>";
@@ -507,23 +512,28 @@ function html_query_set($db_handle, $qobjid){
 		# CONTROL BUTTONS FOR QUERY
 		$term = $qobject['term'];
 		$id = $qobject['id'];
+		
 		echo "<td id='query_buttons' class='query_buttons' align='right'>";
-		echo "<input type='button' name='cancel' class='cancel' value='Cancel' onClick='cancelQuery(\"$id\")'/>";
+		echo "<input type='button' name='delete' class='delete' value='Delete' onClick='deleteQuery(\"$id\")'/>";
+		
 		if ($qobject['status'] != 'new') 
-			echo "<input type='button' name='delete' class='delete' value='Delete' onClick='deleteQuery(\"$id\")'/>";
-			
+			echo "<input type='button' name='cancel' class='cancel' value='Cancel' onClick='cancelQuery(\"$id\")'/>";
+		
 		switch ($term) {
 			case 'biotree':
-				echo "<input id='submit-button' type='submit' class='button-standard' onClick='selAll(); return false;' value='Run >' />";
+				echo "<input id='submit-button' type='submit' class='button-standard' value='Run >' onClick='submitTreeQuery(\"$id\"); return false;' />";
 				break;
 			case 'biotable':
-				echo "<input id='submit-button' type='submit' class='button-standard' onClick='validateBiotable(); return false;' value='Run >' />";
+				echo "<input id='submit-button' type='submit' class='button-standard' value='Run >' onClick='submitTableQuery(\"$id\"); return false;' />";
 				break;
 			case 'biogeographic':
-				echo "<input id='submit-button' type='submit' class='button-standard' onClick='serializeLayer();' value='Run >' />";
+				echo "<input id='submit-button' type='submit' class='button-standard' value='Run >' onClick='submitGeogQuery(\"$id\");' />";
 				break;
 			case 'bionames':
-				echo "<input id='submit-button' type='submit' class='button-standard' onClick='submitNamesQuery(\"$id\"); return false;' value='Run > ' />";
+				echo "<input id='submit-button' type='submit' class='button-standard' value='Run > ' onClick='submitNamesQuery(\"$id\"); return false;' />";
+				break;
+			case 'biotemporal':
+				echo "<input id='submit-button' type='submit' class='button-standard' value='Run >' onClick='submitTemporalQuery(\"$id\");'/>";
 				break;
 			default:
 				//echo "<input id='submit-button' type='submit' class='button-standard' onClick='submitQuery();' value='Run > ' />";
@@ -534,35 +544,35 @@ function html_query_set($db_handle, $qobjid){
 	
 #================================================================================================================
 	
-	function html_query_names_sql($qobject) {
+function html_query_sql($qobject) {
 		
-		# WRITES QUERY SQL TO TEXTAREA
-		
+	# WRITES QUERY SQL TO TEXTAREA
+	//print_r($qobject);
 	if ($qobject['status'] !== 'new') {
-		# NAMES SQL
-		echo "<table>";	
-		echo "<tr>";
-		echo "<td class='query_title'>Names SQL</td>";
-		echo "<td>";
-		$str = $qobject['sql_names'];
-		echo "<textarea readonly='readonly' class='eb_sql'>$str</textarea>";
-		echo "<td>";
-		echo "</tr>";
 		
-		if($qobject['sql_series']) {
-			# MIDS SQL
-			echo "<tr>";
-			echo "<td class='query_title'>GPDD Series SQL</td>";
-			echo "<td>";
-			$str = $qobject['sql_series'];
-			echo "<textarea readonly='readonly' rows='15' class='eb_sql'>$str</textarea>";
-			echo "<td>";
-			echo "</tr>";
-			
-		}
-	echo "</table>";
+		$str = $qobject['sql_names_query'];
+		echo "<input type='hidden' id='sql_names_query' value='$str'>";
+		echo "<input type='hidden' id='sql_names_queries' value = '" . $qobject['sql_names_queries'] . "'>";
+		echo "<input type='hidden' id='sql_series_query' value = '" . $qobject['sql_series_query'] . "'>";
+		echo "<input type='hidden' id='sql_series_queries' value = '" . $qobject['sql_series_queries'] . "'>";
+		echo "<table><tr>";
+		echo "<td class='query_title'>SQL</td>";
+		echo "<td>";
+		$str = $qobject['sql_names_query'];
+		echo "<textarea id='sqltext' readonly='readonly' class='eb_sql'>$str</textarea>";
+		echo "</td></tr>";
+		
+		echo "<tr><td class='query_title'></td>";
+		echo "<td class='eb'><SELECT id='sql' class='eb' onChange='sqlDisplay()'>";
+		if ($qobject['sql_names_query']) echo "<OPTION value='sql_names_query'>Names Query SQL</OPTION>";
+		if ($qobject['sql_series_query']) echo "<OPTION value='sql_series_query'>GPDD Query SQL</OPTION>";
+		if ($qobject['sql_names_queries']) echo "<OPTION value='sql_names_queries'>Names Queries SQL</OPTION>";
+		if ($qobject['sql_series_queries']) echo "<OPTION value='sql_series_queries'>GPDD Queries SQL</OPTION>";
+		echo "</SELECT></td>";
+		echo "</tr></table>";		
+	
 	}
-	}
+}
 	
 #================================================================================================================
 	
@@ -594,7 +604,6 @@ function html_queries_sql($qobjects) {
 	
 function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	
-	//echo '<script src="http://openlayers.org/api/OpenLayers.js" type="text/javascript"></script>';
 	echo '<script src="./OpenLayers-2.11/OpenLayers.js" type="text/javascript"></script>';
 	echo '<script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>';
 	echo '<script src="./scripts/geographic_utils.js" type="text/javascript"></script>';
@@ -604,50 +613,44 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 		exit;
 		}
 
-	//html_query_header($qobject, $sources);
-	//echo "<br>";
-
 	$qname = $qobject['name'];
-		
 	$s_operator = $qobject['s_operator'];	
 	
-	# MAP
+	# QUERY GEOMETRY
 	$q_geometry = '';
 	if ($qobject['q_geometry']) $q_geometry = $qobject['q_geometry'];
-	//echo "q_geom: $q_geometry<br>";
 	echo "<INPUT type='hidden' name='q_geometry' id='q_geometry' value='$q_geometry' />";
 	
 	html_query_spatial_operator ($s_operator);
 	
-	//echo "<p align='right'><FONT color='red'>Bug: if map is not visible change layer with 
-	//	<img src='./image/openlayers_layerswitcher.gif'> button.</FONT></p>";
-	
-	# div tags for OpenLayers
+	# OPENLAYERS
+	echo "<table border='0'><tr>";
+	echo "<td class='query_title'>";
+	echo "<BUTTON type='button' id='delete_features' class='button-standard' onClick='clearMap()'>Clear Map</BUTTON></td>";
+	echo "<td>";
+	$t = "Add points, lines, polygons and boxes to query by.";
     echo "<div id='map' name='map' class='smallmap'></div>";
-   
     echo '<script type="text/javascript" defer="true">
      	mapinit();
      	</script>'; 
-	echo "<p>Google Map content &copy; Google, TeleAtlas and their suppliers.";
-	echo "&nbsp;&nbsp;&nbsp;&nbsp;<BUTTON type='button' id='delete_features' class='button-standard' onClick='clearMap()'>Clear</BUTTON><p>";
-    
-	# BOUNDING BOX
-	 echo "<table border='0'>";
-	 $title='Bounding box in decimal degrees';
-	echo "<tr>";
-	echo "<td class='query_title' title='title'>Bounding Box</td>";
-	echo "<td class='query_spatial_c2'>";	
-	echo "N&deg; <INPUT TYPE='text'id='bbnorth' NAME='bbnorth' VALUE='90.000000'  class='left_input' />&nbsp;";
-	echo "E&deg; <INPUT TYPE='text'id='bbeast' NAME='bbeast' VALUE='180.000000' class='left_input'  /><br>";
-	echo "S&deg; <INPUT TYPE='text' id='bbsouth' NAME='bbsouth' VALUE='-90.000000' class='left_input' />&nbsp;";
-	echo "W&deg;<INPUT TYPE='text' id='bbwest' NAME='bbwest' VALUE='-180.000000' class='left_input' />";
+    echo "</td></tr>";
+    echo "<tr><td class='query_title'></td>";
+    echo "<td id='map_credit'>Google Map content &copy; Google, TeleAtlas and their suppliers.</td></tr></table>";
+
+    # BOUNDING BOX
+    echo "<table border='0'>";
+    echo "<tr>";
+    echo "<td class='query_title'>Bounding Box</td>";
+	$t='Add a bounding box';
+	echo "<td id='bbox'>";	
+	echo "N&deg; <INPUT TYPE='text'id='bbnorth' NAME='bbnorth' VALUE='90.000000'  class='bbox' />&nbsp;";
+	echo "S&deg; <INPUT TYPE='text' id='bbsouth' NAME='bbsouth' VALUE='-90.000000' class='bbox' /><br>";
+	echo "E&deg; <INPUT TYPE='text'id='bbeast' NAME='bbeast' VALUE='180.000000' class='bbox' />&nbsp;";
+	echo "W&deg;<INPUT TYPE='text' id='bbwest' NAME='bbwest' VALUE='-180.000000' class='bbox' />";
 	echo "</td>";
-	echo "<td style='valign: middle;'>";
-	echo "<BUTTON type='button' class='button-standard' onclick='addBoundingBox()'>Add</BUTTON>&nbsp;";
-	//echo "<BUTTON type='button' id='delete_features' class='button-standard' onClick='clearMap()'>Clear</BUTTON>";
-	echo "</td>";
+	echo "<td id='add_bbox'><BUTTON type='button' class='button-standard' onclick='addBoundingBox()'>Add Box</BUTTON></td>";
+	
 	echo "</tr>";
-	html_query_names_sql($qobject);
 	echo "</table>";
 
 }
@@ -665,24 +668,24 @@ function html_query_spatial_operator ($s_operator) {
 	echo "<td>";
 	echo "<select name='s_operator' class='eb'>";
 	if (!$s_operator || $s_operator == 'quickoverlap') {
-		echo "<option value='quickoverlap' SELECTED>Quick Overlap (by bounding box)</option>";
+		echo "<option value='quickoverlap' SELECTED>Overlap by Box</option>";
 	} else {
-		echo "<option value='quickoverlap'>Quick Overlap (by bounding box)</option>";
+		echo "<option value='quickoverlap'>Overlap by Box</option>";
 	}
 	if ($s_operator == 'quickwithin') {
-		echo "<option value='quickoverlap'>Quick Within (by bounding box)</option>";
+		echo "<option value='quickoverlap'>Within by Box</option>";
 	} else {
-		echo "<option value='quickoverlap'>Quick Within (by bounding box)</option>";
+		echo "<option value='quickoverlap'>Within by Box</option>";
 	}
 	if ($s_operator == 'overlap') {
-		echo "<option value='overlap' SELECTED>Accurate Overlap (of query features)</option>";
+		echo "<option value='overlap' SELECTED>Overlap Features</option>";
 	} else {
-		echo "<option value='overlap'>Accurate Overlap (of query features)</option>";
+		echo "<option value='overlap'>Overlap Features</option>";
 	}
 	if ($s_operator == 'within') {
-		echo "<option value='within' SELECTED>Accurate Within (of query polygons)</option>";
+		echo "<option value='within' SELECTED>Within Polygons</option>";
 	} else {
-		echo "<option value='within'>Accurate Within (of query polygons)</option>";
+		echo "<option value='within'>Within Polygons</option>";
 	}
 	echo "</select>";
 	echo "</td>";
@@ -897,7 +900,6 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 		echo "</tr>";
 	}
 	
-	html_query_names_sql($qobject);
 	# CLOSE OUTER TABLE
 	echo "</table>";	
 
@@ -913,7 +915,7 @@ function html_query_nsources ($qobject, $sources){
 	# How many sources name required to be in required
 	//print_r($sources);
 	#echo "in ";
-	
+	echo "<td>";
 	$nop = $qobject['noperator'];
 	if ($qobject['term'] == 'biotemporal') $disabled = "disabled='disabled'";
 	
@@ -971,6 +973,7 @@ function html_query_nsources ($qobject, $sources){
 		echo "<OPTION value='$i' $selected>$i</OPTION>";
 	}
 	echo "</SELECT>";
+	echo "</td>";
 }
 
 #=======================================================================================================================
@@ -1144,16 +1147,15 @@ function html_query_operator($qobject) {
 		if ($query['field'] == $fname) $vals = $query['value'];
 	}
 	
-/*	echo "fname: $fname, str: $str<br>";
-	print_r($queries);
-	echo "<br>";*/
-	
 	$res = pg_query($db_handle, $str);
+	$n = pg_num_rows($res);
+	if ($n < 2) $n = 5;
+	if ($n > 8) $n = 8;
 	
 	echo "<table>";
 	echo "<tr>";
 	echo "<td>";
-	echo "<SELECT id='$fname' name='$fname' class='query_options' $disabled MULTIPLE size='8'>";
+	echo "<SELECT id='$fname' name='$fname' class='query_options' $disabled MULTIPLE size='$n'>";
 	while ($row = pg_fetch_row($res)) {
 		echo "<OPTION value='$row[0]'>$row[1]</OPTION>";
 	}
@@ -1167,7 +1169,7 @@ function html_query_operator($qobject) {
 	echo "</td>";
 	echo "<td>";
 	
-	echo "<SELECT id='$fname" . "_add' name='$fname" . "_add[]' class='query_options' MULTIPLE size='8'>";
+	echo "<SELECT id='$fname" . "_add' name='$fname" . "_add[]' class='query_options' MULTIPLE size='$n'>";
 	if ($vals) {
 		$res = pg_query($db_handle, $str);
 		while ($row = pg_fetch_row($res)) {
@@ -1471,7 +1473,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 							 	AND t.binomial IS NOT NULL";
 							 	
 						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-						$str = $str . "ORDER BY b.\"$fname\"";
+						$str = $str . " ORDER BY b.\"$fname\"";
 						html_query_select_options($db_handle, $str, $fname, $qobject);
 						break;
 					case 'ExactName':
@@ -1512,15 +1514,13 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</td>";
 		echo "</tr>";
 	}
-	html_query_names_sql($qobject);
 	echo "</table>";
 	}
 	
 	
 #=================================================================================================================
 	
-	function html_query_biotemporal($db_handle, $qobject, $qobjects, $sources, $names) {
-		
+	function html_query_biotemporal($db_handle, $qobject, $sources) {
 		
 		# TEMPORAL QUERY
 
@@ -1540,62 +1540,42 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	        11 => 'November',
 	        12 => 'December'
 	    );
-	    
-	   // html_query_header($qobject, $sources);
-	   // echo "<BR>";
+
 		html_query_sources($db_handle, $qobject, $sources);
 		
-		// Get range of dates
+		# YEAR RANGE
 		$str = "SELECT MIN(d.\"SampleYear\"), MAX(d.\"SampleYear\")
 			 FROM gpdd.data d
 			 WHERE d.\"SampleYear\" <> -9999";
-
-		//echo "$str<br>";
 		$res = pg_query($db_handle,$str);
 		$row = pg_fetch_row($res);
 		$minyear = $row[0];
 		$maxyear = $row[1];
-		$msg = "Temporal data available from $minyear to $maxyear<br>";
-		if ($names) {
-			$arr = array_to_postgresql($names, 'text');
-			$str = "SELECT MIN(d.\"SampleYear\"), MAX(d.\"SampleYear\")
-			 FROM gpdd.data d,
-			 gpdd.main m,
-			 gpdd.taxon t
-			 WHERE d.\"MainID\" = m.\"MainID\"
-			 AND m.\"TaxonID\" = t.\"TaxonID\"
-			 AND d.\"SampleYear\" <> -9999
-			 AND t.binomial = ANY ($arr)";
-			//echo "$str<br>";
-			$res = pg_query($db_handle,$str);
-			$row = pg_fetch_row($res);
-			$nminyear = $row[0];
-			$nmaxyear = $row[1];
-			$msg = "Temporal data in selection from $nminyear to $nmaxyear<br>";
-		}
-		//echo "<br>";
 		
-		// Selections
+		# GET QOBJECT PROPERTIES
+		$qyear = $qobject['year'];
+		$qmonth = $qobject['month'];	
+		$qday = $qobject['day'];
+		$qoperator = $qobject['operator'];
+		
+		# TIME RANGE
 		$from_day = 1;
 		$from_month = 1;
-		$from_year = $maxyear;
+		$from_year = $minyear;
 		$to_day = 31;
 		$to_month = 12;
 		$to_year = $maxyear;
 		
 		echo "<table border='0'>";
-		
-		# FROM
-		$title='';
 		echo "<tr>";
-		echo "<td class='query_title' title='$title'>Time</td>";
+		echo "<td class='query_title'>Time</td>";
 		
 		echo "<td>";
 		
 		# FROM OPERATOR
-		echo "<SELECT NAME='t_from_overlay' id='t_from_overlay'>";
-		if (!$t_from_overlay) $t_from_overlay = 'DURING';
-		switch ($t_from_overlay) {
+		echo "<SELECT NAME='toperator' id='toperator'>";
+		if (!$qoperator) $qoperator = 'DURING';
+		switch ($qoperator) {
 			case 'BEFORE':
 				echo "<OPTION VALUE='BEFORE' SELECTED>Before";
 				echo "<OPTION VALUE='DURING'>During";
@@ -1614,10 +1594,10 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</SELECT>";
 		
-		# FROM DAY
-		echo "<SELECT NAME='from_day' id='from_day'>";
+		# DAY
+		echo "<SELECT NAME='day' id='day'>";
 		for ($i = 1; $i <= 31; $i++) {
-			if ($i != $from_day) {
+			if ($i != $qday) {
 				echo "<OPTION VALUE='$i'>$i";
 			} else {
 				echo "<OPTION VALUE='$i' SELECTED>$i";
@@ -1625,10 +1605,10 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</SELECT> ";
 		
-		# FROM MONTH
-		echo "<SELECT NAME='from_month' id='from_month'>";
+		# MONTH
+		echo "<SELECT NAME='month' id='month'>";
 		for ($i = 1; $i <= 12; $i++) {
-			if ($i != $from_month) {
+			if ($i != $qmonth) {
 				echo "<OPTION VALUE='$i'>$month[$i]";
 			} else {
 				echo "<OPTION VALUE='$i' SELECTED>$month[$i]";
@@ -1636,20 +1616,19 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</SELECT> ";
 		
-		# FROM YEAR
-		echo "<SELECT NAME='from_year' id='from_year'>";
+		#  YEAR
+		if (!$qyear) $qyear = 2000;
+		echo "<SELECT NAME='year' id='year'>";
 		for ($i = $minyear; $i <= $maxyear; $i++) {
-			if ($i != $from_year ) {
+			if ($i != $qyear ) {
 				echo "<OPTION VALUE='$i'>$i";
 			} else {
 				echo "<OPTION VALUE='$i' SELECTED>$i";
 			}
 		}
 		echo "</SELECT>";
-		
 		echo "</td>";
 		echo "</tr>";
-		html_query_names_sql($qobject);
 		echo "</table>";
 	
 	}
@@ -1706,13 +1685,26 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "<table border='0'>";
 		echo "<tr>";
 		
-		
 		# ALL/CLEAR
 		if ($qterm == 'biogeographic' || $qterm == 'bionames' || $qterm == 'biotemporal') {
+			switch ($qterm) {
+				case 'biogeographic':
+					$n = count($_SESSION['biogeographic']);
+					break;
+				case 'bionames':
+					$n = count($_SESSION['bioname']);
+					break;
+				case 'biotemporal':
+					$n = count($_SESSION['biotemporal']);
+					break;
+			}
+			
 			echo "<td class='query_title'>";
-			echo "Sources<br>";
-			echo "<input type='button' class='button-standard' name='allbtn' value='all' onClick='checkAll(document.ebankform.qsources)'></br>";
-			echo "<input type='button' class='button-standard' name='clearbtn' value='clear' onClick='uncheckAll(document.ebankform.qsources)'>";
+			echo "Sources";
+			if ($n > 1) {
+				echo "<br><input type='button' class='button-standard' $disabled name='allbtn' value='all' onClick='checkAll(document.ebankform.qsources)'></br>";
+				echo "<input type='button' class='button-standard' $disabled name='clearbtn' value='clear' onClick='uncheckAll(document.ebankform.qsources)'>";	
+			}
 		} else {
 			echo "<td class='query_title'>";
 			echo "Source";
@@ -1720,27 +1712,26 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</td>";
 		
 		echo "<td class='eb_plus'>";
-		if ($qobject['term'] == 'biotree' || $qobject['term'] == 'biotable') {
+		if ($qterm == 'biotree' || $qterm == 'biotable') {
 			$source = get_obj($sources, $qobject['sources'][0]);
 			echo "<input type='text' id='queryheader' class='eb' disabled='disabled' value='", $source['name'], "'></input><br>";
 		} else {
 			html_query_sources($qobject, $sources);
 		}
 		echo "</td>";
-		
 		html_query_buttons($qobject);
 		echo "</tr>";
 		
 		# N SOURCES
-		echo "<tr>";
+		
 		if ($qterm == 'biogeographic' || $qterm == 'bionames' || $qterm == 'biotemporal') {	
+			echo "<tr>";
 			$title='Names must be in x datasets.';
 			echo "<td class='query_title' title='$title'>N Sources</td>";
-			echo "<td>";
 			html_query_nsources ($qobject, $sources);
-			echo "</td>";
+			echo "</tr>";
 		} 
-		echo "</tr>";
+		
 		echo "</table>";
 		
 	}
@@ -1900,9 +1891,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo "</tr>";
 	echo "</table>";
 	echo "</table>";
-	echo "<table>";
-	html_query_names_sql($qobject);
-	echo "</table>";
+
 }
 	
 
@@ -1977,8 +1966,15 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $name_search, $output_id, $outputs, $zip) {
+function html_entangled_bank_main ($db_handle, $qobjects, $names, $name_search, $output_id, $outputs, $zip) {
 	
+		$sources = $_SESSION['sources'];
+		$bioname = $_SESSION['bioname'];
+		$biotree = $_SESSION['biotree'];
+		$biotable = $_SESSION['biotable'];
+		$biogeographic = $_SESSION['biogeographic'];
+		$biotemporal= $_SESSION['biotemporal'];
+		
 		# name_search is an array of name and sources returned by an names search
 		
 		echo '<script src="./scripts/query_type_utils.js" type="text/javascript"></script>';
@@ -2006,31 +2002,8 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		
 		# END FIND
 		echo "</div>";
+		
 
-		
-		# WHICH TYPES OF QUERY ARE AVAILABLE?
-		$bioname = Array();
-		$biotable = Array();
-		$biotree = Array();
-		$biogeographic = Array();
-		$biotemporal = Array();
-		
-		foreach($sources as $source) {
-			array_push($bioname,$source['name']);
-			if ($source['term'] == 'biotable') array_push($biotable,$source['name']);
-			if ($source['term'] == 'biotree') array_push($biotree,$source['name']);
-			if ($source['term'] == 'biogeographic') {
-				array_push($biogeographic, $source['name']);
-				array_push($biotable,$source['name']);
-			}
-			
-			// GPDD HARDCODE
-			if ($source['term'] == 'biorelational') {
-				array_push($biotemporal,$source['name']);
-				array_push($biogeographic, $source['name']);
-				array_push($biotable, $source['name']);
-			}
-		}
 
 		# INFO
 		html_info($db_handle, $qobjects, $sources, $names);
@@ -2042,32 +2015,47 @@ function html_entangled_bank_main ($db_handle, $qobjects, $sources, $names, $nam
 		echo "<tr>";
 		$t = "Create a new query";
 		echo "<td  class='query_title_minus' title='$t'>New Query</td>";
-		$t = "Which names are in sources? &#10;" . count($bioname) . " sources:";
+		if (count($sources) !== 1) {
+			$s = 's';
+		}
+		$t = "Which names are in which source$s? &#10;" . count($bioname) . " source$s:";
 		foreach ($bioname as $bio) $t = $t . "&#10;" . $bio;
-		echo "<td class='qtype' title='$t' align='center'><a href='javascript: submitForm(\"bionames\")'><img src='./image/systema.gif' class='query_type_button'/></a></td>";
+		echo "<td class='qtype' title='$t' align='center'><a href='javascript: submitQuery(\"bionames\")'><img src='./image/systema.gif' class='query_type_button'/></a></td>";
 		
 		if (!empty($biotree)) {
-			$t = "Which names match this tree topoplogy query? ";
-			$t = $t . "(e.g. the least common ancestor or descend from the lca)&#10;" . count($biotree) . " sources:";
+			if (count($biotree) !== 1) {
+				$s = 's';
+			}			
+			$t = "Which names in a tree share this topoplogy? ";
+			$t = $t . "(e.g. the least common ancestor or descend from the lca)&#10;" . count($biotree) . " source$s:";
 			foreach ($biotree as $bio) $t = $t . "&#10;" . $bio;
 			echo "<td class='qtype' title='$t' align='center'><a href='javascript: openSelect(\"biotree\")'><img src='./image/tree.gif' class='query_type_button' /> </a></td>" ;
 		}
 		if (!empty($biotable)) {
-			$t = "Which names match these source attributes?&#10;" . count($biotable) . " sources:";
+			if (count($biotable) !== 1) {
+				$s = 's';
+			}
+			$t = "Which names in a source have these attributes?&#10;" . count($biotable) . " source$s:";
 			foreach ($biotable as $bio) $t = $t . "&#10;" . $bio;
 			echo "<td class='qtype' title='$t' align='center'><a href='javascript: openSelect(\"attribute\")'><img src='./image/haekel_bug.gif' class='query_type_button' /> </a></td>" ;
 		}
 		if (!empty($biogeographic)) {
-			$t = "Which names have data here?&#10;" . count($biogeographic) . " sources:";
+			if (count($biogeographic) !== 1) {
+				$s = 's';
+			}
+			$t = "Which names have data here?&#10;" . count($biogeographic) . " source$s:";
 			foreach ($biogeographic as $bio) $t = $t . "&#10;" . $bio;
 			//http://www.google.co.uk/imgres?q=map+blue+marble+clear+background&hl=en&biw=1440&bih=785&tbs=isz:m&tbm=isch&tbnid=gbVFJa91hd_vOM:&imgrefurl=http://oceanmotion.org/html/background/climate.htm&docid=ruZBy3lxCY6e0M&w=350&h=350&ei=D8RcTsOIMdC58gPn9Y3UAw&zoom=1&iact=rc&dur=307&page=2&tbnh=132&tbnw=133&start=28&ndsp=29&ved=1t:429,r:11,s:28&tx=75&ty=81
-			echo "<td class='qtype' title='$t' align='center'><a href='javascript: submitForm(\"biogeographic\")'><img src='./image/blue-planet.gif' class='query_type_button'/> </a></td>" ;
+			echo "<td class='qtype' title='$t' align='center'><a href='javascript: submitQuery(\"biogeographic\")'><img src='./image/blue-planet.gif' class='query_type_button'/> </a></td>" ;
 		}
 		if (!empty($biotemporal)) {
+			if (count($biotemporal) !== 1) {
+				$s = 's';
+			}
 			//http://farm4.static.flickr.com/3605/3639291429_f19524c475.jpg
-			$t = "Which names have data for this period?&#10;" . count($biotemporal) . " sources:";
+			$t = "Which names have data at this time?&#10;" . count($biotemporal) . " source$s:";
 			foreach ($biotemporal as $bio) $t = $t . "&#10;" . $bio;
-			echo "<td class='qtype' title='$t' align='center'><a href='javascript: submitForm(\"biotemporal\")'><img src='./image/clock.gif' class='query_type_button'/> </a></td>" ;
+			echo "<td class='qtype' title='$t' align='center'><a href='javascript: submitQuery(\"biotemporal\")'><img src='./image/clock.gif' class='query_type_button'/> </a></td>" ;
 		}	
 		echo "</tr>";
 		

@@ -31,12 +31,6 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 	#echo "add keys";
 	# GENERAL
 	$qobject = add_key_val($qobject, 'name', $_SESSION['objname']);
-	if ($_SESSION['querynot']) {
-		$qobject = add_key_val($qobject, 'querynot', 'NOT');
-	} else {
-		$qobject = add_key_val($qobject, 'querynot', '');
-	}
-	
 	$qobject['querynull'] = $_SESSION['querynull'];
 	$qobject['queryoperator'] = $_SESSION['queryoperator'];
     
@@ -86,21 +80,6 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 		$qobject['s_operator'] = $_SESSION['s_operator'];
 		$qobject['q_geometry'] = $_SESSION['q_geometry'];
 		}
-		
-	#Temporal keys
-	if ($term == 'biotemporal') {
-		$qobject['t_from_overlay'] = $_SESSION['t_from_overlay'];
-		$qobject['from_day'] = $_SESSION['from_day'];
-		$qobject['from_month'] = $_SESSION['from_month'];
-		$qobject['from_year'] = $_SESSION['from_year'];
-		$qobject['t_2'] = $_SESSION['t_2'];
-		if ($qobject['t_2'] == 'on') {
-			$qobject['t_to_overlay'] = $_SESSION['t_to_overlay'];
-			$qobject['to_day'] = $_SESSION['to_day'];
-			$qobject['to_month'] = $_SESSION['to_month'];
-			$qobject['to_year'] = $_SESSION['to_year'];
-		}
-	}
 	
 	# GPDD keys
 	if ($term == 'biorelational') {
@@ -124,7 +103,7 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 			$qobject = validate_biotree($db_handle, $qobject, $sources);
 			break;
 		case 'biotemporal':
-			$qobject = validate_biotemporal($qobject, $sources);
+			validate_biotemporal($qobject, $sources);
 			break;
 		// Biogeographic validated with Javascript
 		case 'biogeographic':
@@ -353,58 +332,28 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 	
 # ===================================================================================================================
 	
-	function validate_biotemporal($qobject, $sources) {
+	function validate_biotemporal(&$qobject, $sources) {
 		
 		// GPDD HARDCODE
-		// Validates:
-		// days in month
-		// before < to
-		
-		$from_year = $qobject['from_year'];
-		$to_year = $qobject['to_year'];	
-		$from_month = $qobject['from_month'];
-		$to_month = $qobject['to_month'];
-		$from_day = $qobject['from_day'];
-		$to_day = $qobject['to_day'];
-//		echo "from $from_day $from_month $from_year ";
-//		echo " to $to_day $to_month $to_year<br>";
+		$day = $_SESSION['day'];
+		$month = $_SESSION['month'];
+		$qobject['year'] = $_SESSION['year'];
+		$qobject['toperator'] = $_SESSION['toperator'];
 		
 		$months_w30days = array(4,6,9,11);
 		$days = array(31,28,31,30,31,30,31,31,30,31,30,31);
-		//print_r($days);
-		//echo "<br>";
 		
 		// DAYS IN MONTH CORRECTION - should be done via js
-		if ($from_month == 2 && $from_day > 28) $from_day = 28;
-		if (in_array($from_month,$months_w30days) && $from_day = 31) $from_day = 30;
-		if ($to_month == 2 && $to_day > 28) $to_day = 28;
-		if (in_array($to_month,$months_w30days) && $to_day = 31) $to_day = 30;
-		$qobject['from_day'] = $from_day;
-		$qobject['to_day']= $to_day;
+		if ($month == 2 && $day > 28) $day = 28;
+		if (in_array($month,$months_w30days) && $day = 31) $day = 30;
+		$qobject['day'] = $day;
 		
 		$nday = 0;
-		for ($i = 0; $i <= $from_month - 1; $i++) $nday = $nday + $days[$i];
-		//echo "$nday<br>";
-		$nday = $nday + $from_day;
-		$from_digital_time = $qobject['from_year'] + ($nday/365);
-		$qobject['from_dtime'] = $from_digital_time;
-
-		
-		$nday = 0;
-		for ($i = 0; $i <= $to_month - 1; $i++) $nday = $nday + $days[$i];
-		$nday = $nday + $to_day;
-		$to_digital_time =$qobject['to_year'] + ($nday/365);
-		$qobject['to_dtime'] = $to_digital_time;
-
-		//echo "$from_digital_time - $to_digital_time<br>";
-		
-/*		if ($from_digital_time >= $to_digital_time) {
-			$errs = array();
-			$errs = add_key_val($errs, "temporal", "'From' time must be before 'To' time");
-			$qobject = add_key_val($qobject, 'errs', $errs);
-		}*/
-		
-		return $qobject;
+		for ($i = 0; $i <= $month - 1; $i++) $nday = $nday + $days[$i];
+		$nday = $nday + $day;
+		$qobject['dtime'] = $qobject['year'] + ($nday/365);
+		$qobject['day'] = $day;
+		$qobject['month'] = $month;
 	}
 
 # ===================================================================================================================

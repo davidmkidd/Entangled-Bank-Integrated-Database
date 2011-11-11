@@ -4,7 +4,7 @@
 	 
     var map;
     var wgs84 = new OpenLayers.Projection("EPSG:4326");
-    var vectors = new OpenLayers.Layer.Vector("Query Objects");
+    var vectors = new OpenLayers.Layer.Vector("Features");
     //var apiKey = "AqTGBsziZHIJYYxgivLBf0hVdrAk9mWO5cQcb8Yux8sW5M8c8opEC2lZqKR1ZZXf";
     
     function mapinit(){
@@ -53,7 +53,7 @@
         
     }
     
-    function serializeLayer() {
+    function submitGeogQuery(id) {
     	// checks form validity and if OK serialises geometries
     	//alert(document.getElementById('cancel_yes').checked);
     	//alert("!");
@@ -82,6 +82,8 @@
     	//alert(wkt_format.write(vectors.features));
     	
     	document.getElementById('q_geometry').value = wkt_format.write(vectors.features);
+		document.getElementById('lastaction').value = 'run';
+		document.getElementById('lastid').value = id;
     	//document.ebankform.submit();
     	
     }

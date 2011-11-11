@@ -203,7 +203,7 @@
 	}
 	
 	.smallmap {
-		width: 835px;
+		width: 720px;
 		height: 400px;
 		border: 1px solid grey;
 	}
@@ -361,8 +361,22 @@
 	}
 	
 	td.query_spatial_c2 {
-		width: 450px;
+		width: 340px;
 		padding-left: 5px;
+	}
+	
+	td#map_credit {
+		width: 380px;
+		font-size: small;
+		text-align: right;
+	}
+	
+	td#bbox {
+		width: 225px;
+	}
+	
+	td#add_bbox {
+		width: 100px;
 	}
 	
 	.qop {
@@ -441,6 +455,11 @@
 	
 	input.singlesource {
 		width: 232px;
+	}
+	
+	input.bbox {
+		width: 80px;
+		text-align: right;
 	}
 	
 	.button-standard {
