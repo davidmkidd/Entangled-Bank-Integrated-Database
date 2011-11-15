@@ -36,12 +36,11 @@ function process_qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobje
 	return $qobjid;
 }
 
-function process_get_sources($db_handle, $sourceids, &$qobjects) {
+
+#=====================================================================================================
+
+function process_get_sources($db_handle, $sourceids) {
 	
-	# REFRESH AND BACK
-	if (!empty($qobjects)) {
-		if ($qobjects[count($qobjects) - 1]['status'] == 'new') unset($qobjects[count($qobjects) - 1]);
-	}
 	
 	$sources = get_sources($db_handle, $sourceids, 'bio');
 	
@@ -76,6 +75,82 @@ function process_get_sources($db_handle, $sourceids, &$qobjects) {
 	$_SESSION['biotemporal'] = $biotemporal;
 	return 'main';
 }
+
+#=====================================================================================================
+
+function process_delete_query($db_handle, $qobjid) {
+	
+	$qobjects = $_SESSION['qobjects'];
+	
+	
+	$_SESSION['names'] = $names;
+	$idx = obj_idx($qobjects,$qobjid);
+	unset ($qobjects[$idx]);
+	//echo "query $qobjid deleted<br>";
+	array_values($qobjects);
+	$names = null;
+	# RUN QUERIES
+	if (!empty($qobjects)) {
+		$sources = $_SESSION['sources'];
+		foreach ($qobjects as $qobject) {
+			$out = query($db_handle, $qobject, $qobjects, $names, $sources);
+			$qobjects = save_obj($qobjects,$out[0]);
+			$names = $out[1];
+		}	
+		$_SESSION['names'] = $names;	
+	} else {
+		unset($_SESSION['names']);
+		unset($_SESSION['qobjects']);
+	}
+	$_SESSION['qobjects'] = $qobjects;	
+}
+
+#=====================================================================================================
+
+function process_new_output ($newtoken, $newtoken, $output_sid) {
+	
+	$outputs = $_SESSION['outputs'];
+	$sources = $_SESSION['sources'];
+	
+	switch (true) {
+		case ($outputs && $outputs[count($outputs) - 1]['status'] == 'new'):
+		case ($outputs && $newtoken == $oldtoken):
+			$output = $outputs[count($outputs) - 1];
+			$output_id = $output['id'];
+			break;
+		default;
+			if (!$outputs) $outputs = array();
+			$output = array();
+			$output['sourceid'] = $output_sid;
+			$output['id'] =  md5(uniqid());
+			$output['status'] = 'new';
+			$source = get_obj($sources, $output_sid);
+			$output['term'] = $source['term'];
+			array_push($outputs, $output);
+			break;
+	}
+	
+	$_SESSION['outputs'] = $outputs;
+	return($output['id']);
+	
+}
+
+#=====================================================================================================
+
+function process_delete_output ($oid) {
+	
+	$outputs = $_SESSION['outputs'];
+	
+	$idx = obj_idx($outputs, $oid);
+	unset ($outputs[$idx]);
+	array_values($outputs);
+	
+	$_SESSION['outputs'] = $outputs;
+	
+}
+
+#=====================================================================================================
+
 
 
 ?>

@@ -2,42 +2,31 @@
 
 // Validation
 
-function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
+function process_query ($db_handle, $qobjid, $qsources) {
 	
+	//echo "begin prcess_query<br>";
+	
+	$qobjects = $_SESSION['qobjects'];
+	if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
+	$sources = $_SESSION['sources'];
+	$names = $_SESSION['names'];
 	unset ($qobject['errs']);
-	$term = $qobject['term'];
-	#echo "Validate, term = $term<br>";
-//	echo print_r($qobject) . "<br>";
-	# NUMBER OF SOURCES
-	//print_r($qsources);
 	
-	switch ($term){
-		case 'biogeographic':
-		case 'bionames':
-		case 'biotemporal':
-			if (count($qsources) == 0) {
-				$qobject['errs'] = array_merge($qobject['errs'], array('sources' => "One or more sources must be selected"));
-			} else {
-				$qobject = add_key_val($qobject,'sources', $qsources);
-			}
-			break;
-		default:
-			break;
-	}
+	$term = $qobject['term'];
+	
+	echo "Validate, term = $term<br>";
 	
 	# --------
 	# ADD KEYS
 	# --------
-	#echo "add keys";
+
 	# GENERAL
-	$qobject = add_key_val($qobject, 'name', $_SESSION['objname']);
+	$qobject['name'] = $_SESSION['objname'];
 	$qobject['querynull'] = $_SESSION['querynull'];
 	$qobject['queryoperator'] = $_SESSION['queryoperator'];
     
-	# NAMES QUERY
+	# NAMES IN QUERY
 	if ($term == 'bionames' || $term == 'biotree') {
-		//echo "taxa: " , $_SESSION['taxa'] , "<br>";
-		//print_r($_SESSION['taxa']);
 		$qobject = add_taxa_to_query($qobject);
 		if ($_SESSION['allnames']) {
 			if ($_SESSION['allnames'] == 'on') {
@@ -53,15 +42,14 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
     
     # MULTIPLE SOURCES
     if ($term == 'biogeographic' || $term =='biotemporal' || $term == 'bionames') {
-    	$qobject = add_key_val($qobject, 'nsources', $_SESSION['nsources']);
-    	$qobject = add_key_val($qobject, 'noperator', $_SESSION['noperator']);
+    	$qobject['sources'] = $qsources;
+    	$qobject ['nsources'] = $_SESSION['nsources'];
+    	$qobject['noperator'] = $_SESSION['noperator'];
     }
     
 	# Tree keys
 	if ($term == 'biotree') {
-		$qobject = add_key_val($qobject, 'subtree', $_SESSION['subtree']);
-//		print_r($_SESSION['treenodes']);
-//		echo "<br>";
+		$qobject['subtree'] = $_SESSION['subtree'];
 		switch (true) {
 			case ($_SESSION['treenodes'][0] == 'tip' && $_SESSION['treenodes'][1] == 'internal'):
 				$qobject['treenodes'] = 'all';
@@ -74,41 +62,23 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 				break;
 		}
 	}
-
-	# Geographic keys
-	if ($term == 'biogeographic') {
-		$qobject['s_operator'] = $_SESSION['s_operator'];
-		$qobject['q_geometry'] = $_SESSION['q_geometry'];
-		}
-	
-	# GPDD keys
-	if ($term == 'biorelational') {
-		$qobject = add_key_val($qobject, 'nseries', $_SESSION['nseries']);
-		$qobject = add_key_val($qobject, 'nseries_operation', $_SESSION['nseries_operation']);
-	}
     
-	#echo " - keys added<br>";
-//	print_r ($qobject);
-//	echo "<br>";
-//	
-	# validate query
+	# PROCESS QUERY BY TERM
 	switch ($term) {
 		case 'bionames':
-			$qobject = validate_bionames($db_handle, $qobject, $sources);
+			$qobject = process_bionames($db_handle, $qobject, $sources);
 			break;
 		case 'biotable':
-			$qobject = validate_biotable($db_handle, $qobject, $sources, $names);
+			process_biotable($db_handle, $qobject, $sources, $names);
 			break;
 		case 'biotree':
-			$qobject = validate_biotree($db_handle, $qobject, $sources);
+			$qobject = process_biotree($db_handle, $qobject, $sources);
 			break;
 		case 'biotemporal':
-			validate_biotemporal($qobject, $sources);
+			process_biotemporal($qobject, $sources);
 			break;
-		// Biogeographic validated with Javascript
 		case 'biogeographic':
-			// Validated by js on input
-			//$qobject = validate_biogeographic($qobject, $sources);
+			process_biogeographic($qobject);
 			break;	
 		default:
 			echo "validate_query: unrecognised query type $term";
@@ -122,90 +92,39 @@ function validate_query ($db_handle, $qobject, $sources, $qsources, $names) {
 		$qobject['status'] = 'invalid';
 	}
 	
-	#echo " - validation finished<br>";;
-	//print_r($qobject);
-	//echo "<br>";
-	
-	return $qobject;
-	
-}
 
-
-# =============================================================================================================================
-
-/*function validate_biogeographic($qobject, $sources) {
-
-	# Validates spatial query returning an updated select object then subsets names by bounding box or returns an array of errors
-	
-	# Returns an array, [0]  names within spatial query, [1] names outside of spatial query, [2] error messages
-
-	# Delete existing errors - Fix for resubmit
-	if (array_key_exists('errs', $qobject)) {
-		remove_element($qobject, 'errs');
-		}
-//	echo "begin validate_biogeographic<br>";
-//	print_r($qobject);
-//	echo "<br>";
-	$bbox = $qobject['bbox'];
-	$nsources = $qobject['nsources'];
-	$nsources_operator = $qobject['noperator'];
-	$nqsources = count($qobject['sources']);
-	$s_overlay = $bbox['s_overlay'];
-	$bbnorth = $bbox['bbnorth'];
-	$bbsouth = $bbox['bbsouth'];
-	$bbeast = $bbox['bbeast'];
-	$bbwest = $bbox['bbwest'];
-	
-	#check all boxes have valid entries
-	$errs = array();
-	//echo "nsources = $nsources, nqsources = $nqsources, nsources_operator = $nsources_operator<br>";
-	#nsources
-	if ($nsources > $nqsources && ($nsources_operator == '=' || $nsources_operator == '>=')) {
-		$errs = add_key_val($errs, "nsources", "$nqsources in query, but $nsources_operator $nsources requested");
+	if ($qobject['status'] === 'valid') {
+		$stage = 'query';
+	} else {
+		$stage = 'qset';
 	}
 	
+	$qobjects = save_obj($qobjects, $qobject);
+	$_SESSION['qobjects'] = $qobjects;
 	
-	# VALUES IN ALL BOXES
-	if (!is_numeric($bbnorth)) {
-		$errs = add_key_val($errs, "north", "All bounding box fields must have numeric values");
-		}
-	if (!is_numeric($bbsouth)) {
-		$errs = add_key_val($errs, "south", "All bounding box fields must have numeric values");
-		}
-	if (!is_numeric($bbeast)) {
-		$errs = add_key_val($errs, "east", "All bounding box fields must have numeric values");
-		}
-	if (!is_numeric($bbwest)) {
-		$errs = add_key_val($errs, "west", "All bounding box fields must have numeric values");
-		}
+	//echo "After process_query<br>";
+	//print_r($qobjects);
+	//echo "<br>";
 	
-	# NORTH AND SOUTH
-	if ($bbnorth and $bbsouth and $bbeast and $bbwest) {
+	return $stage;
 	
-		if ($bbnorth > 90 || $bbnorth < -90) $errs = add_key_val($errs, "north", "North must be between -90 and +90");
-		if ($bbsouth > 90 || $bbsouth < -90) $errs = add_key_val($errs, "south", "South must be between -90 and +90");
-
-		if ($bbnorth <= 90 and $bbsouth < 90 and $bbnorth > -9 and $bbsouth >= -90) {
-			if ($bbnorth <= $bbsouth) {
-				$errs = add_key_val($errs, "north", "North must be greater than South");
-				$errs = add_key_val($errs, "south", "South must be less than Nouth");
-				}
-			}
-		}
-	
-	# EAST AND WEST
-	if ($bbwest > 180 || $bbwest < -180) $errs = add_key_val($errs, "west", "West must be between -180 and +180");
-	if ($bbwest > 180 || $bbeast < -180) $errs = add_key_val($errs, "east", "East must be between -180 and +180");
-
-	if (!empty($errs)) $qobject = add_key_val($qobject, "errs", $errs);
-;	
-	return $qobject;
-	}*/
+}
 
 #=================================================================================================================
 
 
-function validate_bionames($db_handle, $qobject, $sources) {	
+function process_biogeographic(&$qobject) {
+	
+	$qobject['s_operator'] = $_SESSION['s_operator'];
+	$qobject['q_geometry'] = $_SESSION['q_geometry'];
+
+}
+
+
+#=================================================================================================================
+
+
+function process_bionames($db_handle, $qobject, $sources) {	
 	
 	# Converts names input to array
 	# and validates against DB
@@ -231,7 +150,7 @@ function validate_bionames($db_handle, $qobject, $sources) {
 	
 #=================================================================================================================
 	
-function validate_biotable($db_handle, $qobject, $sources, $names)  {
+function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	
 	//echo "begin validate table<br>";
 
@@ -244,10 +163,12 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 	$queries = array();
 	$qfields = array();            //fields in query
 	$fnames = array();
-	
-	//print_r($fields);
-	//echo "<br>;";
-	
+
+	# GPDD keys
+	if ($source['term'] == 'biorelational') {
+		$qobject['nseries'] = $_SESSION['nseries'];
+		$qobject['nseries_operation'] = $_SESSION['nseries_operation'];
+	}
 	
 	foreach($fields as $field) array_push($fnames, $field['name']);
 	
@@ -264,6 +185,9 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 	
 	// Process qfields
 	if (!empty($qfields)) {
+		echo "qfields: ";
+		print_r($qfields);
+		echo "<br>";
 		foreach ($qfields as $qfield) {
 			
 			//$i = array_search($qfield, $fields);
@@ -314,25 +238,20 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 			}
 		
 		}
+		print_r($queries);
+		echo "<br>";
 		$qobject['queries'] = $queries;	
 	} else {
 		$errs = array();
 		$errs = array_merge($errs, array('query' => "one or more fields must be queried"));
 		$qobject = add_key_val($qobject, 'errs', $errs);
-		return $qobject;
 	}
-	
-	//print_r($queries);
-	//echo "<br>";
-	//echo "End table validate<br>";
-
-	return $qobject;
 	
 }
 	
 # ===================================================================================================================
 	
-	function validate_biotemporal(&$qobject, $sources) {
+	function process_biotemporal(&$qobject, $sources) {
 		
 		// GPDD HARDCODE
 		$day = $_SESSION['day'];
@@ -359,7 +278,7 @@ function validate_biotable($db_handle, $qobject, $sources, $names)  {
 # ===================================================================================================================
 
 
-	function validate_biotree ($db_handle, $qobject, $sources) {
+	function process_biotree ($db_handle, $qobject, $sources) {
 			# NO NAMES
 			if ($qobject['errs']) unset($qobject['errs']);
 			if (empty($qobject['taxa']) and $qobject['subtree'] != 'all') {
@@ -464,15 +383,20 @@ function validate_names($db_handle, $qobject, $sources) {
 	
 	#=================================================================================================================
 
-	function validate_output ($db_handle, $output, $outputs, $sources) {
+	function process_output($db_handle, $output_id) {
 		
+		$sources = $_SESSION['sources'];
+		$outputs = $_SESSION['outputs'];
+		$output = get_obj($outputs, $output_id);
 		$source = get_obj($sources, $output['sourceid']);
 		$term = $source['term'];
-	
+		//echo "$output_id<br>";
+		//print_r($outputs);
+		
 		$objname = $_SESSION['objname'];
 		if (!$objname) {
 			$objname = get_next_name($outputs, $term);
-			}
+		}
 		
 		$output['name'] = $objname;
 		$output['term'] = $term;
@@ -521,8 +445,9 @@ function validate_names($db_handle, $qobject, $sources) {
 			}
 
 		$output['status'] = 'valid';
-	
-		return $output;
+		$outputs = save_obj($outputs, $output);
+		
+		$_SESSION['outputs'] = $outputs;
 	}
 	
 # =================================================================================================================

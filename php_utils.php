@@ -466,7 +466,9 @@ function instr($haystack, $needle) {
 function get_next_name($objs, $type) {
 	
 	$i = 1;
-	foreach ($objs as $obj) if ($obj['term'] == $type && $obj['name']) $i++;
+	if ($objs) {
+		foreach ($objs as $obj) if ($obj['term'] == $type && $obj['name']) $i++;
+	}
 	//echo "$type $i<br>";
 	return $type . "_" . $i;
 	}
@@ -476,12 +478,14 @@ function get_next_name($objs, $type) {
 	
 	
 function get_next_output_name($outputs, $source) {
+	
 	# NEEDS AMENDING TO CHECK IF NAME IS type + numeral, if so get next highest integer
-	//echo "$type<br>";
+
 	$name = str_replace(' ', '_', $source['name']);
 	$i = 1;
-	foreach ($outputs as $obj) if (instr($name, $obj['name'])) $i++;
-	//echo "$type $i<br>";
+	if ($outputs) {
+		foreach ($outputs as $obj) if (instr($name, $obj['name'])) $i++;
+	}
 	return $name . "_" . $i;
 	}
 	
@@ -948,11 +952,15 @@ function nodes_array_to_labels_array($node_array) {
 
 function obj_idx($objs, $id) {
 	$i = 0;
-	foreach ($objs as $obj) {
-		if ($obj['id'] == $id) return $i;
-		$i++;
+	if ($objs) {
+		foreach ($objs as $obj) {
+			if ($obj['id'] == $id) return $i;
+			$i++;
 		}
-	}	
+	}
+	return null;
+}
+
 	
 
 #=================================================================================================================
@@ -1097,6 +1105,7 @@ function remove_element($arr, $val){
 function save_obj($objs, $newobj) {
 	#Saves object
 	$i = 0;
+	if ($objs) {
 	foreach ($objs as $obj) {
 		if ($obj['id'] == $newobj['id']) {
 			$objs[$i] = $newobj;
@@ -1104,7 +1113,10 @@ function save_obj($objs, $newobj) {
 			}
 		$i++;
 		}
+	} else {
+		return null;
 	}
+}
 
 #=================================================================================================================
 

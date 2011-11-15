@@ -1,40 +1,27 @@
 <?php
 
-// Starting the session to pass variables to PERL
-#ini_set('session.save_path', realpath('C:\tmp'));
-#session_name('Private');
+// Starting the session
 session_start();
 
-$mytimes = array("page_begin" => microtime(True));
+//$mytimes = array("page_begin" => microtime(True));
+
+# LIBRARIES
 
 include "config_setup.php";
-#$config = parse_ini_file('../../passwords/entangled_bank.ini');
-
 include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
-
 include "html_utils.php";
 include "php_utils.php";
 include "php_query.php";
 include "php_process.php";
 include "php_validate.php";
 include "php_write.php";
-include "html_cart.php";
-#include "../../passwords/eb_connect_pg.php";
+include "html_info.php";
 
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
 $html_path = "http://" . $config['htmlhost'] . "/";
 if($config['html_path']) $html_path = $html_path . $config['html_path'] . '/';
 $share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 $_SESSION['tmp_path'] = $config['tmp_path'];
-
-/*
-echo "eb_path: $eb_path<br>";
-echo "html_path: $html_path<br>";
-echo "share_path: $share_path<br>";
-*/
-
-
-set_time_limit(1200);
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            HTML HEADERS
@@ -61,7 +48,10 @@ html_entangled_bank_header($eb_path, $html_path, $share_path, true);
 #                                           DATABASE CONNECTION
 # --------------------------------------------------------------------------------------------------
 
+set_time_limit(1200);
+
 $db_handle = eb_connect_pg($config);
+
 if ($db_handle == false) {
 	# FOOTER
 	html_entangled_bank_footer();
@@ -89,7 +79,7 @@ echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php"
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
-echo "old: $oldtoken, new: $newtoken<br>";
+//echo "old: $oldtoken, new: $newtoken<br>";
 
 # Save submitted data to session variables
 foreach ($_POST as $key =>$value) {
@@ -106,30 +96,30 @@ if (!$stage) $stage = 'sources';
 $lastaction = $_SESSION['lastaction'];
 $lastid = $_SESSION['lastid'];
 
-echo "last: $lastaction, $lastid<br>";
+//echo "last: $lastaction, $lastid<br>";
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
-$sources = $_SESSION['sources'];				//Array or sources
+//$sources = $_SESSION['sources'];				//Array or sources
 
 # MANAGEMENT
-if ($_SESSION['names']) $names = $_SESSION['names'];	//currently selected names
-$qobjects = $_SESSION['qobjects'];           			// Array of query objects
+//if ($_SESSION['names']) $names = $_SESSION['names'];	//currently selected names
+//$qobjects = $_SESSION['qobjects'];           			// Array of query objects
 $qobjid = $_SESSION['qobjid'];				// The qobj to process. Is null if new query or repost				
-$qedit_objid = $_SESSION['qedit_objid'];    // Query to be edited
+//$qedit_objid = $_SESSION['qedit_objid'];    // Query to be edited
 $qterm = $_SESSION['qterm'];               // the type of query
-$qset = $_SESSION['qset'];
+//$qset = $_SESSION['qset'];
 $qsources = $_SESSION['qsources'];         // the sources the query applies to
 if (!is_array($qsources)) $qsources = array($qsources);
 
-$qsources_mode = $_SESSION['qsources_mode'];
-$cancel = $_SESSION['cancel'];
-unset ($_SESSION['cancel']);
-if ($_SESSION['maction']) $maction = $_SESSION['maction'];
+//$qsources_mode = $_SESSION['qsources_mode'];
+//$cancel = $_SESSION['cancel'];
+//unset ($_SESSION['cancel']);
+//if ($_SESSION['maction']) $maction = $_SESSION['maction'];
 
 # TABULAR QUERY & OUTPUT
-if ($_SESSION['allfields']) $allfields = $_SESSION['allfields'];  # flag to display all fields
-$tablefields = $_SESSION['tablefields'];	//Fields of the biotable to **query or output**
+//if ($_SESSION['allfields']) $allfields = $_SESSION['allfields'];  # flag to display all fields
+//$tablefields = $_SESSION['tablefields'];	//Fields of the biotable to **query or output**
 
 # OUTPUT
 $output_sid = $_SESSION['output_sid'];        // OUTPUT SOURCE
@@ -137,7 +127,7 @@ $output_id = $_SESSION['output_id'];          // OUTPUT ID
 if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
 if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 
-$files_to_delete = $_SESSION['files_to_delete'];
+//$files_to_delete = $_SESSION['files_to_delete'];
 
 # -----------------------------------------------------------------------------------------------------------
 #                                                PRE-FORM PROCESSING
@@ -149,16 +139,10 @@ $files_to_delete = $_SESSION['files_to_delete'];
 //echo ", qobjid: $qobjid<br>";
 //echo "<br>";
 
-//echo "names: " . !empty($names);
-//print_r($names);
-//echo "<br>";
-
-# Get Current qobject
+# CURRENT OBJECT
+if (empty($qobjects)) $qobjid = null;            # BIOTREE AND BIOTTRIBUTE FIX
 if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 if ($output_id) $output = get_obj($outputs, $output_id);
-
-# BIOTREE AND BIOTTRIBUTE FIX
-if (empty($qobjects)) $qobjid = null;
 
 #echo "output_id: $output_id, output:";#if ($output) print_r($output);
 #echo "<br>";
@@ -166,7 +150,7 @@ if (empty($qobjects)) $qobjid = null;
 
 # NAME SEARCH
 if ($stage == 'find') {
-	$name_search = query_name_search($db_handle, $sources);
+	$name_search = query_name_search($db_handle);
 	$stage = 'main';
 }
 
@@ -174,7 +158,8 @@ if ($stage == 'find') {
 if ($qterm == 'finish') $stage = 'finish';
 
 # AFTER SOURCES
-if ($stage == 'getsources') $stage = process_get_sources($db_handle, $sourceids, $qobjects);
+if ($stage == 'getsources') 
+	$stage = process_get_sources($db_handle, $sourceids);
 	
 # EDIT QUERY
 if ($stage == 'qedit') {
@@ -184,34 +169,14 @@ if ($stage == 'qedit') {
 
 # CANCELLING A QUERY
 if ($stage == 'qcancel') {
-	//$c = count($qobjects) - 1;
-	//if ($qobjects[$c]['status'] == 'new') unset($qobjects[$c]);
 	$qobjid = null;
 	$stage = 'main';
 }
 	
 # DELETE A QUERY
 if ($stage == 'qdelete') {
-	$idx = obj_idx($qobjects,$qobjid);
-	unset ($qobjects[$idx]);
-	array_values($qobjects);
-	# If no queries unset names
-	$names = null;
-	# If re-run queries 
-
-	if (!empty($qobjects)) {
-		foreach ($qobjects as $qobject) {
-			//echo ", running queries";
-			$out = query($db_handle, $qobject, $qobjects, $names, $sources);
-			$qobjects = save_obj($qobjects,$out[0]);
-			$names = $out[1];
-		}	
-		$_SESSION['qobjects'] = $qobjects;	
-		$_SESSION['names'] = $names;	
-	} else {
-		unset($names);
-		unset($_SESSION['names']);
-	}
+	process_delete_query($db_handle, $qobjid);
+	$qobjid = null;
 	$stage = 'main';
 	}
 
@@ -224,64 +189,28 @@ if ($stage == 'querydeleteall') {
 	$stage = 'main';
 	}
 	
-	
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
-if ($stage == 'qset' && !$qobjid) $qobjid = process_qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobjects);
+if ($stage == 'qset' && !$qobjid) 
+	$qobjid = process_qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobjects);
 
-	
 # QVERIFY - VERIFY QUERY
-if ($stage == 'qverify') {
-	# fix for resubmission
-	if ($qobjid && $newtoken == $oldtoken) $qobject = get_obj($qobjects, $qobjid);
-	$qobject = validate_query($db_handle, $qobject, $sources, $qsources, $names);
-
-	if ($qobject['status'] === 'valid') {
-		$stage = 'query';
-	} else {
-		$stage = 'qset';
-	}
-	$qobjects = save_obj($qobjects, $qobject);
-	$_SESSION['qobjects'] = $qobjects;
-}
+if ($stage == 'qverify') 
+	$stage = process_query($db_handle, $qobjid, $qsources);
 	
 # PREPARE AND EXECUTE A QUERY
 if ($stage == 'query') {
-	if (count($qobjects) == 1) $names = null;
-	$out = query($db_handle, $qobject, $qobjects, $names, $sources);
-	$qobject = $out[0];
-	$names = $out[1];
-	$qobjects = save_obj($qobjects, $qobject);
-	$_SESSION['names'] = $names;
-	$_SESSION['qobjects'] = $qobjects;
+	query($db_handle, $qobjid);
 	$stage = 'main';
 	$qobjid = null;
 	unset ($_SESSION['qobjid']);
-	}
+}
 	
 # NEW OUTPUT
 if ($stage == 'newoutput') {
-	switch (true) {
-		case ($outputs && $outputs[count($outputs) - 1]['status'] == 'new'):
-		case ($outputs && $newtoken == $oldtoken):
-			$output = $outputs[count($outputs) - 1];
-			$output_id = $output['id'];
-			break;
-		default;
-			if (!$outputs) $outputs = array();
-			$output = array();
-			$output['sourceid'] = $output_sid;
-			$output['id'] =  md5(uniqid());
-			$output['status'] = 'new';
-			$source = get_obj($sources, $output_sid);
-			$output['term'] = $source['term'];
-			$output_id = $output['id'];
-			//if (!$outputs) $outputs = array();
-			array_push($outputs, $output);
-			break;
-	}
+	$output_id = process_new_output($newtoken, $newtoken, $output_sid);
 	$stage = 'setoutput';
-	$_SESSION['outputs'] = $outputs;
 }
+echo "outputid: $output_id<br>";
 
 # CANCEL OUTPUT
 if ($stage == 'outputcancel') {
@@ -291,37 +220,23 @@ if ($stage == 'outputcancel') {
 	$stage = 'main';
 }
 
-
 # DELETE OUTPUT
 if ($stage == 'outputdelete') {
-	$idx = obj_idx($outputs, $output_id);
-	unset ($outputs[$idx]);
-	array_values($outputs);
-	$_SESSION['outputs'] = $outputs;	
+	process_delete_output ($output_id);
 	$stage = 'main';
-	}
-	
-//print_r($outputs);
-//echo "<br>";
+}
 
 # DELETE ALL OUTPUTs
 if ($stage == 'outputdeleteall') {
 	unset ($outputs);
 	$_SESSION['outputs'] = $outputs;	
 	$stage = 'main';
-	}
+}
 	
 # VERIFY OUTPUT POSTED DATA TO OUTPUT
 if ($stage == 'outputvalidate' && $output_id) {
-	$output = validate_output($db_handle, $output, $outputs, $sources);
-	$outputs = save_obj($outputs, $output);
-	if ($output['status'] == 'valid') {
-		//echo $output['name'], " validated<br>";
-		$stage = 'main';
-	} else {
-		$stage = 'newoutput';
-	}
-	$_SESSION['outputs'] = $outputs;
+	process_output($db_handle, $output_id);
+	$stage = 'main';
 	$output_id = null;
 }
 
@@ -332,27 +247,24 @@ if ($stage == 'write') {
 	$zip = null;
 }
 
-if ($names) $_SESSION['names'] = $names;
-
 # --------------------------------------------------------------------------------------------------------
 #                                                    FORM HTML
 # --------------------------------------------------------------------------------------------------------
 
 # SELECT SOURCES
-if ($stage == 'sources') html_select_sources($db_handle);
-	
-#MANAGE QUERIES
-// if ($stage == 'manage') $stage = html_manage($qobjects, $qmanage_err);	
+if ($stage == 'sources') 
+	html_select_sources($db_handle);	
 
 # MAIN INTERFACE
 if ($stage == 'main' || $stage == 'write') 
-	html_entangled_bank_main($db_handle, $qobjects, $names, $name_search, $output_id, $outputs, $zip);
+	html_entangled_bank_main($db_handle, $name_search, $output_id, $zip);
 
 # QUERY SETUP
-if ($stage == 'qset') html_query_set($db_handle, $qobjid);
+if ($stage == 'qset')
+	html_query_set($db_handle, $qobjid);
 
 # OUTPUT DIALOGS
-if ($stage == 'setoutput') html_output_set($db_handle, $output, $outputs, $sources);
+if ($stage == 'setoutput') html_output_set($db_handle, $output_id);
 
 # UNIQUE ID FOR FORM INSTANCE
 echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';
@@ -361,7 +273,7 @@ echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';
 echo '</form>';
 
 #Print mytimes array
-$mytimes = add_key_val($mytimes, "end_page", microtime(TRUE));
+//$mytimes = add_key_val($mytimes, "end_page", microtime(TRUE));
 
 # FOOTER
 html_entangled_bank_footer();

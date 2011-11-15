@@ -1,14 +1,15 @@
 <?php
 
-	function query($db_handle, $qobject, $qobjects, $names, $sources) {
+	function query($db_handle, $qobjid) {
 	
 		# RUNS AN ENTANGLED BANK QUERY
-		
-/*		echo "Begin query<br>";
-		print_r($qobject);
-		echo "<br>";*/
 
 		# QUERY PARAMETERS
+		$qobjects = $_SESSION['qobjects'];
+		$qobject = get_obj($qobjects, $qobjid);
+		$sources = $_SESSION['sources'];
+		$names = $_SESSION['names'];
+		
 		$qterm = $qobject['term'];
 		$queryop = $qobject['queryoperator'];
 		$qsources = $qobject['sources'];
@@ -144,7 +145,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		echo "query: $qstr<br>";
+		//echo "query: $qstr<br>";
 		$res = pg_query($db_handle, $str);
 		$outnames = pg_fetch_all_columns($res, 0);
 		
@@ -166,26 +167,21 @@
 			$qobject['series'] = null;
 		}
 		$qobjects = save_obj($qobjects, $qobject);
-		# RETURN QOBJECT AND NAMES
-		if ($outnames) {
-			return array($qobject, array_filter($outnames));
-			} else {
-			return array($qobject, array());
-			}
-		return ($out);
+		$_SESSION['names'] = $outnames;
+		$_SESSION['qobjects'] = $qobjects;
 	}
 
 # ----------------------------------------------------------------------
 	
 	function query_bionames_table ($source, $str) {
-		$str = $str . "SELECT " . $source['namefield'] . " AS bioname "
-				. " FROM " . $source['dbloc'];
+		$str = $str . "SELECT " . $source['namefield'] . " AS bioname";
+		$str = $str	. " FROM " . $source['dbloc'];
 		return($str);
 	}
 	
 # ----------------------------------------------------------------------
 	
-	function query_biotable($db_handle,$qobject, $source, $str) {
+	function query_biotable($db_handle, $qobject, $source, $str) {
 		
 		$qterm = $qobject['term'];
 		$queries = $qobject['queries'];
@@ -676,7 +672,7 @@
 	
 function query_add_names_sql(&$qobject, $qobjects, $qstr) {
 	
-	$qobject['sql_names_query'] = $qstr;
+	$qobject['sql_names_query'] = htmlspecialchars($qstr);
 	$str_names = '';
 	$i = 0;
 	$end = false;
@@ -695,7 +691,7 @@ function query_add_names_sql(&$qobject, $qobjects, $qstr) {
 	
 function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 	
-	$qobject['sql_series_query'] = $qstr;
+	$qobject['sql_series_query'] = htmlspecialchars($qstr);
 	$str_series = '';
 	$i = 0;
 	$end = false;
@@ -703,7 +699,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		if ($qobj['id'] == $qobject['id']) $end = true;
 		if ($end == false) {
 			if ($i > 0) {
-				$str_series = $str_series . $qobj['queryoperator'];
+				$str_series = $str_series . " " . $qobj['queryoperator'];
 			}
 			$str_series = $str_series . $qobj['sql_series_query'];			
 		}
@@ -942,7 +938,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 	
 	function query_bionames_relational($str) {
 		
-		$str = $str . "SELECT DISTINCT binomial AS bioname FROM gpdd.taxon t ";
+		$str = $str . "SELECT DISTINCT binomial AS bioname FROM gpdd.taxon t";
 		
 		return ($str);
 	}
@@ -953,8 +949,8 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		
 		$tree_id = $source['tree_id'];
 		
-		$str = $str . "SELECT label AS bioname 
-			  FROM biosql.node WHERE node.tree_id = $tree_id";
+		$str = $str . "SELECT label AS bioname";
+		$str = $str . " FROM biosql.node WHERE node.tree_id = $tree_id";
 		
 		return ($str);
 	}
@@ -1098,7 +1094,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		$top = $qobject['toperator'];
 		if ($midsarr) $str = "$str $top UNNEST($midsarr) as mid";	
 		
-		echo "series query: $str<br>";
+		//echo "series query: $str<br>";
 		$res = pg_query($str);
 		$mids = pg_fetch_all_columns($res, 0);
 		$qobject['series'] = $mids;
@@ -1182,10 +1178,11 @@ function query_get_mids($qobjects, $query = 'this') {
 
 # ====================================================================================================
 
-function query_name_search($db_handle, $sources) {
+function query_name_search($db_handle) {
 	
-	# returns information on which sources names are in
+	# RETURNS SOURCES NAMES ARE IN
 	$input = $_SESSION['name_search'];
+	$sources = $_SESSION['sources'];
 	#echo "$input<br>";
 	$out = array();
 	$taxa = explode(",",$input);

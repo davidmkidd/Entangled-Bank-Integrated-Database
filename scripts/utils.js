@@ -403,6 +403,76 @@ function submitTemporalQuery(id) {
 }
 
 
+function submitTableQuery(id) {
+	
+	// VALIDATES BIOTABLE SUBMIT
+	// AT LEAST ONE _QUERY MUST BE CHECKED
+	// IF SELECT THEN AT LEAST ONE VALUES IN QUERY BOX
+	// SELECT ALL SELECT ENTRIES FOR POST
+	alert("!");
+	// Check if any _query check boxes checked
+	var control = document.getElementsByTagName("input");
+	var check_ok = false;
+
+	for (var i = 0; i < control.length; i++) {
+		var pattern = new RegExp("_query",'i');
+		if (control[i].id.search(pattern) != - 1) {
+			//alert(control[i].id + "," + control[i].checked);
+			if (control[i].checked == true) {
+				// _query on
+				// so get _query type
+				check_ok = true;
+				var fname = control[i].id.substring(0, control[i].id.length - 6); 
+				var range = document.getElementById(item + "_min");
+				if (range) {
+					//RangeField
+					var min_item = document.getElementById(fname + "_min");
+					var max_item = document.getElementById(fname + "_max");
+					if (!isNumber(min_item.value) || !isNumber(max_item.value)) {
+						alert (fname + ": query values must be numeric.");
+						//check_ok == false;
+						return null;
+					}
+					
+					if (min_item.value > max_item.value) {
+						alert (fname + ":'From' value must be smaller than 'To' value.");
+						//check_ok == false;
+						return null;
+					}
+				} else {
+					// Lookup so check at least one entry selected
+					var item = document.getElementById(fname + "_add");
+					if (item.options.length == 0) {
+						alert (fname + ": select at least one option or close field to ignore.");
+						//check_ok == false;
+						return null;
+					}
+				}
+				check_ok = true;
+			}
+			
+		}
+	}
+	if (check_ok == true) {
+		// AT LEAST ONE _query is CHECKED, SO CHECK IF ENTRIES AND IF SO SELECT
+		var control = document.getElementsByTagName("select");
+		//alert(control);
+		for (var i = 0; i < control.length; i++) {
+			var pattern = new RegExp("_add",'i');
+			if (control[i].id.search(pattern) != - 1) {
+				for (j = 0; j <= control[i].options.length - 1; j++) {
+					control[i].options[j].selected = true;
+				}
+			}
+		}
+		document.ebankform.submit();
+	} else {
+		// NO _query ARE CHECKED
+		alert('At least one field must be queried');
+		return false;
+	}
+}
+
 function sqlDisplay() {
 	
 	//
@@ -414,4 +484,51 @@ function sqlDisplay() {
 	//alert(val);
 	document.getElementById('sqltext').value = document.getElementById(val).value;
 	//alert (document.getElementById('sqltext').text);
+}
+
+function checkObjName() {
+	// checks query has name and no spaces
+	//alert("!");
+	var name = document.getElementById('objname');
+	//alert(name.value.length);
+	if (name.value.length == 0) {
+		name.value = "query_name_required";
+	} else {
+		name.value = name.value.replace(/ /g,"_");
+	}
+}
+
+function is_int(value){ 
+	  if((parseFloat(value) == parseInt(value)) && !isNaN(value)){
+	      return true;
+	  } else { 
+	      return false;
+	  } 
+	}
+
+function isNumber(n) {
+	  return !isNaN(parseFloat(n)) && isFinite(n);
+	}
+
+function deleteQuery(id) {
+	//alert(id);
+	//var item = document.getElementById('qobjid');
+	//item.value = id;
+	var item = document.getElementById('qobjid');
+	item.value = id;
+	var item = document.getElementById('stage');
+	item.value = 'qdelete';
+	document.ebankform.submit();
+}
+
+
+function cancelQuery(id) {
+	//alert(id);
+	//var item = document.getElementById('qobjid');
+	//item.value = id;
+	var item = document.getElementById('stage');
+	//alert(item.value);
+	item.value = 'qcancel';
+	//alert(item.value);
+	document.ebankform.submit();
 }

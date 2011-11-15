@@ -1,10 +1,14 @@
 <?php
 
-function html_info($db_handle, $qobjects, $sources, $names) {
+function html_info($db_handle) {
+	
+	$qobjects = $_SESSION['qobjects'];
+	$sources = $_SESSION['sources'];
+	$names = $_SESSION['names'];
 	
 	# INFORMATION ON SOURCES, NAMES AND QUERIES
-	//echo "names: " . count($names) . "<br>";
-	
+	echo "qobjs: " . count($qobjects) . "<br>";
+	echo "names: " . count($names) . "<br>";
 	# DIV
 	echo "<div id='info_div'>";
 	
@@ -168,9 +172,11 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 
 # ------------------------------------------------------------------------------------------------------------
 	
-	function html_info_queries($qobjid, $qobjects, $sources) {
+	function html_info_queries() {
 		
 		# QUERY CHAIN
+		$qobjects = $_SESSION['qobjects'];
+		$sources = $_SESSION['sources'];
 		
 		if ($qobjects && !empty($qobjects)) {
 			echo "<div id='cart_queries'>";
@@ -219,11 +225,11 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 	
 # ------------------------------------------------------------------------------------------------------------
 	
-function html_info_outputs($output_id, $outputs, $qobjects) {
+function html_info_outputs($output_id) {
 	
-	//echo "begin cart output<br>";
-	//print_r ($outputs);	
-	//echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
+	$outputs = $_SESSION['outputs'];
+	$qobjects = $_SESSION['$qobjects'];
+	
 	if ($outputs) {
 		
 		echo "<input type='hidden' id='output_id' name='output_id' value=''>";

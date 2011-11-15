@@ -469,7 +469,7 @@ function html_query_set($db_handle, $qobjid){
 	echo "<div id='ebquery'>";
 	$term = $qobject['term'];
 	//echo "term: $term";
-	echo '<script src="./scripts/query_utils.js" type="text/javascript"></script>';
+	//echo '<script src="./scripts/query_utils.js" type="text/javascript"></script>';
 
 	html_query_header($qobject, $qobjects, $sources);
 	
@@ -495,7 +495,7 @@ function html_query_set($db_handle, $qobjid){
 		//	echo "html_query_set::invalid query term $term<br>";
 		//	break;
 	}
-	//echo "term: $term";
+	
 	html_query_sql($qobject);
 	
 	echo "</div>";
@@ -551,10 +551,10 @@ function html_query_sql($qobject) {
 	if ($qobject['status'] !== 'new') {
 		
 		$str = $qobject['sql_names_query'];
-		echo "<input type='hidden' id='sql_names_query' value='$str'>";
-		echo "<input type='hidden' id='sql_names_queries' value = '" . $qobject['sql_names_queries'] . "'>";
-		echo "<input type='hidden' id='sql_series_query' value = '" . $qobject['sql_series_query'] . "'>";
-		echo "<input type='hidden' id='sql_series_queries' value = '" . $qobject['sql_series_queries'] . "'>";
+		echo "<input type='hidden' id='sql_names_query' value=\"$str\">";
+		echo "<input type='hidden' id='sql_names_queries' value = \"" . $qobject['sql_names_queries'] . "\">";
+		echo "<input type='hidden' id='sql_series_query' value = \"" . $qobject['sql_series_query'] . "\"'>";
+		echo "<input type='hidden' id='sql_series_queries' value = \"" . $qobject['sql_series_queries'] . "\">";
 		echo "<table><tr>";
 		echo "<td class='query_title'>SQL</td>";
 		echo "<td>";
@@ -649,7 +649,6 @@ function html_query_biogeographic ($db_handle, $qobject, $qobjects, $sources) {
 	echo "W&deg;<INPUT TYPE='text' id='bbwest' NAME='bbwest' VALUE='-180.000000' class='bbox' />";
 	echo "</td>";
 	echo "<td id='add_bbox'><BUTTON type='button' class='button-standard' onclick='addBoundingBox()'>Add Box</BUTTON></td>";
-	
 	echo "</tr>";
 	echo "</table>";
 
@@ -1966,14 +1965,19 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_entangled_bank_main ($db_handle, $qobjects, $names, $name_search, $output_id, $outputs, $zip) {
+function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 	
 		$sources = $_SESSION['sources'];
+		$qobjects = $_SESSION['qobjects'];
+		$names = $_SESSION['names'];
+		$outputs = $_SESSION['$outputs'];
 		$bioname = $_SESSION['bioname'];
 		$biotree = $_SESSION['biotree'];
 		$biotable = $_SESSION['biotable'];
 		$biogeographic = $_SESSION['biogeographic'];
 		$biotemporal= $_SESSION['biotemporal'];
+		
+		#echo count($qobjects) . "<br>";
 		
 		# name_search is an array of name and sources returned by an names search
 		
@@ -1997,13 +2001,12 @@ function html_entangled_bank_main ($db_handle, $qobjects, $names, $name_search, 
 		echo "<td><input type='button' class='button-standard' value='Go' onClick='submitForm(\"find\")'></td>";
 		echo "</tr>";
 		echo "</table>";
+		
 		# DISPLAY FIND
 		if ($name_search) html_entangled_bank_find($db_handle, $name_search, $sources);
 		
 		# END FIND
 		echo "</div>";
-		
-
 
 		# INFO
 		html_info($db_handle, $qobjects, $sources, $names);
@@ -2072,8 +2075,8 @@ function html_entangled_bank_main ($db_handle, $qobjects, $names, $name_search, 
 		echo "<INPUT type='hidden' name='qterm' id = 'qterm' value='none' />";
 		
 		# SOURCE SELECTOR
-		html_query_select_source ($sources,'biotree');
-		html_query_select_source ($sources,'attribute');
+		if (!empty($biotable)) html_query_select_source ($sources,'biotree');
+		if (!empty($biotable)) html_query_select_source ($sources,'attribute');
 		
 		
 		# OUTPUTS
@@ -2084,7 +2087,7 @@ function html_entangled_bank_main ($db_handle, $qobjects, $names, $name_search, 
 		html_output_source($sources);
 		echo "</tr>";
 		echo "</table>";
-		html_info_outputs($output_id, $outputs, $qobjects);
+		html_info_outputs($output_id);
 		echo "</div>";
 		# LINK TO OUTPUT ZIP FILE 
 		if ($zip) html_write($zip);#
@@ -2401,10 +2404,13 @@ function html_output_source_name($source) {
 
 #================================================================================================================
 
-function html_output_set($db_handle, $output, $outputs, $sources) {
+function html_output_set($db_handle, $output_id) {
 	
 	# SWITCH INTERFACE BY SOURCE TYPE
 	
+	$outputs = $_SESSION['outputs'];
+	$sources = $_SESSION['sources'];
+	$output = get_obj($outputs, $output_id);
 	$output_id = $output['id'];
 	$source = get_obj($sources, $output['sourceid']);
 	$sterm = $source['term'];
