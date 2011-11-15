@@ -75,7 +75,7 @@ function html_entangled_bank_header($eb_path, $html_path, $share_path, $restart)
 	echo "<a href='" , $html_path , "examples.php' target='_blank'>Examples</a>";
 	if ($restart == true) { 
 		echo " | ";
-		echo "<a href='" , $eb_path , "restart.php'> New Session</a>";
+		echo "<a href='" , $eb_path , "./lib/restart.php'> New Session</a>";
 	}
 	echo ' | v0.5 (Sept 2011)';
 
@@ -119,27 +119,6 @@ function html_input_tree_names ($db_handle, $form_subtree, $form_inames_taxa, $f
 	
 	}
 
-	
-//#=======================================================================================================================
-
-/*function html_manage($qobjects, $manage_err) {
-	
-	#Radio buttons to select which query to manage
-	$f = 'CHECKED';
-	foreach ($qobjects as $qobject) {
-		$id = $qobject['id'];
-		$str = $qobject['name'];
-		echo "<input type='radio' name='qobjid' $f value=$id> $str<br>";
-		if ($f == 'CHECKED') $f = "";
-		}
-		
-	if ($qmange_err == true) echo "<FONT color=red>Select query to edit</FONT><br>";
-	echo "<hr>";
-	echo "<input type='radio' name='maction' value='delete'> delete<br>";
-	echo "<input type='radio' name='maction' value='edit'> edit<br>";
-	echo "<input type='radio' CHECKED name='maction' value='return'> return<br>";
-	echo "<input id='stage' type='hidden' name ='stage' value='maction'>";
-	}*/
 	
 #=======================================================================================================================
 	
@@ -577,27 +556,41 @@ function html_query_sql($qobject) {
 #================================================================================================================
 	
 function html_queries_sql($qobjects) {
+	
+	if ($qobjects) {
 		
-	$i = 0;
-	$str = "";
-	foreach ($qobjects as $qobject) {
-		if ($i !== 0) {
-			$str = $str . $qobject['interquery_operator']. "\n";
+		echo "<tr>";
+		$t = "Names list format";
+		echo "<td class='query_title' title='$t'>Format</td>";
+		echo "<td>";
+		echo "<SELECT id='names_format' class='eb_info' onChange='textareaFormat(\"names_list\")'>";
+		echo "<OPTION value='0'>Not Delineated with New Line Separator</OPTION>";
+		echo "<OPTION value='1'>Delineated with New Line Separator</OPTION>";
+		echo "<OPTION value='2'>Not Delineated with Comma Separator</OPTION>";
+		echo "<OPTION value='3'>Delineated with Comma Separator</OPTION>";
+		echo "</SELECT>";
+		echo "<td>";
+		echo "</tr>";
+		
+		$i = 0;
+		$str = "";
+		foreach ($qobjects as $qobject) {
+			if ($i !== 0) {
+				$str = $str . $qobject['interquery_operator']. "\n";
+			}
+			$str = $str . $qobject['sql_names'] . "\n";
+			$i++;
 		}
-		$str = $str . $qobject['sql_names'] . "\n";
-		$i++;
+		# WRITES ALL QUERY SQL TO TEXTAREA
+		# NAMES SQL
+		echo "<tr>";
+		echo "<td class='query_title'>Names SQL</td>";
+		echo "<td>";
+		echo "<textarea readonly='readonly' rows='15' class='eb_sql'>$str</textarea>";
+		echo "<td>";
+		echo "</tr>";
 	}
-	# WRITES ALL QUERY SQL TO TEXTAREA
-	# NAMES SQL
-	echo "<tr>";
-	echo "<td class='query_title'>Names SQL</td>";
-	echo "<td>";
-	echo "<textarea readonly='readonly' rows='15' class='eb_sql'>$str</textarea>";
-	echo "<td>";
-	echo "</tr>";
-		
-
-	}
+}
 	
 #================================================================================================================
 	
@@ -1799,10 +1792,12 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo "</td>";
 	echo "<td><label id='findval_label' for='findval'><label></td>";
 	echo "</tr>";
+	echo "</table>";
 
 	echo "<INPUT type='hidden' id='tree_id' value='$tree_id' />";
 	# Get filter options for tree
 
+	echo "<table border='0'>";
 	$t='Filter find for nodes of the selected types';
 	echo "<tr title='$t'>";
 	echo "<td class='query_title' >Find Filter</td>";
@@ -1817,7 +1812,7 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	$res = pg_query($db_handle, $str);
 	$row = pg_fetch_row($res);
 	$treetype = $row[0];
-	echo "<td class='eb'>";
+	echo "<td>";
 	Switch ($treetype) {
 		case 'phylogeny':
 			//echo "<input type='radio' CHECKED name='nodefilter' value='all'> None";
@@ -1836,27 +1831,16 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 				ORDER BY tm.identifier";
 			$res = pg_query($db_handle, $str);
 			$arr = pg_fetch_all_columns($res, 0);
-			
-			# Four values per line wrap
-			$i = 0;
-			foreach ($arr as $val) {
+	
+
+			foreach ($arr as $val)
 				echo "<input type='checkbox' CHECKED name='nodefilter' value='$val'>" , ucwords($val);
-				$i++;
-				if ($i == 4) {
-					echo "<br>";
-					$i = 0;
-				}
-			}
-			//echo '<BR>';
 			break;
 		default:
 			echo "html_query_biotree: Unrecognised tree type";
 			break;
 	}
 	echo "</td>";
-	
-	//echo "<td id='names_in_query_label' class='eb'>Names in query</td>";
-	
 	echo "</tr></table>";
 
 	# SELECT BOXES
@@ -2009,7 +1993,7 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		echo "</div>";
 
 		# INFO
-		html_info($db_handle, $qobjects, $sources, $names);
+		html_info($db_handle);
 		html_info_queries($qobjid, $qobjects, $sources);
 		
 		echo "<div id='query_div' class='margin5px'>";

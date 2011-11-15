@@ -7,15 +7,14 @@ session_start();
 
 # LIBRARIES
 
-include "config_setup.php";
+include "./lib/config_setup.php";
 include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
-include "html_utils.php";
-include "php_utils.php";
-include "php_query.php";
-include "php_process.php";
-include "php_validate.php";
-include "php_write.php";
-include "html_info.php";
+include "./lib/html_utils.php";
+include "./lib/php_utils.php";
+include "./lib/php_query.php";
+include "./lib/php_process.php";
+include "./lib/php_write.php";
+include "./lib/html_info.php";
 
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
 $html_path = "http://" . $config['htmlhost'] . "/";
@@ -81,9 +80,9 @@ $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
 //echo "old: $oldtoken, new: $newtoken<br>";
 
-# Save submitted data to session variables
+# POST => SESSION
 foreach ($_POST as $key =>$value) {
-	echo "$key => $value<br>";
+	//echo "$key => $value<br>";
 	$_SESSION[$key] = $value;
 	}
 
@@ -91,35 +90,19 @@ foreach ($_POST as $key =>$value) {
 $stage = $_SESSION['stage'];					// Form Stage
 if (!$stage) $stage = 'sources';
 
-# LAST ACTION
-# for dealing with the back button
+# LAST ACTION - dealing with the back button
 $lastaction = $_SESSION['lastaction'];
 $lastid = $_SESSION['lastid'];
-
 //echo "last: $lastaction, $lastid<br>";
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
-//$sources = $_SESSION['sources'];				//Array or sources
 
-# MANAGEMENT
-//if ($_SESSION['names']) $names = $_SESSION['names'];	//currently selected names
-//$qobjects = $_SESSION['qobjects'];           			// Array of query objects
-$qobjid = $_SESSION['qobjid'];				// The qobj to process. Is null if new query or repost				
-//$qedit_objid = $_SESSION['qedit_objid'];    // Query to be edited
-$qterm = $_SESSION['qterm'];               // the type of query
-//$qset = $_SESSION['qset'];
-$qsources = $_SESSION['qsources'];         // the sources the query applies to
+# QUERY
+$qobjid = $_SESSION['qobjid'];			// The qobj to process. Is null if new query or repost				
+$qterm = $_SESSION['qterm'];            // the type of query
+$qsources = $_SESSION['qsources'];      // the sources the query applies to
 if (!is_array($qsources)) $qsources = array($qsources);
-
-//$qsources_mode = $_SESSION['qsources_mode'];
-//$cancel = $_SESSION['cancel'];
-//unset ($_SESSION['cancel']);
-//if ($_SESSION['maction']) $maction = $_SESSION['maction'];
-
-# TABULAR QUERY & OUTPUT
-//if ($_SESSION['allfields']) $allfields = $_SESSION['allfields'];  # flag to display all fields
-//$tablefields = $_SESSION['tablefields'];	//Fields of the biotable to **query or output**
 
 # OUTPUT
 $output_sid = $_SESSION['output_sid'];        // OUTPUT SOURCE
@@ -127,7 +110,6 @@ $output_id = $_SESSION['output_id'];          // OUTPUT ID
 if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
 if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 
-//$files_to_delete = $_SESSION['files_to_delete'];
 
 # -----------------------------------------------------------------------------------------------------------
 #                                                PRE-FORM PROCESSING
@@ -140,13 +122,8 @@ if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 //echo "<br>";
 
 # CURRENT OBJECT
-if (empty($qobjects)) $qobjid = null;            # BIOTREE AND BIOTTRIBUTE FIX
-if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
-if ($output_id) $output = get_obj($outputs, $output_id);
+//if (empty($qobjects)) $qobjid = null;            # BIOTREE AND BIOTTRIBUTE FIX
 
-#echo "output_id: $output_id, output:";#if ($output) print_r($output);
-#echo "<br>";
-#echo "after get current qobject<br>";
 
 # NAME SEARCH
 if ($stage == 'find') {
@@ -210,7 +187,6 @@ if ($stage == 'newoutput') {
 	$output_id = process_new_output($newtoken, $newtoken, $output_sid);
 	$stage = 'setoutput';
 }
-echo "outputid: $output_id<br>";
 
 # CANCEL OUTPUT
 if ($stage == 'outputcancel') {

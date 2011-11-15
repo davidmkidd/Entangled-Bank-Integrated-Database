@@ -2,11 +2,11 @@
 
 session_start();
 
-include "config_setup.php";
+include "./lib/config_setup.php";
 include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
-include "html_utils.php";
-include "php_utils.php";
-include "php_query.php";
+include "./lib/html_utils.php";
+include "./lib/php_utils.php";
+include "./lib/php_query.php";
 
 
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
@@ -14,10 +14,10 @@ $html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
 $share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 
 $sid = $_GET['id'];
-//echo "sid: $sid<br>";
 $sources = $_SESSION['sources'];
 $names = $_SESSION['names'];
-$arr = array_to_postgresql($names,'text');
+
+if ($names && !empty($names)) $arr = array_to_postgresql($names,'text');
 
 $db_handle = eb_connect_pg($config);
 $source = get_obj($sources, $sid);
@@ -39,24 +39,30 @@ echo '</head>';
 #BODY
 echo "<div class='main'>";
 html_entangled_bank_header($eb_path, $html_path, $share_path, false);
+//echo "<br>";
 
-echo "<br>";
 echo "<table>";
-
-
-//print_r($source);
 
 # Names in query
 switch ($sterm) {
 	case 'biotree' :
-		$str = "SELECT biosql.pdb_labels_in_tree($treeid, $arr);";
+		if (!$arr) {
+			$str = "SELECT label FROM biosql.node WHERE tree_id = $treeid";
+		} else {
+			$str = "SELECT biosql.pdb_labels_in_tree($treeid, $arr)";
+		}
 		break;
 	case 'biotable':
 	case 'biogeographic':
-		$str = "SELECT $snamefield FROM $sdbloc WHERE $snamefield = ANY($arr)";
+		$str = "SELECT $snamefield FROM $sdbloc";
+		if ($arr) $str = $str . " WHERE $snamefield = ANY($arr)";
 		break;
 	case 'biorelational':
-		$str = "SELECT \"binomial\" FROM gpdd.taxon WHERE \"binomial\" = ANY($arr)";
+		$str = "SELECT t.\"binomial\" 
+			FROM gpdd.taxon t, gpdd.main m 
+			WHERE m.\"TaxonID\" = t.\"TaxonID\"
+			AND t.\"binomial\" IS NOT NULL";
+		if ($arr) $str = $str .  " AND \"binomial\" = ANY($arr)";
 		break;
 }
 $res = pg_query($db_handle, $str);
@@ -72,7 +78,8 @@ if ($sterm == 'biotree') {
 	$type = $row[0];
 	//echo "type: $type<br>";
 	if ($type == 'phylogeny') {
-		$str = "SELECT COUNT(*) FROM biosql.node n WHERE n.tree_id = $treeid AND n.left_idx = (n.right_idx - 1) AND n.label = ANY($arr);";
+		$str = "SELECT COUNT(*) FROM biosql.node n WHERE n.tree_id = $treeid AND n.left_idx = (n.right_idx - 1)";
+		if ($arr) $str = $str .  " AND n.label = ANY($arr)";
 		$res = pg_query($db_handle, $str);
 		$row = pg_fetch_row($res);
 		$tips_in_query = $row[0];
@@ -84,30 +91,41 @@ if ($sterm == 'biotree') {
 			biosql.node_qualifier_value nq
 			WHERE nq.node_id = n.node_id
 			AND nq.term_id = t.term_id
-			AND n.tree_id = $treeid
-			AND n.label = ANY($arr)
-			GROUP BY t.name, t.identifier
-			ORDER BY t.identifier DESC;";
+			AND n.tree_id = $treeid";
+		if ($arr) $str = $str . "	AND n.label = ANY($arr)";
+		$str = $str . "GROUP BY t.name, t.identifier ORDER BY t.identifier DESC;";
 		$res = pg_query($db_handle, $str);
 		$levels = pg_fetch_all($res);
 		//print_r($levels);
 	}
 }
 
-# GPDD Time Series
+# GPDD MIDS AND DATA POINTS
 if ($sterm == 'biorelational') {
 	$mids = query_get_mids($qobjects);
-	$marr = array_to_postgresql($mids, 'numeric');
-	$str = "SELECT COUNT(*) FROM gpdd.data d, gpdd.main m WHERE m.\"MainID\" = d.\"MainID\" AND m.\"MainID\" = ANY($marr)";
+	if ($mids) {
+		$marr = array_to_postgresql($mids, 'numeric');
+		$str = "SELECT COUNT(*) FROM gpdd.data d, gpdd.main m WHERE m.\"MainID\" = d.\"MainID\" AND m.\"MainID\" = ANY($marr)";
+	} else {
+		$str = "SELECT m.\"MainID\"
+			FROM gpdd.main m, gpdd.taxon t 
+			WHERE m.\"TaxonID\" = t.\"TaxonID\"
+			AND t.\"TaxonID\" IS NOT NULL";
+		$res = pg_query($db_handle, $str);
+		$mids = pg_fetch_all_columns($res);
+		$str = "SELECT COUNT(*) 
+			FROM gpdd.data d, gpdd.main m, gpdd.taxon t 
+			WHERE m.\"MainID\" = d.\"MainID\" 
+			AND m.\"TaxonID\" = t.\"TaxonID\"
+			AND t.\"TaxonID\" IS NOT NULL";
+	}
+	
 	$res = pg_query($db_handle, $str);
 	$row = pg_fetch_row($res);
 	$datapoints = $row[0];
 }
 
-/*echo "<tr>";
-echo "<td class='query_title' align='center'>", html_query_image($source['term'], 'non-active', null, 'source', false), "</td>";
-echo "<td>", html_query_image($source['term'], 'non-active', null, 'source', false), "</td>";
-echo "</tr>";*/
+//echo "<tr><td class='query_title'>" . html_query_image($source['term'], 'non-active', null, 'source', false) . "</td></tr>";
 
 echo "<tr>";
 echo "<td class='query_title'>Source</td>";
@@ -119,46 +137,50 @@ echo "<td class='query_title'>Has</td>";
 echo "<td>", number_format($source['n']), " names </td>";
 echo "</tr>";
 
+# NAMES IN QUERY
+if ($names) {
+	$n = count($names);
+} else {
+	$n = $source['n'];
+}
 echo "<tr>";
 echo "<td class='query_title'>Query</td>";
-echo "<td>", count($names), " names</td>";
+echo "<td>", number_format($n), " names</td>";
 echo "</tr>";
 
 echo "<tr>";
 echo "<td class='query_title'>Selected</td>";
-echo "<td>", count($names_in_query), " names</td>";
+echo "<td>", number_format(count($names_in_query)), " names</td>";
 echo "</tr>";
 
 if ($sterm == 'biotree') {
-	
 	if ($type == 'phylogeny') {
 		echo "<tr>";
 		echo "<td class='query_title'></td>";
-		echo "<td>", $tips_in_query, " tip OTUs</td>";
+		echo "<td>", number_format($tips_in_query), " tip OTUs</td>";
 		echo "</tr>";
 		echo "<tr>";
 		echo "<td class='query_title'></td>";
-		echo "<td>", count($names_in_query) - $tips_in_query, " internal nodes</td>";
+		echo "<td>", number_format(count($names_in_query) - $tips_in_query), " internal OTUs</td>";
 		echo "</tr>";
 	} else {
 		foreach ($levels as $level) {
 			echo "<tr>";
 			echo "<td class='query_title'>", ucwords($level['name']), "</td>";
-			echo "<td>", $level['n'], " names</td>";
+			echo "<td>", number_format($level['n']), " names</td>";
 			echo "</tr>";	
 		}
 	}
-
 }
 
 if ($sterm == 'biorelational') {
 	echo "<tr>";
 	echo "<td class='query_title'>Time Series</td>";
-	echo "<td>", count($mids), " series</td>";
+	echo "<td>", number_format(count($mids)), " series</td>";
 	echo "</tr>";
 	echo "<tr>";
 	echo "<td class='query_title'></td>";
-	echo "<td>", $datapoints, " observations</td>";
+	echo "<td>", number_format($datapoints), " observations</td>";
 	echo "</tr>";
 }
 
@@ -194,6 +216,17 @@ echo "</tr>";
 
 
 if ($sterm == 'biorelational') {
+	
+	$i = 0;
+	$str = "";
+	foreach($mids as $mid) {
+		if ($i == 0) {
+			$str = $mid;
+		} else {
+			$str = $str . "\n$mid";
+		}
+		$i++;
+	}
 	echo "<tr>";
 	echo "<td class='query_title'>Series</td>";
 	echo "<td>";
@@ -213,19 +246,7 @@ if ($sterm == 'biorelational') {
 	echo "</SELECT>";
 	echo "<td>";
 	echo "</tr>";
-	$i = 0;
-	$str = "";
-	foreach($mids as $mid) {
-		if ($i == 0) {
-			$str = $mid;
-		} else {
-			$str = $str . "\n$mid";
-		}
-		$i++;
-	}
-
-}
-
+}	
 
 
 echo "<table>";

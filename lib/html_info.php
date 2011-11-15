@@ -7,8 +7,8 @@ function html_info($db_handle) {
 	$names = $_SESSION['names'];
 	
 	# INFORMATION ON SOURCES, NAMES AND QUERIES
-	echo "qobjs: " . count($qobjects) . "<br>";
-	echo "names: " . count($names) . "<br>";
+	//echo "qobjs: " . count($qobjects) . "<br>";
+	//echo "names: " . count($names) . "<br>";
 	# DIV
 	echo "<div id='info_div'>";
 	
@@ -43,7 +43,7 @@ function html_info($db_handle) {
 	$i = count($sources);
 	$t = "Sources";
 	echo "<td class='info_basic'>";
-	echo "<a href='list_sources.php?" . SID . "' title='$t' target='_blank'>$i</a>";
+	echo "<a href='./list_sources.php?" . SID . "' title='$t' target='_blank'>$i</a>";
 	echo "</td>";
 	
 	# NAMES
@@ -128,7 +128,7 @@ function html_info_biotree($source, $snames) {
 	$tree = $source['tree_id'];
 	$sid = $source['id'];
 	$n = count($snames);
-	echo "<td class='info_biotree'><a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>$n</a></td>";
+	echo "<td class='info_biotree'><a href='source_info.php?id=$sid' title='$t' target='_blank'>$n</a></td>";
 	
 }
 
@@ -144,7 +144,7 @@ function html_info_biotable($source, $snames) {
 		$class = 'info_biogeographic';
 	}
 	$n = count($snames);
-	echo "<td class='$class'><a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>$n</td>";
+	echo "<td class='$class'><a href='source_info.php?id=$sid' title='$t' target='_blank'>$n</td>";
 	
 }
 
@@ -165,9 +165,9 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 	}
 
 	$t = 'Names';
-	echo "<td class='info_biorelational'><a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>$n</a>/";
+	echo "<td class='info_biorelational'><a href='source_info.php?id=$sid' title='$t' target='_blank'>$n</a>/";
 	$t = 'Series';	
-	echo "<a href='entangled_bank_source_info.php?id=$sid' title='$t' target='_blank'>", $s, '</a></td>';
+	echo "<a href='source_info.php?id=$sid' title='$t' target='_blank'>", $s, '</a></td>';
 }
 
 # ------------------------------------------------------------------------------------------------------------

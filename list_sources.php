@@ -2,11 +2,14 @@
 
 session_start();
 
-include "config_setup.php";
+include "./lib/config_setup.php";
+
+//print_r($config);
+
+echo $config['apt_to_ini_path'] . "/eb_connect_pg.php";
 include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
-include "html_utils.php";
-include "php_utils.php";
-#include "php_interface_subs.php";
+include "./lib/html_utils.php";
+include "./lib/php_utils.php";
 
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
 $html_path = "http://" . $config['ebhost'] . "/" . $config['html_path'] . '/';
