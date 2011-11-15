@@ -2012,7 +2012,9 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		if (!empty($biotree)) {
 			if (count($biotree) !== 1) {
 				$s = 's';
-			}			
+			} else {
+				$s = '';
+			}	
 			$t = "Which names in a tree share this topoplogy? ";
 			$t = $t . "(e.g. the least common ancestor or descend from the lca)&#10;" . count($biotree) . " source$s:";
 			foreach ($biotree as $bio) $t = $t . "&#10;" . $bio;
@@ -2021,6 +2023,8 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		if (!empty($biotable)) {
 			if (count($biotable) !== 1) {
 				$s = 's';
+			} else {
+				$s = '';
 			}
 			$t = "Which names in a source have these attributes?&#10;" . count($biotable) . " source$s:";
 			foreach ($biotable as $bio) $t = $t . "&#10;" . $bio;
@@ -2029,6 +2033,8 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		if (!empty($biogeographic)) {
 			if (count($biogeographic) !== 1) {
 				$s = 's';
+			} else {
+				$s = '';
 			}
 			$t = "Which names have data here?&#10;" . count($biogeographic) . " source$s:";
 			foreach ($biogeographic as $bio) $t = $t . "&#10;" . $bio;
@@ -2038,6 +2044,8 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		if (!empty($biotemporal)) {
 			if (count($biotemporal) !== 1) {
 				$s = 's';
+			} else {
+				$s = '';
 			}
 			//http://farm4.static.flickr.com/3605/3639291429_f19524c475.jpg
 			$t = "Which names have data at this time?&#10;" . count($biotemporal) . " source$s:";

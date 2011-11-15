@@ -64,7 +64,11 @@ function html_info($db_handle) {
 				if ($names) $str = $str . " AND label = ANY($arr)";
 				break;
 			case 'biorelational':
-				$str = "SELECT DISTINCT t.binomial AS name FROM gpdd.taxon t, gpdd.main m WHERE m.\"TaxonID\"=t.\"TaxonID\"";
+				$str = "SELECT DISTINCT t.binomial AS name 
+					FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+					WHERE m.\"TaxonID\"=t.\"TaxonID\"
+					AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+					AND ds.\"Availability\" <> 'Restricted'";
 				if ($names) $str = $str . " AND t.binomial IS NOT NULL AND t.binomial = ANY($arr)";
 				
 				break;
@@ -158,7 +162,13 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 		$mids = query_get_mids($qobjects);
 		$s = count($mids);
 	} else {
-		$str = "SELECT COUNT(*) FROM gpdd.main m, gpdd.taxon t WHERE m.\"TaxonID\"=t.\"TaxonID\" AND t.binomial IS NOT NULL";
+		$str = "SELECT COUNT(*) 
+			FROM gpdd.main m, gpdd.taxon t, gpdd.datasource ds
+			WHERE m.\"TaxonID\" = t.\"TaxonID\"
+			AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+			AND ds.\"Availability\" <> 'Restricted'
+			AND t.binomial IS NOT NULL";
+		//echo "$str";
 		$res = pg_query($db_handle, $str);
 		$row = pg_fetch_row($res);
 		$s = $row[0];
