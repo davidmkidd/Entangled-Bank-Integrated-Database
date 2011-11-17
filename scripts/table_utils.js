@@ -11,11 +11,18 @@
 		
 		var item = entry.substring(0, entry.length - 4);
 		//alert(item);
-		var min_item = document.getElementById(item + "_min");
-		var max_item = document.getElementById(item + "_max");
+		//var min_item = document.getElementById(item + "_min");
+		//var max_item = document.getElementById(item + "_max");
+		var val_item = document.getElementById(item + "_value");
+		var op_item = document.getElementById(item + "_opertator");
 		//alert(!isNumber(min_item.value) || !isNumber(max_item.value));
+	
+		if (!isNumber(val_item.value)) {
+			alert ("Value for " + item + " must be numeric!");
+			return null;
+		}
 		
-		if (!isNumber(min_item.value) || !isNumber(max_item.value)) {
+/*		if (!isNumber(min_item.value) || !isNumber(max_item.value)) {
 			alert ("Query values must be numeric!");
 			return null;
 		}
@@ -23,25 +30,32 @@
 		if (min_item.value > max_item.value) {
 			alert ("'From' value must be smaller than 'To' value!");
 			return null;
-		}
+		}*/
 	}
 
 
 
-	function showfield(entry) {
+	function showField(entry) {
+		
+		// OPENS AND ACTIVATES FIELD DIALOG DIV
+		
+		
 		var field = entry.name;
 		field = field.substring(0,field.length - 6);
+		//alert(field);
 		var div = document.getElementById(field + "_div");
-		var field_min = document.getElementById(field + "_min");
-		var field_max = document.getElementById(field + "_max");
+		//var field_min = document.getElementById(field + "_min");
+		//var field_max = document.getElementById(field + "_max");
+		var field_val = document.getElementById(field + "_value");
+		var field_op = document.getElementById(field + "_operator");
 		var boxes = document.getElementsByName(field);
 		if (entry.checked == true){
 			//elements[i].disabled=false;
 			div.style.display='block';
-			//alert(boxes);
-			if (field_min) {
-				field_min.disabled=false;
-				field_max.disabled=false;
+			//alert(field_op);
+			if (field_op) {
+				field_op.disabled=false;
+				field_val.disabled=false;
 			}
 			for (var i = 0; i < boxes.length; i++) {
 				boxes[i].disabled=false;
@@ -49,9 +63,9 @@
 		} else {
 			//elements[i].disabled=true;
 			div.style.display='none';
-			if (field_min) {
-				field_min.disabled=true;
-				field_max.disabled=true;				
+			if (field_op) {
+				field_op.disabled=true;
+				field_val.disabled=true;				
 			}
 			for (var i = 0; i < boxes.length; i++) {
 				boxes[i].disabled=true;

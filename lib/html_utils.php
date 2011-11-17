@@ -50,34 +50,45 @@ function html_arr_to_table($arr) {
 		}
 	echo "</TABLE>";
 	}
-	
-#=================================================================================================================
 
-/*function html_cancel_select() {
-	echo "<input type='button' name='cancel' value='Cancel'></input>";
-	//echo "<input type='radio' CHECKED id='cancel_no' name='cancel' value='no'> Continue";
-	//echo "<input type='radio' id='cancel_yes' name='cancel' value='yes'> Cancel ";
-	}*/
 	
 #=======================================================================================================================
 
-function html_entangled_bank_header($eb_path, $html_path, $share_path, $restart) {
+function html_entangled_bank_header($stage, $eb_path, $html_path, $share_path) {
 
-	if($restart) $restart = true;
+	switch ($stage) {
+		case 'sources':
+			$restart = false;
+			$finish = true;			
+			break;
+		case 'finish':
+			$restart = true;
+			$finish = false;			
+			break;
+		default:
+			$restart = true;
+			$finish = true;
+			break;
+	}
+	if ($restart) $restart = true;
 
 	echo "<div id='ebheader'>";
 	echo "<img id='ebimage' src='" , $share_path , "Entangled-Bank_small.gif' alt='Banner'>";
 
-	echo "<a href='" , $html_path , "index.php' target='_blank'>Home</a>";
+	echo "<a href='" , $html_path , "index.php' target='_blank'>Home Page</a>";
 	echo " | ";
 	echo "<a href='" , $html_path , "help.php' target='_blank'>Help</a>";
 	echo " | ";
 	echo "<a href='" , $html_path , "examples.php' target='_blank'>Examples</a>";
 	if ($restart == true) { 
 		echo " | ";
-		echo "<a href='" , $eb_path , "./lib/restart.php'> New Session</a>";
+		echo "<a href='" , $eb_path , "./lib/restart.php'> Restart</a>";
 	}
-	echo ' | v0.5 (Sept 2011)';
+	if ($finish == true) {
+		echo " | <a href='" , $eb_path , "finish.php'> Exit</a>";
+	}
+
+	echo ' | v0.6 (Nov 2011)';
 
 	echo "</div>";
 	//echo '<hr>';
@@ -452,7 +463,6 @@ function html_query_set($db_handle, $qobjid){
 
 	html_query_header($qobject, $qobjects, $sources);
 	
-	
 	# TOOL
 	switch ($term) {
 		case 'bionames' :
@@ -480,7 +490,7 @@ function html_query_set($db_handle, $qobjid){
 	echo "</div>";
 	echo "<input type='hidden' id='stage' name='stage' value='qverify'>";
 	echo "<input type='hidden' id='qobjid' name ='qobjid' value=$qobjid>";
-	echo "<input type='hidden' id='lastaction' name='lastaction' value=''>";
+	echo "<input type='hidden' id='lastaction' name='lastaction' value='qset'>";
 	echo "<input type='hidden' id='lastid' name='lastid' value='$qobjid'>";
 }
 	
@@ -839,7 +849,7 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	echo "<td class='query_title'>Names</td>";
 	echo "<td>";
 	$t ='Names found';
-	echo "<SELECT id='names' name='names' $disabled MULTIPLE class='eb_select' title='$t'></SELECT>";
+	echo "<SELECT id='found_names' name='found_names' $disabled MULTIPLE class='eb_select' title='$t'></SELECT>";
 	echo "</td>";
 	
 	# Add Buttons
@@ -1127,6 +1137,46 @@ function html_query_operator($qobject) {
 		
 #=================================================================================================================
 	
+	
+	function html_query_select_range($db_handle, $str, $fname, $qobject) {
+		
+		# SELECT VALUES FROM A RANGE FIELD
+		# $str 		query string to return min and max values
+		# $fname	the name of the field
+		
+		$res = pg_query($db_handle, $str);
+		$row = pg_fetch_row($res);
+		
+		$queries = $qobject['queries'];
+	
+		$disabled = "disabled='true'";
+		if (!$queries) $queries = array();
+		foreach ($queries as $query) {
+			if ($query['field'] == $fname) {
+				$val = $query['value'];
+				$disabled = '';
+			}
+		}
+		
+	
+		
+		$fop = $fname . '_operator';
+		$fval = $fname . "_value";
+				
+		# OPERATOR
+		$oparr =array('>', '>=', '<=', '<');
+		echo "<SELECT id='$fop' name='$fop' $disabled>";
+		foreach ($oparr as $op) echo "<OPTION value='$op'>$op</OPTION>";
+		echo "</ SELECT>";
+		# VALUE
+		if (!$val) $val = ($row[0] + $row[1]) / 2;
+		echo "<INPUT type='text' name='$fval' id='$fval' class='eb_range_input' $disabled size=8 value='$val' onchange='validateRangeField(\"$fval\")'>";
+		$t = 'Range of values in current selection';
+		echo "&nbsp;<LABEL for='$fval' title='$t'>($row[0] - $row[1])</ LABEL>";
+	}
+	
+#=================================================================================================================
+	
 	function html_query_select_options($db_handle, $str, $fname, $qobject) {
 		
 	//HTML select box set with 'in' and 'out' controls
@@ -1295,8 +1345,8 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 
 	echo '<script src="./scripts/table_utils.js" type="text/javascript"></script>';
 
-	//print_r($qobject['queries']);
-	//echo "<br>";
+	print_r($qobject['queries']);
+	echo "<br>";
 	
 	# Get source
 	$source = get_obj($sources, $qobject['sources'][0]);
@@ -1325,7 +1375,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "<tr>";
 		echo "<td class='query_title'>$fieldtitle</td>";
 		if ($fieldtitle == (count($fields) . ' Fields')) $fieldtitle = '';
-		echo "<td class = 'query_field'>";
+		echo "<td class='query_field'>";
 
 		$fname = $field['name'];
 		$fdesc = $field['desc'];
@@ -1346,7 +1396,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		
 		# DIV
 		echo "<INPUT type='checkbox' $check id='$fname" . "_query' name='$fname" .
-		 	"_query' onClick='showfield(this);'>";
+		 	"_query' onClick='showField(this);'>";
 		echo "<LABEL for='$fname" . "_query' title='$fdesc'>$falias&nbsp;</LABEL>";
 		echo "<DIV id='$fname" . "_div' style='display: none;'>";
 		
@@ -1383,15 +1433,14 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 						WHERE m.\"TaxonID\" = t.\"TaxonID\"";
 					if ($names) $str = $str . " AND t.binomial = ANY($arr)";
 				}
-				$res_names = pg_query($db_handle, $str);
-				$row_names = pg_fetch_row($res_names);			
+		
 				# Get user set min and max
 				#$vals = query_vals($qobject, $fname);
 				
-				$fmin = $fname . '_min';
-				$fmax = $fname . '_max';
+				html_query_select_range($db_handle, $str, $fname, $qobject);		
 				
-				if (!$vals) {
+				
+/*				if (!$vals) {
 					if (!$names) {
 						echo "[$row_names[0]] <INPUT type='text' name='$fmin'" ,
 							" id='$fmin' disabled='true' size=8 value='$row_names[0]' onchange='validateRangeField(\"$fmin\")'>";
@@ -1418,7 +1467,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 						echo " &ndash <INPUT type='text' name='$fmax'" ,
 							" id='$fmax' size=8 value='$vals[1]' onchange='validateRangeField(\"$fmax\")'> [$row_names[1]]";
 						}
-					}
+					}*/
 				break;
 				
 			case 'lookuptable':
@@ -2084,7 +2133,8 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		# LINK TO OUTPUT ZIP FILE 
 		if ($zip) html_write($zip);#
 		echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
-		
+		echo "<input type='hidden' id='qobjid' name='qobjid' value=''>";
+		echo "<input type='hidden' id='qobjid' name='lastaction' value='main'>";
 	}
 
 #=======================================================================================================================
@@ -2529,6 +2579,7 @@ function html_select_sources($db_handle) {
 	echo "</table>";
 	echo "</div>";
 	echo "<input type = 'hidden' name ='stage' value='getsources'>";
+	echo "<input type='hidden' id='qobjid' name='lastaction' value='selectsources'>";
 	
 	}
 	

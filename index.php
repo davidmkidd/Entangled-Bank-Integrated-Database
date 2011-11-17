@@ -22,6 +22,47 @@ if($config['html_path']) $html_path = $html_path . $config['html_path'] . '/';
 $share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 $_SESSION['tmp_path'] = $config['tmp_path'];
 
+# ---------------------------------------------------------------------------------------------------
+#                                                _POST AND SESSION
+# ---------------------------------------------------------------------------------------------------
+
+# POST TOKENS
+$oldtoken = $_SESSION['token'];
+$newtoken = $_POST['token'];
+echo "oldtoken: $oldtoken, oldtoken: $newtoken<br>";
+
+# POST => SESSION
+foreach ($_POST as $key =>$value) {
+	//echo "$key => $value<br>";
+	$_SESSION[$key] = $value;
+	}
+
+# STAGE
+$stage = $_SESSION['stage'];					// Form Stage
+if (!$stage) $stage = 'sources';
+echo "stage: $stage<br>";
+
+# LAST ACTION - dealing with the back button
+if ($_SESSION['lastaction']) $lastaction = $_SESSION['lastaction'];
+$lastid = $_SESSION['lastid'];
+echo "lastaction: $lastaction, lastid: $lastid<br>";
+
+# SOURCES
+$sourceids = $_SESSION['sourceids'];			//ids of the sources
+
+# QUERY
+$qobjid = $_SESSION['qobjid'];			// The qobj to process. Is null if new query or repost
+echo "qobjid: $qobjid<br>";		
+$qterm = $_SESSION['qterm'];            // the type of query
+$qsources = $_SESSION['qsources'];      // the sources the query applies to
+if (!is_array($qsources)) $qsources = array($qsources);
+
+# OUTPUT
+$output_sid = $_SESSION['output_sid'];        // OUTPUT SOURCE
+$output_id = $_SESSION['output_id'];          // OUTPUT ID
+if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
+if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
+
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                            HTML HEADERS
 # ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +82,7 @@ echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
 //echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
 echo "<body onload='loadScript()'>";
 echo "<div class='main'>";
-html_entangled_bank_header($eb_path, $html_path, $share_path, true);
+html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 	
 # --------------------------------------------------------------------------------------------------
 #                                           DATABASE CONNECTION
@@ -71,44 +112,6 @@ echo "<input type='hidden' id='eb_path' value='$eb_path' />";
 echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php" 
 	onsubmit="document.getElementById(\'submit-button\').disabled = true;">';
 
-# ---------------------------------------------------------------------------------------------------
-#                                                _POST AND SESSION
-# ---------------------------------------------------------------------------------------------------
-
-# POST TOKENS
-$oldtoken = $_SESSION['token'];
-$newtoken = $_POST['token'];
-//echo "old: $oldtoken, new: $newtoken<br>";
-
-# POST => SESSION
-foreach ($_POST as $key =>$value) {
-	//echo "$key => $value<br>";
-	$_SESSION[$key] = $value;
-	}
-
-# STAGE
-$stage = $_SESSION['stage'];					// Form Stage
-if (!$stage) $stage = 'sources';
-
-# LAST ACTION - dealing with the back button
-$lastaction = $_SESSION['lastaction'];
-$lastid = $_SESSION['lastid'];
-//echo "last: $lastaction, $lastid<br>";
-
-# SOURCES
-$sourceids = $_SESSION['sourceids'];			//ids of the sources
-
-# QUERY
-$qobjid = $_SESSION['qobjid'];			// The qobj to process. Is null if new query or repost				
-$qterm = $_SESSION['qterm'];            // the type of query
-$qsources = $_SESSION['qsources'];      // the sources the query applies to
-if (!is_array($qsources)) $qsources = array($qsources);
-
-# OUTPUT
-$output_sid = $_SESSION['output_sid'];        // OUTPUT SOURCE
-$output_id = $_SESSION['output_id'];          // OUTPUT ID
-if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
-if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 
 
 # -----------------------------------------------------------------------------------------------------------
@@ -136,13 +139,7 @@ if ($qterm == 'finish') $stage = 'finish';
 
 # AFTER SOURCES
 if ($stage == 'getsources') 
-	$stage = process_get_sources($db_handle, $sourceids);
-	
-# EDIT QUERY
-if ($stage == 'qedit') {
-	$stage = 'qset';
-	$qobjid = $qedit_objid;
-}
+	$stage = process_get_sources($db_handle, $sourceids, $lastaction);
 
 # CANCELLING A QUERY
 if ($stage == 'qcancel') {
@@ -167,8 +164,10 @@ if ($stage == 'querydeleteall') {
 	}
 	
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
-if ($stage == 'qset' && !$qobjid) 
-	$qobjid = process_qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobjects);
+//echo "before process_qset objid: $qobjid<br>";
+if ($stage == 'qset') 
+	$qobjid = process_qset($qobjid, $qterm, $oldtoken, $newtoken, $lastaction, $lastid);
+//echo "after process_qset objid: $qobjid<br>";
 
 # QVERIFY - VERIFY QUERY
 if ($stage == 'qverify') 
@@ -226,6 +225,8 @@ if ($stage == 'write') {
 # --------------------------------------------------------------------------------------------------------
 #                                                    FORM HTML
 # --------------------------------------------------------------------------------------------------------
+
+//echo "FORM qobjid: $qobjid<br>";
 
 # SELECT SOURCES
 if ($stage == 'sources') 

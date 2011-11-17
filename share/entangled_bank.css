@@ -62,6 +62,21 @@
 		padding-bottom: 3px;
 		background-color: Gainsboro;
 	}
+	
+	#exit_blurb {
+		font-size: small;
+		text-align: center;
+		border: 3px ridge;
+		padding-left: 5px;
+		padding-right: 5px;
+		padding-top: 2px;
+		padding-bottom: 3px;
+		background-color: Gainsboro;
+		margin-left: 205px;
+		width: 400px;
+	}
+	
+	
 	#find_main_div {
 		clear: both;
 		border-bottom: 3px groove;
@@ -303,7 +318,7 @@
 	
 	td.query_field {
 		vertical-align: middle;
-		width: 350px;
+/*		width: 350px;*/
 	}
 	
 	
@@ -455,6 +470,10 @@
 	
 	input.singlesource {
 		width: 232px;
+	}
+	
+	input.eb_range_input {
+		width: 202px;
 	}
 	
 	input.bbox {

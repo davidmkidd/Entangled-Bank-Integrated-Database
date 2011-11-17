@@ -10,19 +10,16 @@ function findNodes() {
 	var tree_id = document.getElementById('tree_id');
 	var nodefilter = document.getElementsByName('nodefilter');
 	var ebpath = document.getElementById('eb_path');
-	
-	//alert(ebpath.value);
-	
 	var str = '';
-	
 	var n = 0;
+	
+	// GET NODE FILTERS
 	for (var i = 0; i <= nodefilter.length - 1; i++) {
 		if (nodefilter[i].checked == true) {
 			str = str + nodefilter[i].value + '+';
 			n++;
 		}
 	}
-	
 
 	if (n == 0) {
 		alert('Find filter excluding all node type! Check one type at least.');
@@ -31,10 +28,6 @@ function findNodes() {
 		
 		url = ebpath.value + "api/treelabels.php?tree=" + tree_id.value + 
 		"&query=" + findval.value + "&filter=" + str2;
-		
-		// LINUX HARDCODE
-		//url = "http://129.31.4.53/entangled-bank/api/treelabels.php?tree=" + tree_id.value + 
-		//"&query=" + findval.value + "&filter=" + str2;
 	
 		//alert(url);
 		
@@ -46,10 +39,11 @@ function findNodes() {
 		if (request.status != 200) {
 			alert("Error " + request.status + ": " + request.statusText);
 		} else {
+			//alert("!");
 			tree_items.options.length = 0;
 			var data = request.responseText;
 			var ret = JSON.parse(data);
-			//alert(ret.length);
+			//alert(data);
 			if (ret.length > 0) {
 				data = data.substring(1);
 				data = data.substring(1, data.length - 1);

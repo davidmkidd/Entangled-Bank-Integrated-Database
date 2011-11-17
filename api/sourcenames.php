@@ -3,7 +3,7 @@
 	# RESTFUL API FOR QUERYING NAMES IN SOURCES
 	session_start();
 	include "config_setup.php";
-	include "../php_utils.php";
+	include "../lib/php_utils.php";
 	
 	#$config = parse_ini_file('../../../passwords/entangled_bank.ini');
 	$db_handle = eb_connect_pg($config);

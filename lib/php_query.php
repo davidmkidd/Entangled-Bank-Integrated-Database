@@ -6,10 +6,10 @@
 
 		# QUERY PARAMETERS
 		$qobjects = $_SESSION['qobjects'];
-		$qobject = get_obj($qobjects, $qobjid);
 		$sources = $_SESSION['sources'];
-		$names = $_SESSION['names'];
+		if ($_SESSION['names']) $names = $_SESSION['names'];
 		
+		$qobject = get_obj($qobjects, $qobjid);
 		$qterm = $qobject['term'];
 		$queryop = $qobject['queryoperator'];
 		$qsources = $qobject['sources'];
@@ -62,7 +62,7 @@
 					$str = query_bionames_table($source, $str);
 					break;
 				case ($qterm == 'biotable'):
-					$str = query_biotable(db_handle, $qobject, $source, $str);
+					$str = query_biotable(db_handle, $qobject, $source);
 				break;
 				case ($qterm == 'bionames' && $sterm == 'biotree'):
 					$str = query_bionames_tree($qobject, $source, $str);
@@ -127,7 +127,6 @@
 		# CLOSE MULTISOURCE WRAPPER
 		if ($single_source == false) {
 			$str = $str . ") AS bioname";
-			# GROUP BY 
 			$str = $str . " GROUP BY bioname HAVING COUNT(*) $nop $nsources";
 		}
 		
@@ -181,25 +180,24 @@
 	
 # ----------------------------------------------------------------------
 	
-	function query_biotable($db_handle, $qobject, $source, $str) {
+	function query_biotable($db_handle, $qobject, $source) {
 		
 		$qterm = $qobject['term'];
 		$queries = $qobject['queries'];
 		$fields = $source['fields'];
-		$not = $qobject['querynot'];
+		//$not = $qobject['querynot'];
 		$null = $qobject['querynull'];
 		$sterm = $source['term'];
-		//$nseries = -1;
 		$nseries_op = "";
 		
-		//echo "Begin biotable query " . $source['id'] . "<br>";
-		//print_r($qobject);
-		//echo  "<br>";
+/*		echo "Begin biotable query " . $source['id'] . "<br>";
+		print_r($qobject);
+		echo  "<br>";*/
 		
 		# SELECT CLAUSE
 		if ($source['id'] !== '23') {
 			# NOT GPDD
-			$str = $str . "SELECT d." . $source['namefield'] . " AS bioname "
+			$str = "SELECT d." . $source['namefield'] . " AS bioname "
 				. " FROM " . $source['dbloc']
 				. " d WHERE";
 			$first = true;
@@ -208,7 +206,7 @@
 			# GPDD
 			# TABLES
 			$tables = array();				
-			$str = $str . "SELECT t.binomial AS bioname, COUNT(*) AS n
+			$str = "SELECT t.binomial AS bioname, COUNT(*) AS n
 				 FROM gpdd.main m";
 			
 			
@@ -225,7 +223,7 @@
 						$tables['biotope'] = ", gpdd.biotope b";
 						break;
 					case ($query['lookup'] == 31):
-						$tables['datasource'] = ", gpdd.datasource d";
+						$tables['datasource'] = ", gpdd.datasource ds";
 						break;		
 				}
 			}
@@ -253,21 +251,22 @@
 						$str = $str . " m.\"BiotopeID\" =  b.\"BiotopeID\"";
 						break;						
 					case 'datasource' :
-						$str = $str . " m.\"DataSourceID\" = d.\"DataSourceID\"";
+						$str = $str . " m.\"DataSourceID\" = ds.\"DataSourceID\"";
 						break;				
 				}
+			$first = false;
 			}
 		}
 		
 		# NOT
-		if ($not == 'NOT') {
+/*		if ($not == 'NOT') {
 			if ($first == true) {
 				$str = $str . " NOT (";
 			} else {
 				$str = $str . " AND NOT (";
 			}
 			$first = true;
-		}
+		}*/
 		
 		
 		# WHERE CONDTIONS
@@ -333,6 +332,7 @@
 		
 		# GROUP BY CLAUSES
 		if ($source['id'] == '23' && $nseries_type) {
+			//echo "TYPE 23<br>";
 			$str = $str . " GROUP BY t.binomial";
 			if ($nseries !== -1) {
 				if($not == 'NOT') {
@@ -485,6 +485,7 @@
 		}
 		$arr = array_to_postgresql($values, $ftype);
 		
+		$str = $str . " AND";
 		if ($null) $str = $str . "(";
 		
 		$str = $str . " $letter.\"$field\" = ANY ($arr)";
@@ -500,7 +501,7 @@
 		if ($source['id'] == 23) {
 			$s = 'm';
 		} else {
-			$s = 'd';
+			$s = 'ds';
 		}
 		$field = $query['field'];
 		$ftype = $query['ftype'];
@@ -522,31 +523,20 @@
 	function query_biotable_rangefield ($query, &$str, $source, $null) {
 		
 		$field = $query['field'];
-		$values = $query['value'];
-		$ops = $query['operator'];
-		$first = true;
-		$i = 0;
+		$value = $query['value'];
+		$op = $query['operator'];
 		
 		if ($null) $str = $str . "(";
-		$str = $str . " (";
 		
 		if ($source['id'] == 23) {
 			$s = 'm';
 		} else {
-			$s = 'd';
+			$s = 'ds';
 		}
 				
-		foreach ($values as $value) {
-			if ($first == false) $str = $str . " AND ";
-			$str = $str . " $s.\"$field\" $ops[$i] $value";
-			$first = false;
-			$i++;
-		}
-		
-		$str = $str . ")";
+		$str = $str . " $s.\"$field\" $op $value";
 		if ($null) $str = $str . " OR $s.\"$field\" IS NULL)";
-		
-		//return $str;
+
 	}
 
 	
@@ -870,7 +860,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		$str = $str . " WHERE m.\"MainID\" = d.\"MainID\"";
 		$str = $str . " AND m.\"TaxonID\" = t.\"TaxonID\"";
 		$str = $str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
-		$str = $str . " AND ds.\"DataSourceID\" <> 'Availability'";		
+		$str = $str . " AND ds.\"Availability\" <> 'Restricted'";		
 		$str = $str . " AND t.binomial IS NOT NULL";
 		if ($arr) $str = $str .  " AND m.\"MainID\" = ANY($arr)";
 		$str = $str . " GROUP BY t.binomial";
@@ -937,7 +927,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 					gpdd.datasource ds
 					WHERE m.\"MainID\" = d.\"MainID\"
 					AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-					AND ds.\"DataSourceID\" <> 'Availability'					
+					AND ds.\"Availability\" <> 'Restricted'					
 					GROUP BY m.\"MainID\"
 					HAVING MAX(d.\"DecimalYearBegin\") >= 1500
 					AND (MIN(d.\"DecimalYearEnd\") <= $to_dtime AND MAX(d.\"DecimalYearBegin\") >= $from_dtime)
@@ -1084,7 +1074,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 				$str = $str . " gpdd.datasource ds";
 				$str = $str . " WHERE m.\"MainID\" = d.\"MainID\"";
 				$str = $str . " AND m.\"TaxonID\" = t.\"TaxonID\"";
-				$str = $str . " WHERE m.\"DataSourceID\" = ds.\"DataSourceID\"";
+				$str = $str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
 				$str = $str . " AND ds.\"Availability\" <> 'Restricted'";
 				$str = $str . " AND t.binomial IS NOT NULL";
 				$qstr = $str;
@@ -1115,8 +1105,8 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		//echo "qstr: $qstr<br>";
 		query_add_series_sql($qobject, $qobjects, $qstr);
 		
-		$top = $qobject['toperator'];
-		if ($midsarr) $str = "$str $top UNNEST($midsarr) as mid";	
+		$op = $qobject['queryoperator'];
+		if ($midsarr) $str = "$str $op SELECT UNNEST($midsarr) as mid";	
 		
 		//echo "series query: $str<br>";
 		$res = pg_query($str);

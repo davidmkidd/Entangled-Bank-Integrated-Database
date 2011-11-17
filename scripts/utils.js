@@ -92,11 +92,8 @@ function addBiotableOutput(id) {
 
 function editQuery(id) {
 	// Opens query for editing
-	var item = document.getElementById('stage');
-	//alert(item.value);
-	item.value = 'qedit';
-	var item = document.getElementById('qedit_objid');
-	item.value = id;
+	document.getElementById('stage').value = 'qset';
+	document.getElementById('qobjid').value = id;
 /*	    if(document.ebankform.onsubmit &&
     !document.ebankform.onsubmit())
     {
@@ -145,8 +142,7 @@ function submitForm (id) {
 
 function submitQuery(id) {
 	//alert(id);
-	var qterm = document.getElementById('qterm');
-	qterm.value = id;
+	document.getElementById('qterm').value = id;
 	document.ebankform.submit();
 }
 
@@ -232,7 +228,7 @@ function findSourceNames() {
 	var sources = document.getElementsByName('qsources[]');
 	var n = document.getElementById('nsources');
 	var op = document.getElementById('noperator');
-	var names = document.getElementById('names');
+	var names = document.getElementById('found_names');
 	var ebpath = document.getElementById('eb_path');
 	
 	var sids = '';
@@ -303,7 +299,7 @@ function checkAllNames() {
 
 
 function namesAdd() {
-	var names = document.getElementById('names');
+	var names = document.getElementById('found_names');
 	var taxa = document.getElementById('taxa');
 	var sel = new Array();
 	
@@ -332,7 +328,7 @@ function namesAdd() {
 }
 
 function namesAddAll() {
-	var names = document.getElementById('names');
+	var names = document.getElementById('found_names');
 	var taxa = document.getElementById('taxa');
 	var sel = new Array();
 	
@@ -409,7 +405,7 @@ function submitTableQuery(id) {
 	// AT LEAST ONE _QUERY MUST BE CHECKED
 	// IF SELECT THEN AT LEAST ONE VALUES IN QUERY BOX
 	// SELECT ALL SELECT ENTRIES FOR POST
-	alert("!");
+	//alert("!");
 	// Check if any _query check boxes checked
 	var control = document.getElementsByTagName("input");
 	var check_ok = false;
@@ -518,6 +514,7 @@ function deleteQuery(id) {
 	item.value = id;
 	var item = document.getElementById('stage');
 	item.value = 'qdelete';
+	document.getElementById('lastaction').value = 'delete_query';
 	document.ebankform.submit();
 }
 

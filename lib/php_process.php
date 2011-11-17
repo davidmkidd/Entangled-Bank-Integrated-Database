@@ -1,46 +1,58 @@
 <?php
 
-function process_qset($oldtoken, $newtoken, $lastaction, $lastid, $qterm, $qobjects) {
+function process_qset($qobjid, $qterm, $oldtoken, $newtoken, $lastaction, $lastid) {
 	
 	# BACK BUTTON
 	if ($lastaction == 'run') {
+		echo "process_qset last action 'run'<br>";
 		$qobjid = $lastid;
 		return $qobjid;
-	}
+	}	
 	
-	if ($oldtoken == $newtoken || $qobjects[count($qobjects) - 1]['status'] == 'new') {
-		# REFRESH
+	# CREATE NEW OR UPDATE EXISTING QUERY
+	$qobjects = $_SESSION['qobjects'];
+	
+	# REFRESH
+	if ($oldtoken == $newtoken && $qobjects[count($qobjects) - 1]['status'] == 'new') {
 		$qobject = $qobjects[count($qobjects) - 1];
-		$qobjid = $qobject['id'];
-	} else {
-		if (!$qobjects) $qobjects = array();
+		return $qobject['id'];
+	} 
+	
+	if ($qobjid) return $qobjid;
+	
+	if (!$qobjects) $qobjects = array();
 		
-		# CREATE NEW QOBJECT
-		$qname = get_next_name($qobjects, $qterm);
-		$qobjid = md5(uniqid());
-		echo "Creating new $qterm qobject, id $qobjid<br>";
-		$qobject = array(
-			'id' => $qobjid,
-			'term' => $qterm,
-			'name' => $qname,
-			'status' => 'new'
-			);
-		
-		# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
-		if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
-		if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
+	# CREATE NEW QOBJECT
+	$qname = get_next_name($qobjects, $qterm);
+	$qobjid = md5(uniqid());
+	echo "Creating new $qterm qobject, id $qobjid<br>";
+	$qobject = array(
+		'id' => $qobjid,
+		'term' => $qterm,
+		'name' => $qname,
+		'status' => 'new'
+		);
+	
+	# ADD SOURCE TO BIOTREE/BIOTABLE QUERY
+	if ($qterm == 'biotree') $qobject['sources'] = array($_SESSION['biotree_sid']);
+	if ($qterm == 'biotable') $qobject['sources'] = array($_SESSION['attribute_sid']);
 
-		array_push($qobjects, $qobject);
-		$_SESSION['qobjects'] = $qobjects;
-	}
+	array_push($qobjects, $qobject);
+	$_SESSION['qobjects'] = $qobjects;
+
 	return $qobjid;
 }
 
 
 #=====================================================================================================
 
-function process_get_sources($db_handle, $sourceids) {
+function process_get_sources($db_handle, $sourceids, $lastaction) {
 	
+	if($lastaction == 'selectsources') {
+		unset ($_SESSION['qobjects']);
+		unset ($_SESSION['names']);
+		unset ($_SESSION['outputs']);
+	}
 	
 	$sources = get_sources($db_handle, $sourceids, 'bio');
 	
@@ -81,28 +93,34 @@ function process_get_sources($db_handle, $sourceids) {
 function process_delete_query($db_handle, $qobjid) {
 	
 	$qobjects = $_SESSION['qobjects'];
-	
-	
-	$_SESSION['names'] = $names;
-	$idx = obj_idx($qobjects,$qobjid);
-	unset ($qobjects[$idx]);
-	//echo "query $qobjid deleted<br>";
-	array_values($qobjects);
-	$names = null;
-	# RUN QUERIES
-	if (!empty($qobjects)) {
-		$sources = $_SESSION['sources'];
-		foreach ($qobjects as $qobject) {
-			$out = query($db_handle, $qobject, $qobjects, $names, $sources);
-			$qobjects = save_obj($qobjects,$out[0]);
-			$names = $out[1];
-		}	
-		$_SESSION['names'] = $names;	
+	//print_r($qobjects);
+	$idx = obj_idx($qobjects, $qobjid);
+	//echo "idx: $idx<br>";
+	if (isset($idx)) {	
+		$_SESSION['names'] = $names;
+		unset ($qobjects[$idx]);
+		//echo "query $qobjid deleted, " . count($queries) . " in stack<br>";
+		array_values($qobjects);
+		$names = null;
+		# RUN QUERIES
+		if (!empty($qobjects)) {
+			$sources = $_SESSION['sources'];
+			foreach ($qobjects as $qobject) {
+				$out = query($db_handle, $qobject, $qobjects, $names, $sources);
+				$qobjects = save_obj($qobjects,$out[0]);
+				$names = $out[1];
+			}	
+			$_SESSION['names'] = $names;	
+		} else {
+			unset($_SESSION['names']);
+			unset($_SESSION['qobjects']);
+		}
+		$_SESSION['qobjects'] = $qobjects;
 	} else {
-		unset($_SESSION['names']);
-		unset($_SESSION['qobjects']);
+		# ELSE DO NOTHING AS QUERY ALREADY DELETED
+		//echo "query $qobjid not found in stack of " . count($queries) . " queries<br>";
 	}
-	$_SESSION['qobjects'] = $qobjects;	
+	
 }
 
 #=====================================================================================================
@@ -153,17 +171,15 @@ function process_delete_output ($oid) {
 
 function process_query ($db_handle, $qobjid, $qsources) {
 	
-	//echo "begin prcess_query<br>";
+	echo "begin process_query $qobjid<br>";
 	
 	$qobjects = $_SESSION['qobjects'];
-	if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 	$sources = $_SESSION['sources'];
-	$names = $_SESSION['names'];
-	unset ($qobject['errs']);
-	
+	if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 	$term = $qobject['term'];
 	
-	//echo "Validate, term = $term<br>";
+	if ($_SESSION['names']) $names = $_SESSION['names'];
+	unset ($qobject['errs']);
 	
 	# --------
 	# ADD KEYS
@@ -171,8 +187,7 @@ function process_query ($db_handle, $qobjid, $qsources) {
 
 	# GENERAL
 	$qobject['name'] = $_SESSION['objname'];
-	$qobject['querynull'] = $_SESSION['querynull'];
-	$qobject['queryoperator'] = $_SESSION['queryoperator'];
+	if ($_SESSION['queryoperator']) $qobject['queryoperator'] = $_SESSION['queryoperator'];
     
 	# NAMES IN QUERY
 	if ($term == 'bionames' || $term == 'biotree') {
@@ -215,7 +230,7 @@ function process_query ($db_handle, $qobjid, $qsources) {
 	# PROCESS QUERY BY TERM
 	switch ($term) {
 		case 'bionames':
-			$qobject = process_bionames($db_handle, $qobject, $sources);
+			process_bionames($db_handle, $qobject, $sources);
 			break;
 		case 'biotable':
 			process_biotable($db_handle, $qobject, $sources, $names);
@@ -241,7 +256,6 @@ function process_query ($db_handle, $qobjid, $qsources) {
 		$qobject['status'] = 'invalid';
 	}
 	
-
 	if ($qobject['status'] === 'valid') {
 		$stage = 'query';
 	} else {
@@ -251,9 +265,7 @@ function process_query ($db_handle, $qobjid, $qsources) {
 	$qobjects = save_obj($qobjects, $qobject);
 	$_SESSION['qobjects'] = $qobjects;
 	
-	//echo "After process_query<br>";
-	//print_r($qobjects);
-	//echo "<br>";
+	echo "finish process_query<br>";
 	
 	return $stage;
 	
@@ -273,7 +285,7 @@ function process_biogeographic(&$qobject) {
 #=================================================================================================================
 
 
-function process_bionames($db_handle, $qobject, $sources) {	
+function process_bionames($db_handle, &$qobject, $sources) {	
 	
 	# Converts names input to array
 	# and validates against DB
@@ -294,35 +306,37 @@ function process_bionames($db_handle, $qobject, $sources) {
 			break;
 	}
 	
-	return $qobject; 
-	}
+}
 	
 #=================================================================================================================
 	
 function process_biotable($db_handle, &$qobject, $sources, $names)  {
-	
-	//echo "begin validate table<br>";
 
-	// Generates query from html_table_query entrie
-	if ($qobject['errs']) unset ($qobject['errs']);
+	// ADD QUERY INPUT FROM html_table_query TO QOBJECT
+	
+	//if ($qobject['errs']) unset ($qobject['errs']);
 	if ($qobject['queries']) unset ($qobject['queries']);
 	
+	//echo "begin validate table<br>";
 	$source = get_obj($sources, $qobject['sources'][0]);
 	$fields = $source['fields'];
 	$queries = array();
 	$qfields = array();            //fields in query
 	$fnames = array();
 
-	# GPDD keys
+	$qobject['querynull'] = $_SESSION['querynull'];
+	
+	# GPDD NSERIES
 	if ($source['term'] == 'biorelational') {
-		$qobject['nseries'] = $_SESSION['nseries'];
-		$qobject['nseries_operation'] = $_SESSION['nseries_operation'];
+		if ($_SESSION['nseries']) $qobject['nseries'] = $_SESSION['nseries'];
+		if ($_SESSION['nseries_operation']) $qobject['nseries_operation'] = $_SESSION['nseries_operation'];
 	}
 	
+	# FIELDS IN SOURCE
 	foreach($fields as $field) array_push($fnames, $field['name']);
 	
 	# GET CHECKED QUERIES 
-	// add to qfields array.
+	# add to qfields array.
 	foreach($_SESSION as $key=>$value) {
 		$keyfield = substr($key, 0, strrpos($key, "_"));
 		$keysuffix = substr($key, strrpos($key, "_") + 1);
@@ -332,69 +346,65 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	}
 	
 	
-	// Process qfields
-	if (!empty($qfields)) {
-		echo "qfields: ";
-		print_r($qfields);
-		echo "<br>";
-		foreach ($qfields as $qfield) {
+	# PROCESS QUERY FIELDS
+	//echo "qfields: ";
+	//print_r($qfields);
+	//echo "<br>";
+	
+	foreach ($qfields as $qfield) {
 			
-			//$i = array_search($qfield, $fields);
-			$field = get_field($qfield, $fields);
-			$dtype = $field['ebtype'];
-			$lookup = $field['lookup'];
-			
-			///echo "field: $qfield, $dtype<br>";
-			
-			switch ($dtype) {
-				case 'rangefield':
-					$ops = array();
-					$values = array();
-					$field = $qfield . "_min";
-					$value = $_SESSION[$field];
-					array_push ($ops, '>=');
-					array_push ($values, $value);
-					$field = $qfield . "_max";
-					$value = $_SESSION[$field];
-					array_push ($ops, '<=');
-					array_push ($values, $value);						
-					$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values);
-					array_push($queries, $query);
-					break;
-				case 'lookupfield':
-				case 'namefield':
-				case 'catagoryfield':
-					$field = $qfield . "_add";
-					$values = $_SESSION[$field];
-					$ops = array_fill(0, count($values), '=');
-					$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values);
-					array_push($queries, $query);
-					break;
-				case 'lookuptable':
-					$field = $qfield . "_add";
-					$values = $_SESSION[$field];
-					$ops = array_fill(0, count($values), '=');
-					$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'lookup'=>$lookup);
-					array_push($queries, $query);
-					break;
-				case 'groupfield':
-					# GPDD hardcode
-					$op = $_SESSION['NSeries_operation'];
-					$value = $_SESSION['NSeries_count'];
-					$query = array('field'=>$qfield, 'operator'=>$op, 'value'=>$value);
-					array_push($queries, $query);				
-					break;
-			}
-		
+	//$i = array_search($qfield, $fields);
+	$field = get_field($qfield, $fields);
+	$dtype = $field['ebtype'];
+	$lookup = $field['lookup'];
+	
+		///echo "field: $qfield, $dtype<br>";
+		switch ($dtype) {
+			case 'rangefield':
+				$op = $qfield . '_operator';
+				$val = $qfield . '_value';
+				$query = array('field'=>$qfield, 'operator'=>$_SESSION[$op], 'value'=>$_SESSION[$val]);
+				unset($_SESSION[$op]);
+				unset($_SESSION[$val]);
+				array_push($queries, $query);
+				break;
+			case 'lookupfield':
+			case 'namefield':
+			case 'catagoryfield':
+				$field = $qfield . "_add";
+				$values = $_SESSION[$field];
+				//echo "field: $field, values: $values<br>";
+				$ops = array_fill(0, count($values), '=');
+				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values);
+				array_push($queries, $query);
+				unset($_SESSION[$field]);
+				break;
+			case 'lookuptable':
+				$field = $qfield . "_add";
+				$values = $_SESSION[$field];
+				$ops = array_fill(0, count($values), '=');
+				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'lookup'=>$lookup);
+				array_push($queries, $query);
+				unset($_SESSION[$field]);
+				break;
+			case 'groupfield':
+				# GPDD hardcode
+				$op = $_SESSION['NSeries_operation'];
+				$value = $_SESSION['NSeries_count'];
+				$query = array('field'=>$qfield, 'operator'=>$op, 'value'=>$value);
+				array_push($queries, $query);
+				unset($_SESSION['NSeries_operation']);
+				unset($_SESSION['NSeries_count']);		
+				break;
 		}
-		print_r($queries);
-		echo "<br>";
-		$qobject['queries'] = $queries;	
-	} else {
-		$errs = array();
-		$errs = array_merge($errs, array('query' => "one or more fields must be queried"));
-		$qobject = add_key_val($qobject, 'errs', $errs);
+		
+		$q = $qfield . '_query';
+		unset($_SESSION[$q]);
+		unset($_SESSION[$qfield]);
 	}
+	//print_r($queries);
+	//echo "<br>";
+	$qobject['queries'] = $queries;	
 	
 }
 	

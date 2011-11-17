@@ -191,9 +191,7 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 		if ($qobjects && !empty($qobjects)) {
 			echo "<div id='cart_queries'>";
 			
-			echo "<input type='hidden' id='qedit_objid' name='qedit_objid' value=''>";
 			echo "<table>";
-			
 			echo "<tr>";
 			$title = "Your queries - click to edit or delete";
 			echo "<td class='query_title' title='$title'>Queries</td>";

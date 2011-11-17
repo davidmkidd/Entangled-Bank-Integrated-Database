@@ -954,7 +954,11 @@ function obj_idx($objs, $id) {
 	$i = 0;
 	if ($objs) {
 		foreach ($objs as $obj) {
-			if ($obj['id'] == $id) return $i;
+			
+			if ($obj['id'] == $id) {
+				//echo $obj['id'] . " - $id match!<br>";
+				return $i;
+			}
 			$i++;
 		}
 	}
