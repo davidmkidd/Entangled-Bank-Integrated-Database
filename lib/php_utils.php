@@ -321,6 +321,8 @@ function get_source_field_types($db_handle, $source) {
 
 function add_source_fields($db_handle, &$source) {
 	
+	//echo "Adding fields to " . $source['name'] . "<br>";;
+	
 	# Adds namesfield and fields array to source
 	$dbtypes = array();        //field type from db
 	$ebtypes = array();        //display type from source.source_fields (rangefield,catagoryfield,lookupfield, lookuptable)
@@ -330,13 +332,21 @@ function add_source_fields($db_handle, &$source) {
 	$fdescs = array();         //field description
 	$flookups = array();       //field description
 	$faliases = array();       //field alias
+	$fgroup = array();         //field group
+	$fgrouprank = array();     //field group rank
 		
 	if ($source['term'] == 'biotree') return false;
 
 	# GET FIELD INFO
-	$str = "SELECT s.field_name, t.name, s.rank, s.field_description, s.field_alias FROM source.source_fields s, biosql.term t 
-		WHERE s.source_id=". $source['id'] .
-		"AND t.term_id=s.term_id ORDER by s.rank;";
+	$str = "SELECT s.field_name, t.name, s.rank, s.field_description, s.field_alias, g.name, g.rank
+		FROM source.source_fields s, biosql.term t, source.source_fields_group g 
+		WHERE s.source_id = " . $source['id'] .
+		" AND t.term_id = s.term_id 
+		AND g.fields_group_id = s.fields_group_id
+		ORDER by g.rank, s.rank;";
+	
+	//echo "$str<br>";
+	
 	$res = pg_query($db_handle, $str);
 	while ($row = pg_fetch_row($res)) {
 		array_push($fnames,$row[0]);
@@ -344,6 +354,8 @@ function add_source_fields($db_handle, &$source) {
 		array_push($franks,$row[2]);
 		array_push($fdescs,$row[3]);
 		array_push($faliases,$row[4]);
+		array_push($fgroup,$row[5]);
+		array_push($fgrouprank,$row[6]);
 	}
 	
 	# FTYPE
@@ -395,22 +407,17 @@ function add_source_fields($db_handle, &$source) {
 		$i++;
 	}
 
-	
-	
 	$fields = array();
-	for ($i = 0; $i <= count($fnames)-1; $i++) {
-		//echo "fname: $fnames[$i], dtype: $dtypes[$i] ftype: $ftypes[$i], ftitle: $fdescs[$i]<br/><br/>";
+	for ($i = 0; $i <= count($fnames) - 1; $i++) {
 		$field = array('name' => $fnames[$i], 'dbtype' => $dbtypes[$i], 'ftype'=>$ftypes[$i], 
 			'ebtype'=>$ebtypes[$i], 'rank'=>$franks[$i], 'desc'=>$fdescs[$i],
-			'lookup'=>$flookups[$i], 'alias'=>$faliases[$i]);
+			'lookup'=>$flookups[$i], 'alias'=>$faliases[$i], 'group'=>$fgroup[$i], 'grouprank'=>$fgrouprank[$i]);
 		array_push($fields, $field);
-		//echo "<br />";
-		//print_r ($field);
-		//echo "<br />";
 	}
-	$fields = array_sort($fields,'rank') ;
+	//$fields = array_sort($fields,'rank') ;
 	$source['fields'] = $fields;
-	
+	//print_r($fields);
+	//echo "<br>";
 }
 
 #=================================================================================================================
@@ -422,8 +429,10 @@ function get_ftype_from_dbtype($dbtype) {
 		case 'numeric':
 		case 'float':
 		case 'float8':
+			$ftype = 'real';
+			break;
 		case (substr($ftype, 0, 3) == 'int'):
-			$ftype = 'numeric';
+			$ftype = 'integer';
 			break;
 		case (substr($ftype,-4) == 'char'):
 		case 'text':
@@ -503,7 +512,8 @@ function get_obj($objs, $id) {
 function get_sources($db_handle, $ids, $type) {
 	
 //	echo "ids: " . empty($ids);
-//	echo print_r($ids);
+	//print_r($ids);
+	//echo "<br>";
 	$sources = array();
 	
 	if (!$ids || empty($ids)) {	
@@ -550,10 +560,12 @@ function get_sources($db_handle, $ids, $type) {
 		$res = pg_query($db_handle, $str);
 		$ids = pg_fetch_all_columns($res, 0);
 	}
-	
+	//print_r($ids);
+	//echo "<br>";	
 	foreach($ids as $id) {
 		$source = get_source($db_handle, $id);
-		$sources = add_key_val($sources, $id, $source);
+		$sources[$id] = $source;
+		//echo "source " . $source['name'] . " added to sources<br>";
 	}
 	
 //	echo "sources: ";
@@ -573,6 +585,8 @@ function get_sources($db_handle, $ids, $type) {
 	function get_source($db_handle, $id) {
 		
 		# RETURNS A SOURCE OBJECT GIVEN AN ID
+		
+		//echo "Begin get_source $id<br>";
 		
 		$str = "SELECT s.*, t.name
 			FROM source.source s, biosql.term t
@@ -596,8 +610,7 @@ function get_sources($db_handle, $ids, $type) {
 			'term'=>$row[10],
 			);
 		
-		if (!empty($row[6])==1) $source = add_key_val($source, 'www', $row[6]);
-		
+		if (!empty($row[6])==1) $source['www'] = $row[6];
 		
 		# GET SOURCE QUALIFIER VALUES
 		# only trees at the moment
@@ -608,10 +621,7 @@ function get_sources($db_handle, $ids, $type) {
 			 AND t.ontology_id = ont.ontology_id
 			 AND ont.name = 'source_qualifier_value'";
 		$res = pg_query($db_handle, $str);
-		
-		while ($row =  pg_fetch_row($res)) {
-			$source = add_key_val($source, $row[1], $row[0]);
-			}
+		while ($row = pg_fetch_row($res)) $source[$row[1]] = $row[0];
 		
 		# GET GEOMETRY COLUMN (Non-Geographic)
 //		$str = "SELECT f_geometry_column 
@@ -631,11 +641,11 @@ function get_sources($db_handle, $ids, $type) {
 		
 		# GET FIELDS
 		add_source_fields($db_handle, $source);
-	//echo "<br/>";
-	//print_r($source);
-	//echo "<br/>";
-	return($source);
-	
+		//echo "<br/>";
+		//print_r($source);
+		//echo "<br/>";
+		//echo "End get_source $id<br>";
+		return($source);
 	}
 	
 #=================================================================================================================

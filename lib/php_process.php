@@ -54,7 +54,9 @@ function process_get_sources($db_handle, $sourceids, $lastaction) {
 		unset ($_SESSION['outputs']);
 	}
 	
+	//echo "process_get_sources: before get_sources<br>";
 	$sources = get_sources($db_handle, $sourceids, 'bio');
+	//echo "process_get_sources: after get_sources<br>";
 	
 	# WHICH TYPES OF QUERY ARE AVAILABLE?
 	$bioname = Array();
@@ -327,7 +329,8 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	$qobject['querynull'] = $_SESSION['querynull'];
 	
 	# GPDD NSERIES
-	if ($source['term'] == 'biorelational') {
+	if ($source['term'] == 'biorelational' && $_SESSION['nseries'] == 'on') {
+		echo "adding nseries to query<br>";
 		if ($_SESSION['nseries']) $qobject['nseries'] = $_SESSION['nseries'];
 		if ($_SESSION['nseries_operation']) $qobject['nseries_operation'] = $_SESSION['nseries_operation'];
 	}
@@ -355,6 +358,8 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 			
 	//$i = array_search($qfield, $fields);
 	$field = get_field($qfield, $fields);
+	//print_r($field);
+	//echo "<br>";
 	$dtype = $field['ebtype'];
 	$lookup = $field['lookup'];
 	
@@ -382,6 +387,7 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 			case 'lookuptable':
 				$field = $qfield . "_add";
 				$values = $_SESSION[$field];
+				echo "field: $field, values: $values<br>";
 				$ops = array_fill(0, count($values), '=');
 				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'lookup'=>$lookup);
 				array_push($queries, $query);

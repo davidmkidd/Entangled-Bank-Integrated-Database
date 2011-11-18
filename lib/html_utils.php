@@ -1138,7 +1138,7 @@ function html_query_operator($qobject) {
 #=================================================================================================================
 	
 	
-	function html_query_select_range($db_handle, $str, $fname, $qobject) {
+	function html_query_select_range($db_handle, $str, $fname, $dbtype, $qobject) {
 		
 		# SELECT VALUES FROM A RANGE FIELD
 		# $str 		query string to return min and max values
@@ -1158,9 +1158,7 @@ function html_query_operator($qobject) {
 			}
 		}
 		
-	
-		
-		$fop = $fname . '_operator';
+		$fop = $fname . "_operator";
 		$fval = $fname . "_value";
 				
 		# OPERATOR
@@ -1170,6 +1168,11 @@ function html_query_operator($qobject) {
 		echo "</ SELECT>";
 		# VALUE
 		if (!$val) $val = ($row[0] + $row[1]) / 2;
+		
+		# INTEGERIZE
+		if (substr($dbtype, 0, 3) == 'int') $val = intval($val);
+		
+		# ELEMENTS
 		echo "<INPUT type='text' name='$fval' id='$fval' class='eb_range_input' $disabled size=8 value='$val' onchange='validateRangeField(\"$fval\")'>";
 		$t = 'Range of values in current selection';
 		echo "&nbsp;<LABEL for='$fval' title='$t'>($row[0] - $row[1])</ LABEL>";
@@ -1345,8 +1348,8 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 
 	echo '<script src="./scripts/table_utils.js" type="text/javascript"></script>';
 
-	print_r($qobject['queries']);
-	echo "<br>";
+	//print_r($qobject['queries']);
+	//echo "<br>";
 	
 	# Get source
 	$source = get_obj($sources, $qobject['sources'][0]);
@@ -1365,22 +1368,34 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 	# FIELD TYPES
 	$fields = $source['fields'];
+	//print_r($fields);
+	//echo "<br>";
 
-	$fieldtitle = count($fields) . ' Fields';
-	
+
 	echo "<table border='0'>";
+	$fieldtitle = count($fields) . ' Fields';
+	echo "<tr><td class='query_title'>$fieldtitle</td></tr>";		
+	$activegroup = '';
 	
 	foreach ($fields as $field) {
-
 		echo "<tr>";
-		echo "<td class='query_title'>$fieldtitle</td>";
-		if ($fieldtitle == (count($fields) . ' Fields')) $fieldtitle = '';
+		echo "<td class='query_title'>";
+		# group
+		if ($field['group'] !== $activegroup) {
+			echo $field['group'];
+			$activegroup = $field['group'];
+		}
+		echo "</td>";
+		//if ($fieldtitle == (count($fields) . ' Fields')) $fieldtitle = '';
+		
 		echo "<td class='query_field'>";
 
 		$fname = $field['name'];
 		$fdesc = $field['desc'];
 		$ftype = $field['ftype'];
+		//echo "ftype: $ftype<br>";
 		$dtype = $field['ebtype'];
+		$dbtype = $field['dbtype'];
 		$falias = $field['alias'];
 		
 		#FIELD RETURN
@@ -1393,6 +1408,8 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			$check = '';
 			$vals = null;
 		}
+		
+
 		
 		# DIV
 		echo "<INPUT type='checkbox' $check id='$fname" . "_query' name='$fname" .
@@ -1420,7 +1437,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 				
 			case "rangefield":
 				
-				//GPDDHARDCODE
+				# GPDDHARDCODE
 				if ($source['id'] <> 23) {
 					# Get min and max of all names
 					$str = 'SELECT MIN("' . $fname . '"), MAX("' . $fname . '")
@@ -1434,10 +1451,12 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 					if ($names) $str = $str . " AND t.binomial = ANY($arr)";
 				}
 		
+				if ($fname == 'StartYear') $str = $str . " AND m.\"StartYear\" <> -9999";
+				if ($fname == 'EndYear') $str = $str . " AND m.\"EndYear\" <> -9999";
 				# Get user set min and max
 				#$vals = query_vals($qobject, $fname);
 				
-				html_query_select_range($db_handle, $str, $fname, $qobject);		
+				html_query_select_range($db_handle, $str, $fname, $dbtype, $qobject);		
 				
 				
 /*				if (!$vals) {

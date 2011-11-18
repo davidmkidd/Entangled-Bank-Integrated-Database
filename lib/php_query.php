@@ -144,7 +144,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		//echo "query: $qstr<br>";
+		echo "query: $qstr<br>";
 		$res = pg_query($db_handle, $str);
 		$outnames = pg_fetch_all_columns($res, 0);
 		
@@ -194,6 +194,9 @@
 		print_r($qobject);
 		echo  "<br>";*/
 		
+		print_r($queries);
+		echo  "<br>";
+		
 		# SELECT CLAUSE
 		if ($source['id'] !== '23') {
 			# NOT GPDD
@@ -206,16 +209,14 @@
 			# GPDD
 			# TABLES
 			$tables = array();				
-			$str = "SELECT t.binomial AS bioname, COUNT(*) AS n
-				 FROM gpdd.main m";
+			$tables['taxon'] = ", gpdd.taxon t";
+			$str = "SELECT t.binomial AS bioname FROM gpdd.main m";
 			
-			
-			//$qtables = array();
 			foreach ($queries as $query) {
 				switch (true) {
-					case ($query['lookup'] == 24 || $query['field'] == 'NSeries'):
-						$tables['taxon'] = ", gpdd.taxon t";
-						break;
+					//case ($query['lookup'] == 24 || $query['field'] == 'NSeries'):
+					//	$tables['taxon'] = ", gpdd.taxon t";
+					//	break;
 					case ($query['lookup'] == 25):
 						$tables['location'] = ", gpdd.location l";
 						break;					
@@ -228,7 +229,6 @@
 				}
 			}
 			
-			//print_r($tables);
 			$tables_val = array_values($tables);
 			foreach ($tables_val as $val) $str = $str . $val;
 			
@@ -331,7 +331,7 @@
 		if ($source['id'] == '23') $str = $str . " AND t.binomial IS NOT NULL";
 		
 		# GROUP BY CLAUSES
-		if ($source['id'] == '23' && $nseries_type) {
+		if ($source['id'] == '23' && $nseries_type == 'yes') {
 			//echo "TYPE 23<br>";
 			$str = $str . " GROUP BY t.binomial";
 			if ($nseries !== -1) {
@@ -723,27 +723,27 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 				case 'quickoverlap':
 				case 'quickwithin':
 					$str = $str . " SELECT DISTINCT t.binomial AS bioname ";
-					$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l, gpdd.datasource ds";
+					$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l, gpdd.datasource ds,";
 					$str = $str . " (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
 					$str = $str . " WHERE l.$s_col::geometry $s_op geom::geometry";
 					$str = $str . " AND t.\"TaxonID\" = m.\"TaxonID\"";
 					$str = $str . " AND m.\"LocationID\" = l.locationid";
 					$str = $str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
-					$str = $str . " AND ds.\"DataSourceID\" <> 'Availability'";
+					$str = $str . " AND ds.\"Availability\" <> 'Restricted'";
 					$str = $str . " AND t.binomial IS NOT NULL";					
 					break;
 					
 				case 'overlap':
 				case 'within':
 					$str = $str . " SELECT DISTINCT t.binomial AS bioname";
-					$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l, gpdd.datasource ds";
+					$str = $str . " FROM gpdd.taxon t, gpdd.main m,	$dbloc l, gpdd.datasource ds,";
 					$str = $str . " INNER JOIN (";
 					$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
 					$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
 					$str = $str . " WHERE t.\"TaxonID\" = m.\"TaxonID\"";
 					$str = $str . " AND m.\"LocationID\" = l.locationid";
 					$str = $str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
-					$str = $str . " AND ds.\"DataSourceID\" <> 'Availability'";
+					$str = $str . " AND ds.\"Availability\" <> 'Restricted'";
 					$str = $str . " AND t.binomial IS NOT NULL";
 					break;				
 			}
@@ -801,7 +801,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 			
 		if (in_array(26, $qsources)) {
 			$sql = $sql . " SELECT m.\"MainID\" AS mid";
-			$str = $str . "	FROM gpdd.main m, gpdd.location_pt l, gpdd.taxon t, gpdd.datasource ds";
+			$str = $str . "	FROM gpdd.main m, gpdd.location_pt l, gpdd.taxon t, gpdd.datasource ds,";
 			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
 			$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
 			$str = $str . "	WHERE m.\"LocationID\" = l.locationid";
@@ -815,7 +815,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 			
 		if (in_array(27, $qsources)) {
 			$sql = $sql . " SELECT m.\"MainID\" AS mid";
-			$str = $str . "	FROM gpdd.main m, gpdd.location_bbox l, gpdd.taxon t, gpdd.datasource ds";
+			$str = $str . "	FROM gpdd.main m, gpdd.location_bbox l, gpdd.taxon t, gpdd.datasource ds,";
 			$str = $str . " SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom v) AS foo";
 			$str = $str . " ON $s_op(v::geometry, l.$s_col::geometry)";
 			$str = $str . "	WHERE m.\"LocationID\" = l.locationid";
@@ -1023,7 +1023,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 				$str = $str . ", (SELECT (ST_Dump(ST_GeomFromEWKT('SRID=4326; $q_geometry'))).geom) AS foo";
 				
 				$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-				$str = $str . " WHERE m.\"DataSourceID\" = ds.\"DataSourceID\"";
+				$str = $str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
 				$str = $str . " AND ds.\"Availability\" <> 'Restricted'";		
 				if (in_array(26, $qsources)) $str = $str . " AND m.\"LocationID\" = p.locationid";
 				if (in_array(27, $qsources)) $str = $str . " AND m.\"LocationID\" = b.locationid";

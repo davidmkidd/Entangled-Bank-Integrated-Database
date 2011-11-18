@@ -4,17 +4,17 @@
 ---------------------------
 
 Data
-	- Galliformes (med)
-	- Ephippiger (low)
+	- Galliformes (MEDIUM)
+	- Ephippiger (LOW)
 	
 	
 Entangled-bank.org
-	- Move to IC? (med/low)
-	- Update (high)
+	- Move to IC? (MEDIUM)
+	- Update (HIGH)
 
 Configuration 
-	- Soft code all Windows and LINUX configuration  (high)
-	- Sensible error on connect fail (fixed)
+	- Soft code all Windows and LINUX configuration  (HIGH)
+	- Sensible error on connect fail (FIXED)
 	- Talk to Bioinfromatics support (HIGH)
 	
 Back Button
@@ -24,30 +24,31 @@ Get Sources
 	 - sort select_sources by term (LOW)
 	 	
 Main
-	- Tool tips showing sources available for each query type (fixed)
-	- Query by geography and time offered when only tree selected (fixed)
+	- Tool tips showing sources available for each query type (FIXED)
+	- Query by geography and time offered when only tree selected (FIXED)
 
 Validation
-	- Suggestions for invalid names (low)
-	- all validation as javascript (high)
+	- Suggestions for invalid names (LOW)
+	- all validation as javascript (HIGH)
 	
-Cross-browser compatability (med)
+Cross-browser compatability (MEDIUM)
 	- XMLHttpRequests back compatability with < IE7 and other browsers
 	
 Query
 	General
 		- If only one possible source for a query go direct, i.e. one tree or table available (med: would need hidden field)
-		- NOT option on all queries (low: may be quite complex for multiple source queries)
+		- NOT option on all queries (LOW: may be quite complex for multiple source queries)
 		- htmlspecialchars on database text fields in select boxes
-		- javascript find to get host path from config (fixed)
-		- petty format SQL (high)
-		- Spatial SQL for UDig/J (high)
+		- javascript find to get host path from config (FIXED)
+		- petty format SQL (MEDIUM)
+		- Spatial SQL for UDig/J (MEDIUM)
 		- Hyperlink query list to query (FIXED)
 		- Row headings on select tables (med: how would they look?)
-		- Empty names query currently adds Names SQL, should give verification error. (fixed)
-		- GPDD add n points to query information (med)
-		- last mids on query re-run [see temporal] (high)
+		- Empty names query currently adds Names SQL, should give verification error. (FIXED)
+		- GPDD add n points to query information (MEDIUM)
+		- last mids on query re-run [see temporal] (HIGH)
 	Geography
+	    - Biogeographic query failing (HIGH)
 		- Open source layer fail to draw on intitalise (FIXED)
 		- Clear query features.Clear button implemented needs better positioning. (FIXED)
 		- Generalised range maps (low)
@@ -58,27 +59,26 @@ Query
 	Attribute
 		- NULLs in attribute query (PARTIAL FIX: single 'include nulls' option for all fields in a query)
 		- Set query in edit mode (FIXED)
-		- Find for select fields. Would speed up attribute query load as all options for all fields would not need to be preloaded (med)
+		- Find for select fields. Would speed up attribute query load as all options for all fields would not need to be preloaded (MEDIUM)
 
 Output
 	General
-		- Delete created files/Create temporary files. Periodic chron function or on session end (high)
-		- Extract write from html_write (fixed)
+		- Delete created files/Create temporary files. Periodic chron function or on session end (HIGH)
+		- Extract write from html_write (FIXED)
 	
 	Geography
 		- OGR2OGR shell escapes for GPDD (FIXED)
 	Tree
 		- Write to lintree, tab and nhx with Bio::TreeIO (low)
-		- Write to Nexml with BioPhylo (med)
+		- Write to Nexml with BioPhylo (MEDIUM)
 		- Migrate subtree extraction to SQL (FIXED)
 	Table
-		- Dbase output formats (med)
-		- Something wierd when removing fields from output (?)
-		- Field order in output (low)
+		- Dbase output formats (MEDIUM)
+		- Field order in output (LOW)
 
 CSS
-	- Convert px to em (high)
-	- Rationalise CSS classes and ids (med)
+	- Convert px to em (MEDIUM)
+	- Rationalise CSS classes and ids (MEDIUM)
 
 ---------------
 Test Names List
