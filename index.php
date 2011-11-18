@@ -217,7 +217,9 @@ if ($stage == 'outputvalidate' && $output_id) {
 
 # WRITE OUTPUT FILES
 if ($stage == 'write') {
-	$zip = write_outputs($db_handle, $config, $names, $qobjects, $outputs, $sources);
+	$zip = write_outputs($db_handle, $config);
+	# DELETE OLD FILES - COULD BE BETTER MANAGED
+	process_cleanup($config);
 } else {
 	$zip = null;
 }

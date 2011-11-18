@@ -13,7 +13,7 @@ Entangled-bank.org
 	- Update (HIGH)
 
 Configuration 
-	- Soft code all Windows and LINUX configuration  (HIGH)
+	- Soft code all Windows and LINUX configuration  (HIGH - FIXED?)
 	- Sensible error on connect fail (FIXED)
 	- Talk to Bioinfromatics support (HIGH)
 	
@@ -29,7 +29,7 @@ Main
 
 Validation
 	- Suggestions for invalid names (LOW)
-	- all validation as javascript (HIGH)
+	- all validation as javascript, except names in names query (HIGH)
 	
 Cross-browser compatability (MEDIUM)
 	- XMLHttpRequests back compatability with < IE7 and other browsers

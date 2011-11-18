@@ -95,29 +95,23 @@ function process_get_sources($db_handle, $sourceids, $lastaction) {
 function process_delete_query($db_handle, $qobjid) {
 	
 	$qobjects = $_SESSION['qobjects'];
-	//print_r($qobjects);
 	$idx = obj_idx($qobjects, $qobjid);
-	//echo "idx: $idx<br>";
-	if (isset($idx)) {	
-		$_SESSION['names'] = $names;
+
+	if (isset($idx)) {
 		unset ($qobjects[$idx]);
 		//echo "query $qobjid deleted, " . count($queries) . " in stack<br>";
 		array_values($qobjects);
-		$names = null;
+		$_SESSION['qobjects'] = $qobjects;
 		# RUN QUERIES
 		if (!empty($qobjects)) {
-			$sources = $_SESSION['sources'];
-			foreach ($qobjects as $qobject) {
-				$out = query($db_handle, $qobject, $qobjects, $names, $sources);
-				$qobjects = save_obj($qobjects,$out[0]);
-				$names = $out[1];
-			}	
-			$_SESSION['names'] = $names;	
+			unset($_SESSION['names']);
+			unset($_SESSION['mids']);
+			foreach ($qobjects as $qobject) query($db_handle, $qobject['id']);
 		} else {
 			unset($_SESSION['names']);
 			unset($_SESSION['qobjects']);
+			unset($_SESSION['mids']);
 		}
-		$_SESSION['qobjects'] = $qobjects;
 	} else {
 		# ELSE DO NOTHING AS QUERY ALREADY DELETED
 		//echo "query $qobjid not found in stack of " . count($queries) . " queries<br>";
@@ -173,7 +167,7 @@ function process_delete_output ($oid) {
 
 function process_query ($db_handle, $qobjid, $qsources) {
 	
-	echo "begin process_query $qobjid<br>";
+	//echo "begin process_query $qobjid<br>";
 	
 	$qobjects = $_SESSION['qobjects'];
 	$sources = $_SESSION['sources'];
@@ -267,7 +261,7 @@ function process_query ($db_handle, $qobjid, $qsources) {
 	$qobjects = save_obj($qobjects, $qobject);
 	$_SESSION['qobjects'] = $qobjects;
 	
-	echo "finish process_query<br>";
+	//echo "finish process_query<br>";
 	
 	return $stage;
 	
@@ -275,6 +269,30 @@ function process_query ($db_handle, $qobjid, $qsources) {
 
 #=================================================================================================================
 
+function process_cleanup($config) {
+	
+	#DELETES ALL FILES IN ./tmp that are older than a day
+	
+	$path = $config['out_path'];
+	
+	if ($handle = opendir($path)) {
+	
+	    while (false !== ($file = readdir($handle))) { 
+	        $filelastmodified = filemtime($file);
+	
+	        if(($filelastmodified-time()) > 24*3600)
+	        {
+	           unlink($file);
+	        }
+	
+	    }
+	
+	    closedir($handle); 
+	}
+}
+
+
+#=================================================================================================================
 
 function process_biogeographic(&$qobject) {
 	

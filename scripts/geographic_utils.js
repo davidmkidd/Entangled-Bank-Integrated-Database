@@ -84,7 +84,7 @@
     	document.getElementById('q_geometry').value = wkt_format.write(vectors.features);
 		document.getElementById('lastaction').value = 'run';
 		document.getElementById('lastid').value = id;
-    	//document.ebankform.submit();
+    	document.ebankform.submit();
     	
     }
     

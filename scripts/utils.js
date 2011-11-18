@@ -274,25 +274,28 @@ function findSourceNames() {
 
 
 function checkAllNames() {
-	//alert("!");
 	
 	if (document.getElementById("allnames").checked == true) {
+		//alert("!");
 		document.getElementById("taxa").disabled = true;
 		if (document.getElementById("invalid_taxa")) document.getElementById("invalid_taxa").disabled = true;
 		//alert(document.getElementById("names").disabled);
-		document.getElementById("names").disabled = true;
+		document.getElementById("found_names").disabled = true;
 		//alert(document.getElementById("names").disabled);
 		document.getElementById("findval").disabled = true;
 		document.getElementById("findbtn").disabled = true;
 		document.getElementById("names_add").disabled = true;
+		document.getElementById("names_add_all").disabled = true;
 		document.getElementById("names_clear").disabled = true;
 	} else {
+		//alert("!!");
 		document.getElementById("taxa").disabled = false;
 		if (document.getElementById("invalid_taxa")) document.getElementById("invalid_taxa").disabled = false;
 		document.getElementById("findval").disabled = false;
 		document.getElementById("findbtn").disabled = false;
-		document.getElementById("names").disabled = false;
+		document.getElementById("found_names").disabled = false;
 		document.getElementById("names_add").disabled = false;
+		document.getElementById("names_add_all").disabled = false;
 		document.getElementById("names_clear").disabled = false;
 	}
 }
@@ -374,6 +377,9 @@ function submitNamesQuery(id) {
 		document.getElementById('lastid').value = id;
 		document.ebankform.submit();
 	} else {
+		if (document.getElementById('allnames').checked == true) {
+			document.ebankform.submit();
+		}
 		if (document.getElementById('invalid_taxa')) {
 			if (document.getElementById('invalid_taxa').value.length == 0) {
 				document.getElementById('findval_label').innerHTML = 'No text to search on';
@@ -484,7 +490,6 @@ function sqlDisplay() {
 
 function checkObjName() {
 	// checks query has name and no spaces
-	//alert("!");
 	var name = document.getElementById('objname');
 	//alert(name.value.length);
 	if (name.value.length == 0) {

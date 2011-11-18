@@ -2,11 +2,14 @@
 
 #=================================================================================================================
 	
-function write_outputs($db_handle, $config, $names, $qobjects, $outputs, $sources) {
+function write_outputs($db_handle, $config) {
 
 	# WRITES ALL OUTPUTS TO COMPRESSED ARCHIVE
 	
-	//echo "Begin write " . count($outputs) . " outputs<br>";
+	if ($_SESSION['names']) $names = $_SESSION['names'];
+	if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
+	if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
+	if ($_SESSION['sources']) $sources = $_SESSION['sources'];
 	
 	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
 	$oid = substr(md5(uniqid()),0,4);

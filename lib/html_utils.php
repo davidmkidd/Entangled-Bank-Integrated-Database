@@ -516,7 +516,7 @@ function html_query_set($db_handle, $qobjid){
 				echo "<input id='submit-button' type='submit' class='button-standard' value='Run >' onClick='submitTableQuery(\"$id\"); return false;' />";
 				break;
 			case 'biogeographic':
-				echo "<input id='submit-button' type='submit' class='button-standard' value='Run >' onClick='submitGeogQuery(\"$id\");' />";
+				echo "<input id='submit-button' type='submit' class='button-standard' value='Run >' onClick='submitGeogQuery(\"$id\"); return false;' />";
 				break;
 			case 'bionames':
 				echo "<input id='submit-button' type='submit' class='button-standard' value='Run > ' onClick='submitNamesQuery(\"$id\"); return false;' />";
@@ -1801,13 +1801,14 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	function html_query_interoperator ($qobject, $qobjects) {
 		
 		# INTERQUERY OPERATOR
+		$idx = obj_idx($qobjects, $qobject['id']);
 		$op = $qobject['queryoperator'];
 		$title = 'Interquery operator';
 		
 		echo "<td class='query_buttons' title='$title' align='right'>";
 		
 		//echo "n qobjects:" . count($qobjects);
-		if (count($qobjects) > 1) {
+		if ($idx & $idx !== 0) {
 			echo "Interquery ";
 			echo "<SELECT id='queryoperator' name='queryoperator' class='qop' onChange='updateCART()'>";
 			if (!$op || $op == 'INTERSECT') {
