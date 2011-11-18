@@ -7,6 +7,8 @@ Data
 	- Galliformes (MEDIUM)
 	- Ephippiger (LOW)
 	
+Find
+ 	- error when query after find (HIGH)
 	
 Entangled-bank.org
 	- Move to IC? (MEDIUM)
@@ -38,7 +40,7 @@ Query
 	General
 		- If only one possible source for a query go direct, i.e. one tree or table available (med: would need hidden field)
 		- NOT option on all queries (LOW: may be quite complex for multiple source queries)
-		- htmlspecialchars on database text fields in select boxes
+		- htmlspecialchars on database text fields in select boxes (?)
 		- javascript find to get host path from config (FIXED)
 		- petty format SQL (MEDIUM)
 		- Spatial SQL for UDig/J (MEDIUM)
@@ -56,6 +58,7 @@ Query
 		- Quick search using && only (FIXED)
 	Tree
 		- XMLHttpRequest (FIXED)
+		- Node Operator for taxonomy levels not just 'internal' and 'tip'. (HIGH)
 	Attribute
 		- NULLs in attribute query (PARTIAL FIX: single 'include nulls' option for all fields in a query)
 		- Set query in edit mode (FIXED)

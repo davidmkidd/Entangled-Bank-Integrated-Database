@@ -82,7 +82,7 @@ echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
 //echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
 echo "<body onload='loadScript()'>";
 echo "<div class='main'>";
-html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
+//html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 	
 # --------------------------------------------------------------------------------------------------
 #                                           DATABASE CONNECTION
@@ -93,6 +93,8 @@ set_time_limit(1200);
 $db_handle = eb_connect_pg($config);
 
 if ($db_handle == false) {
+	$stage = 'dbfail';
+	html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 	# FOOTER
 	html_entangled_bank_footer();
 	#CLOSE MAIN DIV
@@ -104,15 +106,6 @@ if ($db_handle == false) {
 
 # EB PATH FOR JS
 echo "<input type='hidden' id='eb_path' value='$eb_path' />";
-
-# ---------------------------------------------------------------------------------------------------
-#                                                   BEGIN FORM
-# ---------------------------------------------------------------------------------------------------
-
-echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php" 
-	onsubmit="document.getElementById(\'submit-button\').disabled = true;">';
-
-
 
 # -----------------------------------------------------------------------------------------------------------
 #                                                PRE-FORM PROCESSING
@@ -224,11 +217,15 @@ if ($stage == 'write') {
 	$zip = null;
 }
 
-# --------------------------------------------------------------------------------------------------------
-#                                                    FORM HTML
-# --------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
+#                                       HTML
+# ----------------------------------------------------------------------------------
 
-//echo "FORM qobjid: $qobjid<br>";
+echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php" 
+	onsubmit="document.getElementById(\'submit-button\').disabled = true;">';
+
+# HEADER
+html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 
 # SELECT SOURCES
 if ($stage == 'sources') 

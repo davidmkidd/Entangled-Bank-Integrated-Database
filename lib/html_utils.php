@@ -59,9 +59,10 @@ function html_entangled_bank_header($stage, $eb_path, $html_path, $share_path) {
 	switch ($stage) {
 		case 'sources':
 			$restart = false;
-			$finish = true;			
+			$finish = true;
 			break;
 		case 'finish':
+		case 'dbfail':
 			$restart = true;
 			$finish = false;			
 			break;
@@ -70,14 +71,14 @@ function html_entangled_bank_header($stage, $eb_path, $html_path, $share_path) {
 			$finish = true;
 			break;
 	}
-	if ($restart) $restart = true;
+	
+	$help = "./help/$stage.php";
 
 	echo "<div id='ebheader'>";
 	echo "<img id='ebimage' src='" , $share_path , "Entangled-Bank_small.gif' alt='Banner'>";
-
 	echo "<a href='" , $html_path , "index.php' target='_blank'>Home Page</a>";
 	echo " | ";
-	echo "<a href='" , $html_path , "help.php' target='_blank'>Help</a>";
+	echo "<a href='$help' target='_blank'>Help</a>";
 	echo " | ";
 	echo "<a href='" , $html_path , "examples.php' target='_blank'>Examples</a>";
 	if ($restart == true) { 
@@ -87,11 +88,9 @@ function html_entangled_bank_header($stage, $eb_path, $html_path, $share_path) {
 	if ($finish == true) {
 		echo " | <a href='" , $eb_path , "finish.php'> Exit</a>";
 	}
-
 	echo ' | v0.6 (Nov 2011)';
-
 	echo "</div>";
-	//echo '<hr>';
+
 }
 
 #=======================================================================================================================
