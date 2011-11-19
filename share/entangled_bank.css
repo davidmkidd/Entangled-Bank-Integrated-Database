@@ -228,6 +228,12 @@
 		border-color: gray;
 	}
 	
+	img.query_type_button_small {
+		border: 1px solid;
+		border-color: gray;
+		height: 12px;
+	}
+	
 	img.query_type_button_non_active {
 		border: 1px solid;
 		border-color: gray;

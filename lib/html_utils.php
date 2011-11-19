@@ -1846,11 +1846,11 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	$qnames = $qobject['taxa'];
 	if (!$qnames) $qnames = array();
 
-	# Find Box
-	echo "<table border='0'>";
-	html_query_subtree_method($qobject['subtree']);
-	html_query_treenodes($qobject['treenodes']);
+	# OPERATOR ANF FILTER
+	html_query_tree_method($qobject['subtree']);
+	html_query_tree_filter($db_handle, $tree_id);
 	
+	echo "<table border='0'>";
 	$t = "Case sensitive search for names containing text. Leave blank to return all names.";
 	echo "<tr title='$t'>";
 	echo "<td class='query_title'>Find</td>";
@@ -1863,53 +1863,6 @@ function html_query_biotree($db_handle, $qobject, $qobjects, $sources) {
 	echo "</table>";
 
 	echo "<INPUT type='hidden' id='tree_id' value='$tree_id' />";
-	# Get filter options for tree
-
-	echo "<table border='0'>";
-	$t='Filter find for nodes of the selected types';
-	echo "<tr title='$t'>";
-	echo "<td class='query_title' >Find Filter</td>";
-	
-	# FIND FILTER
-	$str = "SELECT tm.name 
-		FROM biosql.tree_qualifier_value tr,
-		biosql.term tm
-		WHERE tr.tree_id = $tree_id
-		AND tm.term_id = tr.term_id";
-	//echo "$str<br>";
-	$res = pg_query($db_handle, $str);
-	$row = pg_fetch_row($res);
-	$treetype = $row[0];
-	echo "<td>";
-	Switch ($treetype) {
-		case 'phylogeny':
-			//echo "<input type='radio' CHECKED name='nodefilter' value='all'> None";
-			echo "<input type='checkbox' name='nodefilter' CHECKED value='tip'> Tips";
-			echo "<input type='checkbox' name='nodefilter' CHECKED value='internal'> Internal <BR>";
-			break;
-		case 'taxonomy':
-			# Get levels in tree
-			$str = "Select DISTINCT tm.name,tm.identifier
-				FROM biosql.node n,
-				biosql.node_qualifier_value nq,
-				biosql.term tm
-				WHERE n.tree_id = $tree_id
-				AND n.node_id = nq.node_id
-				AND nq.term_id = tm.term_id
-				ORDER BY tm.identifier";
-			$res = pg_query($db_handle, $str);
-			$arr = pg_fetch_all_columns($res, 0);
-	
-
-			foreach ($arr as $val)
-				echo "<input type='checkbox' CHECKED name='nodefilter' value='$val'>" , ucwords($val);
-			break;
-		default:
-			echo "html_query_biotree: Unrecognised tree type";
-			break;
-	}
-	echo "</td>";
-	echo "</tr></table>";
 
 	# SELECT BOXES
 	echo "<table>";
@@ -2621,24 +2574,54 @@ function html_select_source_network ($db_handle, $formname,$selobj) {
 	
 #=================================================================================================================
 
-function html_query_treenodes ($nodefilter) {
+function html_query_tree_filter ($db_handle, $tree_id) {
+	
+	echo "<table border='0'>";
+	$t='Filter Find and Query by node type';
 	echo "<tr>";
-	echo "<td class='query_title'>";
-	echo "Node Operator" ;
+	echo "<td class='query_title'><span title='$t'>Filter</span>&nbsp;&nbsp;";
+	$t='Select all';
+	echo "<a href='javascript: treeNodeSelectAll()'><img src='./image/green-tick.gif' title='$t' 
+		class='query_type_button_small' /></a>";
+	$t='Unselect all';
+	echo "&nbsp;<a href='javascript: treeNodeSelectNone()'><img src='./image/red-cross.gif' title='$t' 
+		class='query_type_button_small' /></a>";
 	echo "</td>";
-	echo "<td class='eb'>";
-	$checked = 'CHECKED';
-	if ($nodefilter && $nodefilter[0] == false) {
-		$checked = '';
+	
+	# FIND FILTER
+	$str = "SELECT biosql.pdb_tree_type($tree_id)";
+	$res = pg_query($db_handle, $str);
+	$row = pg_fetch_row($res);
+	$treetype = $row[0];
+	echo "<td>";
+	Switch ($treetype) {
+		case 'phylogeny':
+			//echo "<input type='radio' CHECKED name='nodefilter' value='all'> None";
+			echo "<input type='checkbox' name='nodefilter' CHECKED value='tip'> Tips";
+			echo "<input type='checkbox' name='nodefilter' CHECKED value='internal'> Internal <BR>";
+			break;
+		case 'taxonomy':
+			# Get levels in tree
+			$str = "Select DISTINCT tm.name,tm.identifier
+				FROM biosql.node n,
+				biosql.node_qualifier_value nq,
+				biosql.term tm
+				WHERE n.tree_id = $tree_id
+				AND n.node_id = nq.node_id
+				AND nq.term_id = tm.term_id
+				ORDER BY tm.identifier";
+			$res = pg_query($db_handle, $str);
+			$arr = pg_fetch_all_columns($res, 0);
+	
+			foreach ($arr as $val)
+				echo "<input type='checkbox' CHECKED name='nodefilter' value='$val'>" , ucwords($val);
+			break;
+		default:
+			echo "html_query_biotree: Unrecognised tree type";
+			break;
 	}
-	echo "<input type='checkbox' name='treenodes[]' $checked value='tip'>Tip";
-	$checked = 'CHECKED';
-	if ($nodefilter && $nodefilter[1] == false) {
-		$checked = '';
-	}
-	echo "&nbsp;<input type='checkbox' name='treenodes[]' $checked value='internal'>Internal<BR>";
 	echo "</td>";
-	echo "</tr>";
+	echo "</tr></table>";
 }
 	
 #================================================================================================================
@@ -2675,15 +2658,13 @@ function html_select_names($formname, $qobj) {
 
 #================================================================================================================
 
-function html_query_subtree_method($mode = 'subtree') {
+function html_query_tree_method($mode = 'subtree') {
 	
 	# SELECT TREE OPERATOR 
-	$t = "Tree operator";
-	
+	$t = "Filter Find and Query";
+	echo "<table border='0'>";
 	echo "<tr title='$t'>";
-	echo "<td class='query_title'>";
-	echo "Tree Operator";
-	echo "</td>";
+	echo "<td class='query_title'>Operator</td>";
 	
 	echo "<td class='eb'>";
 	$vals = array('subtree','lca','selected');			
@@ -2701,6 +2682,7 @@ function html_query_subtree_method($mode = 'subtree') {
 	}
 	echo "</td>";
 	echo "</tr>";
+	echo "</table>";
 	}
 
 #=================================================================================================================	

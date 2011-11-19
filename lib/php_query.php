@@ -553,6 +553,8 @@
 		$treenodes = $qobject['treenodes'];
 		$tree_id = $source['tree_id'];
 		
+		# !!!!!!!!!!!!!!!TREENODES QUERY!!!!!!!!!!!!!!!!!!!!
+		
 		#echo "tree: $tree_id, $subtree<br>";
 		if ($qobject['taxa']) $names_array = array_to_postgresql($qobject['taxa'], 'text');
 		

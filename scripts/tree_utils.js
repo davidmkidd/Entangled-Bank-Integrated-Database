@@ -2,6 +2,26 @@
  * Utilities for html_query_tree
  */
 
+function treeNodeSelectAll() {
+	
+	// SELECTS ALL TREE NODE TYPES
+	var nodefilter = document.getElementsByName('nodefilter');
+	for (var i = 0; i <= nodefilter.length - 1; i++) {
+		nodefilter[i].checked = true;
+	}
+	
+}
+
+function treeNodeSelectNone() {
+	
+	// UNSELECTS ALL TREE NODE TYPES
+	var nodefilter = document.getElementsByName('nodefilter');
+	for (var i = 0; i <= nodefilter.length - 1; i++) {
+		nodefilter[i].checked = false;
+	}
+}
+
+
 function findNodes() {
 	// Adds search returns to tree select box
 	

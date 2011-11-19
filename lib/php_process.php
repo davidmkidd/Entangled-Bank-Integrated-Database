@@ -171,11 +171,11 @@ function process_query ($db_handle, $qobjid, $qsources) {
 	
 	$qobjects = $_SESSION['qobjects'];
 	$sources = $_SESSION['sources'];
-	if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
-	$term = $qobject['term'];
-	
 	if ($_SESSION['names']) $names = $_SESSION['names'];
+	if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
 	unset ($qobject['errs']);
+	$qobject['status'] = 'valid';
+	$term = $qobject['term'];
 	
 	# --------
 	# ADD KEYS
@@ -207,21 +207,6 @@ function process_query ($db_handle, $qobjid, $qsources) {
     	$qobject['noperator'] = $_SESSION['noperator'];
     }
     
-	# Tree keys
-	if ($term == 'biotree') {
-		$qobject['subtree'] = $_SESSION['subtree'];
-		switch (true) {
-			case ($_SESSION['treenodes'][0] == 'tip' && $_SESSION['treenodes'][1] == 'internal'):
-				$qobject['treenodes'] = 'all';
-				break;
-			case ($_SESSION['treenodes'][0] == 'tip'):
-				$qobject['treenodes'] = 'tip';
-				break;
-			case ($_SESSION['treenodes'][0] == 'internal'):
-				$qobject['treenodes'] = 'internal';
-				break;
-		}
-	}
     
 	# PROCESS QUERY BY TERM
 	switch ($term) {
@@ -232,7 +217,7 @@ function process_query ($db_handle, $qobjid, $qsources) {
 			process_biotable($db_handle, $qobject, $sources, $names);
 			break;
 		case 'biotree':
-			$qobject = process_biotree($db_handle, $qobject, $sources);
+			process_biotree($db_handle, $qobject, $sources);
 			break;
 		case 'biotemporal':
 			process_biotemporal($qobject, $sources);
@@ -245,12 +230,12 @@ function process_query ($db_handle, $qobjid, $qsources) {
 			break;
 		}
 	
-	if (!$qobject['errs']) {
+/*	if (!$qobject['errs']) {
 		$stage = 'query';
 		$qobject['status'] = 'valid';
 	}  else {
 		$qobject['status'] = 'invalid';
-	}
+	}*/
 	
 	if ($qobject['status'] === 'valid') {
 		$stage = 'query';
@@ -460,19 +445,17 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 
 # ===================================================================================================================
 
-
-	function process_biotree ($db_handle, $qobject, $sources) {
-			# NO NAMES
-			if ($qobject['errs']) unset($qobject['errs']);
-			if (empty($qobject['taxa']) and $qobject['subtree'] != 'all') {
-				$errs = array();
-				$errs = array_merge($errs, array('taxa' => "one or more taxa must be selected"));
-				$qobject = add_key_val($qobject, 'errs', $errs);
-				return $qobject;
-			}
-			$qobject['taxa'] = $qobject['taxa'];
-			return $qobject;
+function process_biotree ($db_handle, &$qobject, $sources) {
+			
+	$qobject['subtree'] = $_SESSION['subtree'];
+	$qobject['treenodes'] = $_SESSION['treenodes'];
+	
+	# NO NAMES, NOT ALL & NO NAMES SO SET NAMES TO EMPTY QUERY
+	if (empty($qobject['taxa']) and $qobject['subtree'] != 'all' and !$_SESSION['names']) {
+		$_SESSION['names'] = array();
 	}
+
+}
 	
 	
 # ===================================================================================================================
