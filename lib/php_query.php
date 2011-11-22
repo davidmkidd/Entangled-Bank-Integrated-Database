@@ -7,6 +7,8 @@
 		# QUERY PARAMETERS
 		$qobjects = $_SESSION['qobjects'];
 		$sources = $_SESSION['sources'];
+		# IF RESUMBISSION OF ONLY QUERY SO DELETE NAMES
+		if (count($qobjects) == 1 && $_SESSION['names']) unset($_SESSION['names']);
 		if ($_SESSION['names']) $names = $_SESSION['names'];
 		
 		$qobject = get_obj($qobjects, $qobjid);
@@ -68,7 +70,7 @@
 					$str = query_bionames_tree($qobject, $source, $str);
 					break;
 				case ($qterm <> 'bionames' && $sterm =='biotree'):
-					$str = query_biotree($qobject, $source, $str);
+					$str = query_biotree($db_handle, $qobject, $source, $str);
 					break;		
 				case ($qterm == 'biogeographic' || $qterm == 'geographic' 
 					|| ($qterm == 'biogeographic' && $sterm == 'biogeographic')):
@@ -146,7 +148,7 @@
 		# RUN NAMES QUERY
 		//echo "query: $qstr<br>";
 		$res = pg_query($db_handle, $str);
-		$outnames = pg_fetch_all_columns($res, 0);
+		$names = pg_fetch_all_columns($res, 0);
 		
 		# ADD SQL TO QOBJECT
 		//echo "query: $qstr<br>";
@@ -156,17 +158,17 @@
 		# GPDD SERIES QUERY
 		# =================
 		
-		if (!empty($outnames)) {
+		if (!empty($names)) {
 			# RUN GPDD SERIES QUERY
-			query_series($db_handle, $qobject, $qobjects, $outnames, $sources);
+			query_series($db_handle, $qobject, $qobjects, $names, $sources);
 			$qobjects = save_obj($qobjects, $qobject);
-			$outnames = query_series_names($db_handle, $qobjects, $outnames, $sources);
+			$names = query_series_names($db_handle, $qobjects, $names, $sources);
 		} else {
 			# No Names
 			$qobject['series'] = null;
 		}
 		$qobjects = save_obj($qobjects, $qobject);
-		$_SESSION['names'] = $outnames;
+		$_SESSION['names'] = $names;
 		$_SESSION['qobjects'] = $qobjects;
 	}
 
@@ -542,40 +544,67 @@
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotree($qobject, $source, $str) {
+	function query_biotree($db_handle, $qobject, $source, $str) {
 			
 		//echo "Begin biotree query<br>";
-					
+		//print_r($qobject);
+		
 		$subtree = $qobject['subtree'];
-		# There is no subtree in a names query
-		If (!$subtree) $subtree = 'all';
-		//print_r($qobject['treenodes']);
-		$treenodes = $qobject['treenodes'];
+		if (!$subtree) $subtree = 'all';
 		$tree_id = $source['tree_id'];
-		
-		# !!!!!!!!!!!!!!!TREENODES QUERY!!!!!!!!!!!!!!!!!!!!
-		
-		#echo "tree: $tree_id, $subtree<br>";
+		$nodefilter = $qobject['nodefilter'];
+		$filterscope = $qobject['filterscope'];
+		//$treenodes = $qobject['treenodes'];
 		if ($qobject['taxa']) $names_array = array_to_postgresql($qobject['taxa'], 'text');
+				
+		# GET TREE TYPE
+		$str2 = "SELECT biosql.pdb_tree_type($tree_id)";
+		$res = pg_query($db_handle, $str2);
+		$row = pg_fetch_row($res);
+		$type = $row[0];
+		
+		
+		#TREENODES
+		# If phylogeny then tip, internal and all
+		//print_r($nodefilter);
+		//echo "<br>filter: $filterscope, n_nodefilter: " . count($nodefilter) . ", nodefilter: $nodefilter<br>";
+		
+		if ($type == 'phylogeny') {
+			if (in_array('tip', $nodefilter) && in_array('internal', $nodefilter)) {
+				$nodefilter = 'all';
+			} else {
+				$nodefilter = $nodefilter[0];
+			}
+		} else {
+			if ($filterscope == 'query') {
+				# ARE THERE AS MANY LEVELS IN THE QUERY AS IN THE TREE
+				$str2 = "SELECT biosql.pdb_taxonomy_levels($tree_id)";
+				$res = pg_query($db_handle, $str2);
+				$n = pg_num_rows($res);
+				if (count($nodefilter) !== $n) $levels = array_to_postgresql($nodefilter, 'text'); 
+			}
+		}
+
+		//echo "subtree: $subtree, type: $type, levels: $levels<br>";
 		
 		switch ($subtree) {
 			
 			case "all":
-				if (!$not) {
-					$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
-					if ($treenodes == 'tip') {
+				$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
+				if ($type == phylogeny) {
+					if ($nodefilter == 'tip') {
 						$str = $str . " AND left_idx = right_idx - 1";
-						} elseif ($treenodes == 'internal') {
+					} elseif ($nodefilter == 'internal') {
 						$str = $str . " AND left_idx <> right_idx - 1";
 					}
-					} else {
-					$str = "SELECT NULL AS bioname";
-					}
+				} else {
+					if ($levels) $str = $str . " AND label IN (SELECT biosql.pdb_taxonomy_has_level($tree_id, $levels))";
+				}
 				break;
 				
-			case "subtree":	
-				if (!$not) {
-					switch ($treenodes) {
+			case "subtree":
+				if ($type == 'phylogeny') {
+					switch ($nodefilter) {
 						case 'all':
 							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
 							break;
@@ -585,34 +614,20 @@
 						case 'internal':
 							$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_internal_label($tree_id, $names_array) AS bioname";
 							break;
-						}
-					} else {
-					switch ($treenodes) {
-						case 'all':
-							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
-							$str = $str . " EXCEPT SELECT * FROM";
-							$str = $str . " biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
-							break;
-						case 'tip':
-							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
-							$str = $str . " AND left_idx = right_idx - 1";
-							$str = $str . " AND NOT label = ANY ($names_array)";
-							break;
-						case 'internal':
-							$str = $str . " SELECT label AS bioname FROM biosql.node WHERE tree_id = $tree_id";
-							$str = $str . " AND left_idx <> right_idx - 1";
-							$str = $str . " AND NOT label = ANY ($names_array)";
-							break;
-						}
 					}
+				} else {
+					$str = $str . " SELECT * FROM biosql.pdb_lca_subtree_label($tree_id, $names_array) AS bioname";									
+					if ($levels) $str = $str . " WHERE bioname IN (SELECT biosql.pdb_taxonomy_has_level($tree_id, $levels))";
+				}
 				break;
 				
 			case 'lca':
 				$str = $str . " SELECT biosql.pdb_node_id_to_label(biosql.pdb_lca($tree_id, $names_array)) AS bioname";
+				if ($levels) $str = $str . " AND label IN (SELECT biosql.pdb_taxonomy_has_level($tree_id, $levels))";
 				break;
 				
 			case "selected":
-				if (!$not) {
+				if ($type == 'phylogeny') {
 					switch ($treenodes) {
 						case 'all':
 							$str = $str . " SELECT label AS bioname FROM biosql.node";
@@ -630,31 +645,13 @@
 							$str = $str . " AND left_idx <> right_idx - 1";
 							$str = $str . " AND label = ANY ($names_array)";
 							break;
-						}
-					} else {
-					switch ($treenodes) {
-						case 'all':
-							$str = $str . " SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id";
-							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";	
-							break;
-						case 'tip':
-							$str = $str . " SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id";
-							$str = $str . " AND left_idx = right_idx - 1";
-							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";
-							break;
-						case 'internal':
-							$str = $str . " SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id";
-							$str = $str . " AND left_idx <> right_idx - 1";
-							$str = $str . " EXCEPT SELECT label AS bioname FROM biosql.node";
-							$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";
-							break;
-						}								
-					}
+					}					
+				} else {
+					$str = $str . " SELECT label AS bioname FROM biosql.node";
+					$str = $str . " WHERE tree_id = $tree_id AND label = ANY ($names_array)";
+					if ($levels) $str = $str . " AND label IN (SELECT biosql.pdb_taxonomy_has_level($tree_id, $levels))";
+				}
+		
 				break;
 			}
 						
@@ -664,7 +661,7 @@
 	
 function query_add_names_sql(&$qobject, $qobjects, $qstr) {
 	
-	$qobject['sql_names_query'] = htmlspecialchars($qstr);
+	$qobject['sql_names_query'] = htmlspecialchars(trim($qstr));
 	$str_names = '';
 	$i = 0;
 	$end = false;
@@ -683,7 +680,7 @@ function query_add_names_sql(&$qobject, $qobjects, $qstr) {
 	
 function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 	
-	$qobject['sql_series_query'] = htmlspecialchars($qstr);
+	$qobject['sql_series_query'] = htmlspecialchars(trim($qstr));
 	$str_series = '';
 	$i = 0;
 	$end = false;
@@ -969,11 +966,12 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 	
 	function query_series ($db_handle, &$qobject, $qobjects, $names, $sources){
 	
+		# QUERY GPDD SERIES
 		#echo "begin query series<br>";
+		//$out = array();
 		
+		#ONLY RUN IF GPDD A SOURCE
 		$run = false;
-		$out = array();
-		
 		if ($sources) {
 			foreach ($sources as $source) {
 				if ($source['id'] == 23) {
@@ -983,8 +981,8 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		}
 		if($run == false) exit;
 	
+		# GET MIDS
 		$mids = query_get_mids($qobjects, 'last');
-		
 		if ($mids && ($_SESSION['token'] == $_POST['token'])) {
 			if (count($qobjects) == 1) {
 				unset ($mids);

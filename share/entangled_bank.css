@@ -338,11 +338,12 @@
 		vertical-align: middle;
 	}
 	
-	td.query_buttons {
-		width: 200px;
+	td.query_header {
+		width: 300px;
 		vertical-align: top;
 		align: right;
 	}
+	
 	
 	td.query_not {
 		width: 145px;
@@ -400,8 +401,8 @@
 		width: 100px;
 	}
 	
-	.qop {
-		width: 120px;
+	select.qop {
+		width: 180px;
 	}
 	
 	.find_name {

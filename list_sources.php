@@ -25,7 +25,7 @@ echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_
 echo '</head>';
 #BODY
 echo "<div class='main'>";
-html_entangled_bank_header($eb_path, $html_path, $share_path, false);
+html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 
 $db_handle = eb_connect_pg($config);
 
@@ -46,23 +46,7 @@ foreach($sources as $source) {
 }
 //echo "$nmids<br>";
 
-echo "<h4>Sources Summary</h4>";
-
-/*echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
-echo '<big>Shopping Cart </big>';
-
-
-if (!$names) {
-	echo " - 0 names from $c sources";
-	} else {
-		if ($nmids !== -1) {
-			echo " - " .count($names) . " names and " . $nmids . " series from $c sources";
-		} else {
-			echo " - " .count($names) . " names from $c sources";	
-		}
-	}
-//echo "<HR>";
-echo "<br>";*/
+echo "<h4>Sources Information</h4>";
 	
 $s_id = array();
 $s_name = array();
@@ -73,12 +57,7 @@ $s_code = array();
 
 foreach ($sources as $source) {
 
-//	echo "source: ";
-//	print_r($source);
-//	echo "<br>";
-	
 	array_push($s_id, $source['id']);
-
 	$val = "<a href= " . $source['www'] . "target=_blank> " . $source['name'] . "</a>";
 	array_push($s_name, $val);
 	array_push($s_type, html_query_image($source['term'], 'non-active',null, 'source', true));

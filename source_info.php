@@ -38,8 +38,10 @@ echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_
 echo '</head>';
 #BODY
 echo "<div class='main'>";
-html_entangled_bank_header($eb_path, $html_path, $share_path, false);
+html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 //echo "<br>";
+
+echo "<h4>Source Information</h4>";
 
 echo "<table>";
 

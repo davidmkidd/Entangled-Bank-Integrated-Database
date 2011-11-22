@@ -5,7 +5,7 @@
 function treeNodeSelectAll() {
 	
 	// SELECTS ALL TREE NODE TYPES
-	var nodefilter = document.getElementsByName('nodefilter');
+	var nodefilter = document.getElementsByName('nodefilter[]');
 	for (var i = 0; i <= nodefilter.length - 1; i++) {
 		nodefilter[i].checked = true;
 	}
@@ -15,7 +15,7 @@ function treeNodeSelectAll() {
 function treeNodeSelectNone() {
 	
 	// UNSELECTS ALL TREE NODE TYPES
-	var nodefilter = document.getElementsByName('nodefilter');
+	var nodefilter = document.getElementsByName('nodefilter[]');
 	for (var i = 0; i <= nodefilter.length - 1; i++) {
 		nodefilter[i].checked = false;
 	}
@@ -28,7 +28,7 @@ function findNodes() {
 	var tree_items = document.getElementById('tree_items');
 	var findval = document.getElementById('findval');
 	var tree_id = document.getElementById('tree_id');
-	var nodefilter = document.getElementsByName('nodefilter');
+	var nodefilter = document.getElementsByName('nodefilter[]');
 	var ebpath = document.getElementById('eb_path');
 	var str = '';
 	var n = 0;
@@ -217,10 +217,33 @@ function treeDelAll() {
 }
 
 function submitTreeQuery(id) {
-	// selects all taxa form submission
-	var taxa = document.getElementById('taxa_items');
+	
+	//alert('!');
+	// CHECK TREE QUERY IS VALID
+	// If valid selects all taxa for submission	
+	
+	// NODEFILTER
+	var scope = document.getElementById('filterscope');
+	//alert(scope.options[scope.selectedIndex].value);
+	var n = 0;
+	var ok = false;
+	//alert(ok);
+	if (scope.options[scope.selectedIndex].value == 'query') {
+		var nf = document.getElementsByName('nodefilter[]');
+		for (var i = 0; i <= nf.length - 1; i++) {
+			//alert(nf[i]);
+			if (nf[i].checked == true) ok = true;
+		}
+	}
+	//alert('ok = ' + ok);
+	if (ok == false) {
+		alert('One or more node types must be selected when a query includes a node type filter');
+		return false;
+	}
+	
 	// No taxa
-	//alert (taxa.length);
+	var taxa = document.getElementById('taxa_items');
+	//alert(taxa.length);
 	if (taxa.length == 0) {
 		document.FindElementById('findval_label').innerHTML = 'No names selected to query';
 		//alert ('At least one taxa required in query');
@@ -235,6 +258,28 @@ function submitTreeQuery(id) {
 	}
 }
 
+function operatorChange() {
+	
+	//Disables find and names when all
+	var item = document.getElementById('subtree');
+	var all = false;
+	if (item.value == 'all') all = true;
+	if (all == true) {
+		item = document.getElementById('filterscope');
+		if (item.options[item.selectedIndex].value !== 'query') {
+			item.options[0].selected = true;
+		}
+	}
+	document.getElementById('filterscope').disabled = all;
+	document.getElementById('findval').disabled = all;
+	document.getElementById('findbtn').disabled = all;
+	document.getElementById('tree_items').disabled = all;
+	document.getElementById('taxa_items').disabled = all;
+	document.getElementById('tree_add').disabled = all;
+	document.getElementById('tree_all').disabled = all;
+	document.getElementById('tree_del').disabled = all;
+	document.getElementById('tree_delall').disabled = all;
+}
 
 
 

@@ -4,6 +4,7 @@
 ---------------------------
 
 Data
+    - Add non-binomial names to Gpdd binomial (HIGH)
 	- Galliformes (MEDIUM)
 	- Ephippiger (LOW)
 	
@@ -50,7 +51,7 @@ Query
 		- GPDD add n points to query information (MEDIUM)
 		- last mids on query re-run [see temporal] (HIGH)
 	Geography
-	    - Biogeographic query failing (HIGH)
+	    - Biogeographic query failing (FIXED)
 		- Open source layer fail to draw on intitalise (FIXED)
 		- Clear query features.Clear button implemented needs better positioning. (FIXED)
 		- Generalised range maps (low)
@@ -58,7 +59,7 @@ Query
 		- Quick search using && only (FIXED)
 	Tree
 		- XMLHttpRequest (FIXED)
-		- Node Operator for taxonomy levels not just 'internal' and 'tip'. (HIGH)
+		- Node Operator for taxonomy levels not just 'internal' and 'tip'. (FIXED)
 	Attribute
 		- NULLs in attribute query (PARTIAL FIX: single 'include nulls' option for all fields in a query)
 		- Set query in edit mode (FIXED)

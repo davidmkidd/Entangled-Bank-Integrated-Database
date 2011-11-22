@@ -22,7 +22,7 @@ echo '</head>';
 echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
 #BODY
 echo "<div class='main'>";
-html_entangled_bank_header($eb_path, $html_path, $share_path, false);
+html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 
 
 $names = $_SESSION['names'];
@@ -61,7 +61,7 @@ $c = count($names);
 //echo "<img src='./image/shoppingCartIcon.gif' alt='Shopping Cart' />";
 //echo '<big>Shopping Cart </big>';
 
-echo "<h4>Names in Query</h4>";
+echo "<h4>Names Information</h4>";
 
 echo "<table>";
 echo "<tr>";

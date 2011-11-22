@@ -168,8 +168,9 @@ function process_delete_output ($oid) {
 function process_query ($db_handle, $qobjid, $qsources) {
 	
 	//echo "begin process_query $qobjid<br>";
-	
+
 	$qobjects = $_SESSION['qobjects'];
+	
 	$sources = $_SESSION['sources'];
 	if ($_SESSION['names']) $names = $_SESSION['names'];
 	if ($qobjid) $qobject = get_obj($qobjects, $qobjid);
@@ -185,25 +186,10 @@ function process_query ($db_handle, $qobjid, $qsources) {
 	$qobject['name'] = $_SESSION['objname'];
 	if ($_SESSION['queryoperator']) $qobject['queryoperator'] = $_SESSION['queryoperator'];
     
-	# NAMES IN QUERY
-	if ($term == 'bionames' || $term == 'biotree') {
-		$qobject = add_taxa_to_query($qobject);
-		if ($_SESSION['allnames']) {
-			if ($_SESSION['allnames'] == 'on') {
-				$qobject['allnames'] = 'true';
-			} else {
-				$qobject['allnames'] = 'false';
-			}
-		    unset($_SESSION['allnames']);
-		} else {
-		    $qobject['allnames'] = 'false';
-	    }
-	}
-    
     # MULTIPLE SOURCES
     if ($term == 'biogeographic' || $term =='biotemporal' || $term == 'bionames') {
     	$qobject['sources'] = $qsources;
-    	$qobject ['nsources'] = $_SESSION['nsources'];
+    	$qobject['nsources'] = $_SESSION['nsources'];
     	$qobject['noperator'] = $_SESSION['noperator'];
     }
     
@@ -246,7 +232,8 @@ function process_query ($db_handle, $qobjid, $qsources) {
 	$qobjects = save_obj($qobjects, $qobject);
 	$_SESSION['qobjects'] = $qobjects;
 	
-	//echo "finish process_query<br>";
+	//print_r($qobject);
+	//echo "<br>finish process_query: $stage<br>";
 	
 	return $stage;
 	
@@ -299,15 +286,26 @@ function process_bionames($db_handle, &$qobject, $sources) {
 	
 	//echo "allnames = " . $qobject['allnames'] . "<br>";
 	
+	# NAMES IN QUERY
+	add_taxa_to_query($qobject);
+	if ($term == 'bionames') {
+		if ($_SESSION['allnames'] == 'on') {
+			$qobject['allnames'] = 'true';
+		} else {
+			$qobject['allnames'] = 'false';
+		}
+	    //unset($_SESSION['allnames']);
+	} 
+
 	switch (true) {
 		case ($qobject['allnames'] == 'false' && empty($qobject['taxa'])):
-			$errs = array();
-			$errs = array_merge($errs, array('taxa' => "one or more taxa must be input"));
-			$qobject = add_key_val($qobject, 'errs', $errs);
-			return $qobject;
+			//$errs = array();
+			//$errs = array_merge($errs, array('taxa' => "one or more taxa must be input"));
+			//$qobject = add_key_val($qobject, 'errs', $errs);
+			//return $qobject;
 			break;
 		case ($qobject['allnames'] == 'false'):
-			$qobject = validate_names($db_handle, $qobject, $sources);
+			validate_names($db_handle, $qobject, $sources);
 			break;
 	}
 	
@@ -448,7 +446,10 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 function process_biotree ($db_handle, &$qobject, $sources) {
 			
 	$qobject['subtree'] = $_SESSION['subtree'];
-	$qobject['treenodes'] = $_SESSION['treenodes'];
+	//$qobject['treenodes'] = $_SESSION['treenodes'];
+	$qobject['nodefilter'] = $_SESSION['nodefilter'];
+	$qobject['filterscope'] = $_SESSION['filterscope'];
+	add_taxa_to_query($qobject);
 	
 	# NO NAMES, NOT ALL & NO NAMES SO SET NAMES TO EMPTY QUERY
 	if (empty($qobject['taxa']) and $qobject['subtree'] != 'all' and !$_SESSION['names']) {
@@ -508,7 +509,7 @@ function validate_name($db_handle, $name, $qobject, $sources) {
 	
 #=================================================================================================================
 		
-function validate_names($db_handle, $qobject, $sources) {
+function validate_names($db_handle, &$qobject, $sources) {
 	
 	# taxa are names to test which are added to names
 	//echo "begin validate names<br>";
@@ -538,13 +539,6 @@ function validate_names($db_handle, $qobject, $sources) {
 		$qobject = add_key_val($qobject, 'errs', $errs);
 		$qobject['status'] = 'invalid';
 		}
-
-//	echo "qobject after validate_names:<br>";
-//	print_r($qobject['taxa']);
-//	print_r($qobject['invalid_taxa']);
-//	echo "<br>";
-	
-	return $qobject;
 	}
 	
 	#=================================================================================================================
@@ -618,7 +612,7 @@ function validate_names($db_handle, $qobject, $sources) {
 	
 # =================================================================================================================
 
-function add_taxa_to_query ($qobject) {
+function add_taxa_to_query (&$qobject) {
 	
 	//echo "SESSION['taxa']" .  $_SESSION['taxa'] . "<br>";
 	$taxa = $_SESSION['taxa'];
@@ -648,7 +642,6 @@ function add_taxa_to_query ($qobject) {
 	# Add to qobject
 	//if ($qobject['taxa']) unset($qobject['taxa']);
 	$qobject['taxa'] = $names;
-	return $qobject;
 }
 	
 
