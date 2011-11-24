@@ -759,47 +759,6 @@ function get_tree_name($tree) {
 		}
 	}
 	
-#=================================================================================================================
-//
-//function get_taxa ($qobject, $namesmethod)	{
-//
-//	# Converts taxa and taxa2 from input_names to array.
-//	# taxa and taxa2 are the two names inputs
-//	# Remove empty values
-//	# Intersect two taxa arrays
-//	
-//	$taxa = $qobject['taxa'];
-//	$taxa2 = $qobject['taxa2'];
-//	
-//	if (empty($taxa)) {
-//		} else {
-//		$mynames = taxa_to_names($taxa, $namesmethod, ".");
-//		$mynames = remove_array_empty_values($mynames, true);
-//		}
-//		
-//	if ($taxa2) {
-//		$mynames2 = taxa_to_names($taxa2, $namesmethod, ".");
-//		$mynames2 = remove_array_empty_values($mynames2, true);
-//	}
-//	
-//	// echo "mynames: ";
-//	// print_r($mynames);
-//	// echo "<br>";
-//	// echo "mynames2: ";
-//	// print_r($mynames2);
-//	// echo "<br>";
-//	
-//	if ($mynames and $mynames2) {
-//		$innames = array_unique(array_merge($mynames, $mynames2));
-//		} else {
-//		if ($mynames) {
-//			$innames = $mynames;
-//			} else {
-//			$innames = $mynames2;
-//			}
-//		}
-//	return $innames;
-//	}
 
 #=================================================================================================================
 

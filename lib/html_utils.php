@@ -1924,7 +1924,7 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 	echo "<td class='find'>";
 	
 	# RESULTS TABLE
-	echo "<p id='find_msg'>hidden...</p>";
+	echo "<p id='find_msg'> </p>";
 	
 	echo "<DIV id='find_div'>";
 	echo "<TABLE border='0'>";
@@ -1940,21 +1940,20 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 	
 	echo "<tbody>";
 	
-	foreach ($name_search as $res) {
-		$sin = explode(",",$res[1]);
-		//print_r ($sin);
-		if (empty($sin[0])) {
+	foreach ($name_search as $key => $value) {
+		
+		if (empty($value)) {
 			$n = 0;
 		} else {
-			$n = count($sin);
+			$n = count($value);
 		}
 		echo "<TR>";
-		echo "<TD class='find_name'>$res[0]</TD>";
+		echo "<TD class='find_name'>$key</TD>";
 		echo "<TD class='find_n'>$n</TD>";
 		$i = 0;
 		foreach ($sid_arr as $sid) {
 			$title = $sid_title[$i];
-			if (in_array($sid, $sin)) {
+			if (in_array($sid, $value)) {
 				echo "<TD class='find_source' title='$title'><img src='./image/green-dot.gif' /></TD>";
 			} else {
 				echo "<TD class='find_source' title='$title'><img src='./image/red-dot.gif' /></TD>";
@@ -1998,13 +1997,15 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		# name_search is an array of name and sources returned by an names search
 		
 		echo '<script src="./scripts/query_type_utils.js" type="text/javascript"></script>';
-		
-		# PROCESS FIND
-		if ($name_search) {
-			$arr = array();
-			foreach ($name_search as $res) array_push($arr,$res[0]);
-			$val = implode(", ",$arr);
-			//html_name_search($db_handle, $name_search, $sources);
+		# ADD NAMES SEARCH TO NAME_SEARCH INPUT
+		if (is_array($name_search)) {
+			$val = '';
+			foreach ($name_search as $key =>$value) {
+				if (!empty($val)) $val = $val . ", ";
+				$val = $val . $key;
+			}
+		} else {
+			$val = $_SESSION['name_search'];
 		}
 		
 		# FIND
@@ -2019,7 +2020,7 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		echo "</table>";
 		
 		# DISPLAY FIND
-		if ($name_search) html_entangled_bank_find($db_handle, $name_search, $sources);
+		if (is_array($name_search)) html_entangled_bank_find($db_handle, $name_search, $sources);
 		
 		# END FIND
 		echo "</div>";
@@ -2101,7 +2102,6 @@ function html_entangled_bank_main ($db_handle, $name_search, $output_id, $zip) {
 		# SOURCE SELECTOR
 		if (!empty($biotable)) html_query_select_source ($sources,'biotree');
 		if (!empty($biotable)) html_query_select_source ($sources,'attribute');
-		
 		
 		# OUTPUTS
 		echo "<div id='output_div'>";

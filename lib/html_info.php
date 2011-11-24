@@ -7,8 +7,14 @@ function html_info($db_handle) {
 	$names = $_SESSION['names'];
 	
 	# INFORMATION ON SOURCES, NAMES AND QUERIES
-	//echo "qobjs: " . count($qobjects) . "<br>";
-	//echo "names: " . count($names) . "<br>";
+	# SAVE TO USE AGAIN IF NEEDED: FIND
+	if (!$_SESSION['info']) {
+		$info = info($db_handle, $sources, $qobjects, $names);
+
+	} else {
+		$info = $_SESSION['info'];
+	}
+	
 	# DIV
 	echo "<div id='info_div'>";
 	
@@ -40,70 +46,32 @@ function html_info($db_handle) {
 	echo "<tr>";
 	
 	# N SOURCES
-	$i = count($sources);
+	$n = $info['sources'];
 	$t = "Sources";
 	echo "<td class='info_basic'>";
-	echo "<a href='./list_sources.php?" . SID . "' title='$t' target='_blank'>$i</a>";
+	echo "<a href='./list_sources.php?" . SID . "' title='$t' target='_blank'>$n</a>";
 	echo "</td>";
-	
-	# NAMES
-	$snames = array();
-	$allnames = array();
-	if ($names) $arr = array_to_postgresql($names,'text');
-	
-	
-	foreach ($sources as $source) {
-		switch ($source['term']) {
-			case 'biotable':
-			case 'biogeographic':
-				$str = "SELECT DISTINCT " . $source['namefield'] . " AS name FROM " . $source['dbloc'];
-				if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
-				break;
-			case 'biotree':
-				$str = "SELECT DISTINCT label AS name FROM biosql.node WHERE tree_id=" . $source['tree_id'];
-				if ($names) $str = $str . " AND label = ANY($arr)";
-				break;
-			case 'biorelational':
-				$str = "SELECT DISTINCT t.binomial AS name 
-					FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
-					WHERE m.\"TaxonID\"=t.\"TaxonID\"
-					AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-					AND ds.\"Availability\" <> 'Restricted'";
-				if ($names) $str = $str . " AND t.binomial IS NOT NULL AND t.binomial = ANY($arr)";
-				
-				break;
-		}
-		
-		$res = pg_query($db_handle, $str);
-		array_push($snames, pg_fetch_all_columns($res)) ;
-		$allnames = array_merge($allnames, pg_fetch_all_columns($res));
-		//echo $source['name'], ": ", count(pg_fetch_all_columns($res)) , ", all: ", count($allnames), "<br>";
-	}
-	
-	
-	# UNIQUE NAMES
-	$allnames = array_unique($allnames);
-	$n = count($allnames);
 
+	# NAMES
+	$n = $info['names'];
 	$t = "Names";
 	echo "<td class='info_basic'>";
-	echo "<a href='list_names.php?" . SID . "' title='$t' target='_blank' >$n</a>";
+	echo "<a href='list_names.php?" . SID . "' title='$t' target='_blank'>$n</a>";
 	echo "</td>";
 		
 	#SOURCES
-		//if ($names) $arr = array_to_postgresql($names, 'text');
 	$i = 0;
 	foreach ($sources as $source) {
 		switch ($source['term']) {
 			case 'biotable':
 			case 'biogeographic':
-				html_info_biotable($source, $snames[$i]);
+				html_info_biotable($source, $info);
 				break;
 			case 'biorelational':		
-				html_info_gpdd($db_handle, $source, $snames[$i], $qobjects);
+				html_info_gpdd($source, $info);
 				break;
 			case 'biotree':
-				html_info_biotree($source, $snames[$i]);
+				html_info_biotree($source, $info);
 				break;
 		}
 		$i++;
@@ -126,38 +94,109 @@ function html_info($db_handle) {
 
 # ------------------------------------------------------------------------------------------------------------
 
-function html_info_biotree($source, $snames) {
+function html_info_biotree($source, $info) {
 	
 	$t = 'Names';
-	$tree = $source['tree_id'];
 	$sid = $source['id'];
-	$n = count($snames);
+	$n = $info[$sid];
 	echo "<td class='info_biotree'><a href='source_info.php?id=$sid' title='$t' target='_blank'>$n</a></td>";
 	
 }
+# ------------------------------------------------------------------------------------------------------------
+
+function info($db_handle, $sources, $qobjects, $names) {
+	
+	$info = array();
+	//$snames = array();
+	$allnames = array();
+	if ($names) $arr = array_to_postgresql($names,'text');
+	
+	foreach ($sources as $source) {
+		switch ($source['term']) {
+			case 'biotable':
+			case 'biogeographic':
+				$str = "SELECT DISTINCT " . $source['namefield'] . " AS name FROM " . $source['dbloc'];
+				if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
+				break;
+			case 'biotree':
+				$str = "SELECT DISTINCT label AS name FROM biosql.node WHERE tree_id=" . $source['tree_id'];
+				if ($names) $str = $str . " AND label = ANY($arr)";
+				break;
+			case 'biorelational':
+				$str = "SELECT DISTINCT t.binomial AS name 
+					FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+					WHERE m.\"TaxonID\"=t.\"TaxonID\"
+					AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+					AND ds.\"Availability\" <> 'Restricted'";
+				if ($names) $str = $str . " AND t.binomial IS NOT NULL AND t.binomial = ANY($arr)";
+				
+				break;
+		}
+		$res = pg_query($db_handle, $str);
+		$info[$source['id']] = count(pg_fetch_all_columns($res));
+		$allnames = array_merge($allnames, pg_fetch_all_columns($res));
+		//echo $source['name'], ": ", count(pg_fetch_all_columns($res)) , ", all: ", count($allnames), "<br>";
+	}
+	
+	# UNIQUE NAMES
+	$allnames = array_unique($allnames);
+	$info['names'] = count($allnames);
+	$info['sources'] = count($sources);
+
+	foreach ($sources as $source) {
+		switch ($source['term']) {
+			case 'biotable':
+			case 'biogeographic':
+			case 'biotree':
+				break;
+			case 'biorelational':		
+				info_gpdd($db_handle, $source, $qobjects, &$info);
+				break;
+		}
+	}
+	
+	print_r($info);
+	return $info;
+	
+}
+
 
 # ------------------------------------------------------------------------------------------------------------
 
-function html_info_biotable($source, $snames) {
+function html_info_biotable($source, $info) {
 	
-	$sid = $source['id'];
-	$t = 'Names';
 	if ($source['term'] == 'biotable') {
 		$class = 'info_biotable';
 	} else {
 		$class = 'info_biogeographic';
 	}
-	$n = count($snames);
+	$sid = $source['id'];
+	$t = 'names';
+	$n = $info[$sid];
 	echo "<td class='$class'><a href='source_info.php?id=$sid' title='$t' target='_blank'>$n</td>";
 	
 }
 
 # ------------------------------------------------------------------------------------------------------------
 
-function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
+function html_info_gpdd($source, $info) {
+	$sid = $source['id'];
+	$vals = $info[$sid];
+	$n = $vals[0];
+	$s = $vals[1];
+	$t = 'Names';
+	echo "<td class='info_biorelational'><a href='source_info.php?id=$sid' title='$t' target='_blank'>$n</a>/";
+	$t = 'Series';	
+	echo "<a href='source_info.php?id=$sid' title='$t' target='_blank'>", $s, '</a></td>';
+}
+
+# ------------------------------------------------------------------------------------------------------------
+
+function info_gpdd($db_handle, $source, $qobjects, &$info) {
 	
 	$sid = $source['id'];
-	$n = count($snames);
+	$n = $info[$sid];
+	//$n = count($snames);
 	if ($qobjects) {
 		$mids = query_get_mids($qobjects);
 		$s = count($mids);
@@ -174,10 +213,7 @@ function html_info_gpdd($db_handle, $source, $snames, $qobjects) {
 		$s = $row[0];
 	}
 
-	$t = 'Names';
-	echo "<td class='info_biorelational'><a href='source_info.php?id=$sid' title='$t' target='_blank'>$n</a>/";
-	$t = 'Series';	
-	echo "<a href='source_info.php?id=$sid' title='$t' target='_blank'>", $s, '</a></td>';
+	$info[$sid] = array($n,$s);
 }
 
 # ------------------------------------------------------------------------------------------------------------
@@ -296,68 +332,6 @@ function html_info_outputs($output_id) {
 		}
 
 	}
-	
-# ------------------------------------------------------------------------------------------------------------
-	
-/*function html_cart_sources($sources) {
-	
-	//echo "<td class='cart_menu'>";
-	if ($sources) {
-		$c = count($sources);
-		} else {
-		$c = 0;
-		}
-	
-	if ($c > 0) echo '<a href="list_sources.php?' . SID . '"  target="_blank">';
-	
-	switch ($c) {
-		case 0:
-			echo "0 sources";
-			break;
-		case 1:
-			echo "1 source";
-			break;
-		default:
-			echo $c . " sources";
-		}
-	if ($c > 0) echo '</a>';
-	//echo "</td>";
-	}*/
-		
 
-# ------------------------------------------------------------------------------------------------------------
-
-/*function html_cart_names($names) {
-
-
-	if (!isset($names)) {
-		//echo " | 0 names";
-	} else {
-		//echo "<td class='cart_menu'>";
-		# NAMES
-		$c = count($names);
-		switch ($c) {
-			case 0:
-				echo " | 0 names";
-				break;
-			case 1:
-				echo ' | <a href="list_names.php?' . SID . '"  target="_blank"> 1 name</a>';
-				break;
-			default:
-				echo ' | <a href="list_names.php?' . SID . '"  target="_blank"> ' . $c . " names</a>";
-			}
-		# INFO
-		if ($names) {
-			echo ' <a href="table_names.php?' . SID . '"  target="_blank"> (table)</a>';
-			echo ' <a href="sql_names.php?' . SID . '"  target="_blank"> (sql)</a> ';
-			//echo '<a href="namestable.php?' . SID . '"  target="_blank"> (sources)</a>';
-		}
-		//echo "</td>";
-	}
-	
-	}*/
-
-#=================================================================================================================
-	
 
 ?>

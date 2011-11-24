@@ -167,9 +167,12 @@
 			# No Names
 			$qobject['series'] = null;
 		}
+		
 		$qobjects = save_obj($qobjects, $qobject);
 		$_SESSION['names'] = $names;
 		$_SESSION['qobjects'] = $qobjects;
+		
+		unset($_SESSION['info']);
 	}
 
 # ----------------------------------------------------------------------
@@ -1209,8 +1212,6 @@ function query_name_search($db_handle) {
 			$sin = array(); 	//sources name is in
 			foreach ($sources as $source) {
 				$sid = $source['id'];
-				//$scode = $source['code'];
-				
 				switch ($source['term']) {
 					case "biotable" :
 					case "biogeographic" :
@@ -1234,14 +1235,12 @@ function query_name_search($db_handle) {
 				$row = pg_fetch_row($res);
 				if ($row) array_push($sin, $sid);
 			}
-		if (empty($sin)) {
-			array_push($out, array($taxon, null));	
-		} else {
-			array_push($out, array($taxon,implode(", ",$sin)));	
-		}
-			
-		}
-					
+			if (empty($sin)) {
+				$out[$taxon] = null;	
+			} else {
+				$out[$taxon] = $sin;	
+			}
+		}	
 	}
 	#print_r($out);
 	#echo "<br>";
