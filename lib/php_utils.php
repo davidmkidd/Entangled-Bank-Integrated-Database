@@ -373,7 +373,7 @@ function add_source_fields($db_handle, &$source) {
 				$flookup = null;
 				break;
 			case 'lookupfield':
-				$ftype = 'numeric';
+				$ftype = get_ftype_from_dbtype($dbtype);
 				$flookup = null;
 				break;
 			case 'lookuptable':
@@ -389,11 +389,13 @@ function add_source_fields($db_handle, &$source) {
 					$dbtype = pg_field_type($res, 0);
 					$ftype = get_ftype_from_dbtype($dbtype);
 					$flookup = $lookup_id;
+				
 				} else {
 					$ftype = 'not set';
 					$flookup = null;
 				}
-
+			case 'groupfield':
+				$ftype = 'integer';
 				break;
 			default:
 				$ftype = null;
@@ -431,10 +433,10 @@ function get_ftype_from_dbtype($dbtype) {
 		case 'float8':
 			$ftype = 'real';
 			break;
-		case (substr($ftype, 0, 3) == 'int'):
+		case (substr($dbtype, 0, 3) == 'int'):
 			$ftype = 'integer';
 			break;
-		case (substr($ftype,-4) == 'char'):
+		case (substr($dbtype,-4) == 'char'):
 		case 'text':
 		case 'varchar':
 			$ftype = 'text';

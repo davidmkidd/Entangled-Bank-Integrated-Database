@@ -19,6 +19,8 @@
 		$nop = $qobject['noperator'];
 		$allnames = $qobject['allnames'];
 		
+		//print_r($qobject);
+		
 		if ($names && !$queryop) {
 			echo "query: if names passed queryoperators must be set";
 			exit;
@@ -155,20 +157,30 @@
 		query_add_names_sql($qobject, $qobjects, $qstr);
 		$qobjects = save_obj($qobjects, $qobject);
 		
+		//print_r($qobjects);
+		//echo " after save_obj<br>";
+		
 		# GPDD SERIES QUERY
 		# =================
-		
+		//echo "names " . count($names) . "<br>";
 		if (!empty($names)) {
 			# RUN GPDD SERIES QUERY
 			query_series($db_handle, $qobject, $qobjects, $names, $sources);
+			//print_r($qobject);
+			//echo " after query_series<br>";
 			$qobjects = save_obj($qobjects, $qobject);
 			$names = query_series_names($db_handle, $qobjects, $names, $sources);
 		} else {
 			# No Names
 			$qobject['series'] = null;
+			$qobjects = save_obj($qobjects, $qobject);
+			//print_r($qobject);
+			//echo " after names<br>";
 		}
+
+		//print_r($qobjects);
+		//echo "final !<br>";
 		
-		$qobjects = save_obj($qobjects, $qobject);
 		$_SESSION['names'] = $names;
 		$_SESSION['qobjects'] = $qobjects;
 		
@@ -190,17 +202,9 @@
 		$qterm = $qobject['term'];
 		$queries = $qobject['queries'];
 		$fields = $source['fields'];
-		//$not = $qobject['querynot'];
 		$null = $qobject['querynull'];
 		$sterm = $source['term'];
 		$nseries_op = "";
-		
-/*		echo "Begin biotable query " . $source['id'] . "<br>";
-		print_r($qobject);
-		echo  "<br>";*/
-		
-		print_r($queries);
-		echo  "<br>";
 		
 		# SELECT CLAUSE
 		if ($source['id'] !== '23') {
@@ -219,9 +223,6 @@
 			
 			foreach ($queries as $query) {
 				switch (true) {
-					//case ($query['lookup'] == 24 || $query['field'] == 'NSeries'):
-					//	$tables['taxon'] = ", gpdd.taxon t";
-					//	break;
 					case ($query['lookup'] == 25):
 						$tables['location'] = ", gpdd.location l";
 						break;					
@@ -263,27 +264,13 @@
 			}
 		}
 		
-		# NOT
-/*		if ($not == 'NOT') {
-			if ($first == true) {
-				$str = $str . " NOT (";
-			} else {
-				$str = $str . " AND NOT (";
-			}
-			$first = true;
-		}*/
-		
-		
 		# WHERE CONDTIONS
-		# nseries?
 		$nseries_type = 'no';
 		$i = 0;
 		foreach ($queries as $query) {
 			$qfname = $query['field'];
-			//echo "qfname: $qfname";
 			$qfield = get_field($qfname, $fields);
 			$dtype = $qfield['ebtype'];
-			//echo ", dtype: $dtype<br />";
 			
 			if ($i > 0) $str = $str . " AND";
 			$i++;
@@ -293,9 +280,6 @@
 				case 'rangefield':
 					query_biotable_rangefield($query, $str, $source['id'], $null);
 					break;
-/*				case 'lookup':
-					$str = query_biotable_lookup($query, $str, $source['id']);
-					break;*/
 				case 'groupfield':
 					if (count($queries) == 1) {
 						$nseries_type = 'only';
@@ -304,7 +288,6 @@
 					}
 					$nseries = $query['value'];
 					$nseries_op = $query['operator'];
-					//echo "$nseries, $nseries_op, $nseries_type<br>";
 					break;
 				case 'lookupfield':
 				case 'catagoryfield':
@@ -315,8 +298,6 @@
 					query_biotable_lookuptable($query, $str, $null);
 					break;
 				default:
-					//look up
-					//$str = query_biotable_gpdd($query, $str);
 					break;
 			}
 		}
@@ -337,7 +318,6 @@
 		
 		# GROUP BY CLAUSES
 		if ($source['id'] == '23' && $nseries_type == 'yes') {
-			//echo "TYPE 23<br>";
 			$str = $str . " GROUP BY t.binomial";
 			if ($nseries !== -1) {
 				if($not == 'NOT') {
@@ -381,7 +361,7 @@
 		//print_r($qobject) . "<br>";
 		
 		// NSERIES ONLY
-		if (count($queries) == 1 && $queries[0]['field'] == 'NSeries') return $str;
+		if (count($queries) == 1 && $queries[0]['field'] == 'nseries') return $str;
 		
 		$first = true;
 		$str = $str . "SELECT m.\"MainID\" AS mid
@@ -420,7 +400,7 @@
 					break;
 				case 'gpdd':
 					switch ($field) {
-						case 'NSeries': 
+						case 'nseries': 
 							$nseries = $query['value'];
 							$nseries_op = $query['operator'];
 							break;
@@ -506,7 +486,7 @@
 		if ($source['id'] == 23) {
 			$s = 'm';
 		} else {
-			$s = 'ds';
+			$s = 'd';
 		}
 		$field = $query['field'];
 		$ftype = $query['ftype'];
@@ -536,7 +516,7 @@
 		if ($source['id'] == 23) {
 			$s = 'm';
 		} else {
-			$s = 'ds';
+			$s = 'd';
 		}
 				
 		$str = $str . " $s.\"$field\" $op $value";
@@ -970,7 +950,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 	function query_series ($db_handle, &$qobject, $qobjects, $names, $sources){
 	
 		# QUERY GPDD SERIES
-		#echo "begin query series<br>";
+		//echo "begin query series<br>";
 		//$out = array();
 		
 		#ONLY RUN IF GPDD A SOURCE
@@ -982,7 +962,8 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 				}
 			}
 		}
-		if($run == false) exit;
+		//echo "run $run<br>";
+		if($run == false) return;
 	
 		# GET MIDS
 		$mids = query_get_mids($qobjects, 'last');

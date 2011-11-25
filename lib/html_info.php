@@ -1,6 +1,6 @@
 <?php
 
-function html_info($db_handle) {
+function html_info($db_handle, $oldtoken, $newtoken) {
 	
 	$qobjects = $_SESSION['qobjects'];
 	$sources = $_SESSION['sources'];
@@ -10,9 +10,11 @@ function html_info($db_handle) {
 	# SAVE TO USE AGAIN IF NEEDED: FIND
 	if (!$_SESSION['info']) {
 		$info = info($db_handle, $sources, $qobjects, $names);
-
+		//echo "Generating Info ...<BR>";
+		$_SESSION['info'] = $info;
 	} else {
 		$info = $_SESSION['info'];
+		//echo "Info from session ...<BR>";
 	}
 	
 	# DIV
@@ -33,18 +35,17 @@ function html_info($db_handle) {
 	echo "<th title='Sources queried' class='info'>Sources</th>";
 	echo "<th title='Names returned' class='info'>Names</th>";
 
+	# TITLES
 	foreach ($sources as $source) {
 		$t = $source['name'];
 		$c = $source['code'];
-		//$class = 'info_' . $source['term'];
 		echo "<th class='info' title='$t'>$c</th>";
 	}
 	echo "</tr>";
 
 	
-	# INFO FOR SOURCES
+	# INFO
 	echo "<tr>";
-	
 	# N SOURCES
 	$n = $info['sources'];
 	$t = "Sources";
@@ -59,7 +60,7 @@ function html_info($db_handle) {
 	echo "<a href='list_names.php?" . SID . "' title='$t' target='_blank'>$n</a>";
 	echo "</td>";
 		
-	#SOURCES
+	# SOURCES
 	$i = 0;
 	foreach ($sources as $source) {
 		switch ($source['term']) {
@@ -77,10 +78,9 @@ function html_info($db_handle) {
 		$i++;
 	}		
 	
-
 	echo "</tr>";
-	# QUERIES
-	//html_cart_queries($qobjid, $qobjects);
+	
+	# INNER TABLE
 	echo "</table>";
 	echo "</div>";
 	
@@ -106,8 +106,9 @@ function html_info_biotree($source, $info) {
 
 function info($db_handle, $sources, $qobjects, $names) {
 	
+	# GENERATE INFO
+	//echo "Generating info ...<BR>";
 	$info = array();
-	//$snames = array();
 	$allnames = array();
 	if ($names) $arr = array_to_postgresql($names,'text');
 	
@@ -135,7 +136,6 @@ function info($db_handle, $sources, $qobjects, $names) {
 		$res = pg_query($db_handle, $str);
 		$info[$source['id']] = count(pg_fetch_all_columns($res));
 		$allnames = array_merge($allnames, pg_fetch_all_columns($res));
-		//echo $source['name'], ": ", count(pg_fetch_all_columns($res)) , ", all: ", count($allnames), "<br>";
 	}
 	
 	# UNIQUE NAMES
@@ -155,7 +155,6 @@ function info($db_handle, $sources, $qobjects, $names) {
 		}
 	}
 	
-	print_r($info);
 	return $info;
 	
 }

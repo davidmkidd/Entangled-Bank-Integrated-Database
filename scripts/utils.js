@@ -1,5 +1,5 @@
 /**
- * 
+ * ENTANGLED BANK SCRIPTS
  */
 
 function loadScript() {
@@ -25,6 +25,8 @@ function loadScript() {
 	}
 }
 
+//-----------------------------------------------------------------------------------
+
 function newSingleSourceQuery(entry)
 {
 	//alert(entry);
@@ -39,6 +41,7 @@ function newSingleSourceQuery(entry)
  document.ebankform.submit();
 }
 
+//-----------------------------------------------------------------------------------
 
 function newOutput() {
 	var item = document.getElementById('stage');
@@ -53,34 +56,40 @@ function newOutput() {
     }*/
  document.ebankform.submit();
 }
+//-----------------------------------------------------------------------------------
 
 function deleteOutput(id) {
 	var item = document.getElementById('stage');
 	item.value = 'outputdelete';
 	document.ebankform.submit();
 }
+//-----------------------------------------------------------------------------------
 
 function deleteAllOutputs() {
 	var item = document.getElementById('stage');
 	item.value = 'outputdeleteall';
 	document.ebankform.submit();
 }
+//-----------------------------------------------------------------------------------
 
 function deleteAllQueries() {
 	var item = document.getElementById('stage');
 	item.value = 'querydeleteall';
 	document.ebankform.submit();
 }
+//-----------------------------------------------------------------------------------
 
 function cancelOutput(id) {
 	var item = document.getElementById('stage');
 	item.value = 'outputcancel';
 	document.ebankform.submit();
 }
+//-----------------------------------------------------------------------------------
 
 function addOutput(id) {
 	document.ebankform.submit();
 }
+//-----------------------------------------------------------------------------------
 
 function addBiotableOutput(id) {
 	var item = document.getElementById('fields_add');
@@ -89,6 +98,7 @@ function addBiotableOutput(id) {
 	}
 	document.ebankform.submit();
 }
+//-----------------------------------------------------------------------------------
 
 function editQuery(id) {
 	// Opens query for editing
@@ -103,20 +113,22 @@ function editQuery(id) {
 	
 }
 
+//-----------------------------------------------------------------------------------
 
 function editOutput(id) {
+	
 	var item = document.getElementById('stage');
 	item.value = 'setoutput';
-	//alert (item.value);
 	var item = document.getElementById('output_id');
 	item.value = id;
-	//alert (item.value);
 	document.ebankform.submit();
+	
 }
+//-----------------------------------------------------------------------------------
 
 function returnOutput(n) {
+	
 	// RETURNS DATA
-	//alert(n);
 	if (n == 0) {
 		var x=window.confirm("Do you really want all data for outputs? If not, add some queries.")
 		if (x) {
@@ -131,21 +143,29 @@ function returnOutput(n) {
 		item.value = 'write';
 		document.ebankform.submit();
 	}
+	
 }
 
+//-----------------------------------------------------------------------------------
+
 function submitForm (id) {
-	//alert(id);
+	
 	var stage = document.getElementById('stage');
 	stage.value = id;
 	document.ebankform.submit();
+	
 }
+
+//-----------------------------------------------------------------------------------
 
 function submitQuery(id) {
-	//alert(id);
+	
 	document.getElementById('qterm').value = id;
 	document.ebankform.submit();
+	
 }
 
+//-----------------------------------------------------------------------------------
 
 function textareaFormat(id) {
 	
@@ -216,14 +236,12 @@ function textareaFormat(id) {
 	item.value = str;
 }
 
-/**
- * Utilities for html_query_tree
- */
+//-----------------------------------------------------------------------------------
+
 
 function findSourceNames() {
 	
 	// Adds find names returns to names textarea
-	//alert("!");
 	var findval = document.getElementById('findval');
 	var sources = document.getElementsByName('qsources[]');
 	var n = document.getElementById('nsources');
@@ -234,7 +252,6 @@ function findSourceNames() {
 	var sids = '';
 	var str = '';
 	var c = 0;
-	//alert(ebpath);
 	
 	for (var i = 0; i <= sources.length - 1; i++) {
 		if (sources[i].checked == true) {
@@ -259,7 +276,6 @@ function findSourceNames() {
 		var data = request.responseText;
 		names.options.length = 0;
 		var ret = JSON.parse(data);
-		//alert(ret);
 		if (ret.length > 0) {
 			for (var i = 0; i <= ret.length - 1; i++) {
 			label = ret[i].replace(/["']{1}/gi,"");
@@ -272,23 +288,20 @@ function findSourceNames() {
 	}
 	}
 
+//-----------------------------------------------------------------------------------
 
 function checkAllNames() {
 	
 	if (document.getElementById("allnames").checked == true) {
-		//alert("!");
 		document.getElementById("taxa").disabled = true;
 		if (document.getElementById("invalid_taxa")) document.getElementById("invalid_taxa").disabled = true;
-		//alert(document.getElementById("names").disabled);
 		document.getElementById("found_names").disabled = true;
-		//alert(document.getElementById("names").disabled);
 		document.getElementById("findval").disabled = true;
 		document.getElementById("findbtn").disabled = true;
 		document.getElementById("names_add").disabled = true;
 		document.getElementById("names_add_all").disabled = true;
 		document.getElementById("names_clear").disabled = true;
 	} else {
-		//alert("!!");
 		document.getElementById("taxa").disabled = false;
 		if (document.getElementById("invalid_taxa")) document.getElementById("invalid_taxa").disabled = false;
 		document.getElementById("findval").disabled = false;
@@ -330,6 +343,8 @@ function namesAdd() {
 	}
 }
 
+//-----------------------------------------------------------------------------------
+
 function namesAddAll() {
 	var names = document.getElementById('found_names');
 	var taxa = document.getElementById('taxa');
@@ -338,7 +353,6 @@ function namesAddAll() {
 	for (var i = 0; i <= names.length - 1; i++) {
 			sel.push(names.options[i].value);
 	}
-	//alert(sel.length);
 	// Check if in taxa, add if not
 	// Parse for commas
 	if (taxa.value.length == 0) {
@@ -358,21 +372,20 @@ function namesAddAll() {
 	}
 }
 
+//-----------------------------------------------------------------------------------
 
 function namesClear(){
 	document.getElementById('taxa').value = '';
 }
 
+//-----------------------------------------------------------------------------------
 
 function submitNamesQuery(id) {
 	
-	//alert(document.getElementById('taxa').value.length);
-	//alert(document.getElementById('invalid_taxa' + ', ' + document.getElementById('invalid_taxa').value.length));
 	
 	//Check text in names
 	if (document.getElementById('taxa').value.length != 0) {
 		// Add lastaction values
-		//alert('taxa length: ' + document.getElementById('taxa').value.length);
 		document.getElementById('lastaction').value = 'run';
 		document.getElementById('lastid').value = id;
 		document.ebankform.submit();
@@ -385,13 +398,11 @@ function submitNamesQuery(id) {
 				document.getElementById('findval_label').innerHTML = 'No text to search on';
 				return false;
 			} else {
-				//alert('taxa length: 0, invalid_taxa: ' + document.getElementById('invalid_taxa').value.length);
 				document.getElementById('lastaction').value = 'run';
 				document.getElementById('lastid').value = id;
 				document.ebankform.submit();				
 			}
 		} else {
-			//alert('taxa length: 0, no invalid_taxa');
 			document.getElementById('findval_label').innerHTML = 'No text to search on';
 			return false;
 		}
@@ -404,6 +415,7 @@ function submitTemporalQuery(id) {
 	document.ebankform.submit();	
 }
 
+//-----------------------------------------------------------------------------------
 
 function submitTableQuery(id) {
 	
@@ -411,7 +423,6 @@ function submitTableQuery(id) {
 	// AT LEAST ONE _QUERY MUST BE CHECKED
 	// IF SELECT THEN AT LEAST ONE VALUES IN QUERY BOX
 	// SELECT ALL SELECT ENTRIES FOR POST
-	//alert("!");
 	// Check if any _query check boxes checked
 	var control = document.getElementsByTagName("input");
 	var check_ok = false;
@@ -458,7 +469,6 @@ function submitTableQuery(id) {
 	if (check_ok == true) {
 		// AT LEAST ONE _query is CHECKED, SO CHECK IF ENTRIES AND IF SO SELECT
 		var control = document.getElementsByTagName("select");
-		//alert(control);
 		for (var i = 0; i < control.length; i++) {
 			var pattern = new RegExp("_add",'i');
 			if (control[i].id.search(pattern) != - 1) {
@@ -475,29 +485,32 @@ function submitTableQuery(id) {
 	}
 }
 
+//-----------------------------------------------------------------------------------
+
 function sqlDisplay() {
 	
-	//
-	//alert(document.getElementById('sql'));
 	// CHANGES SQL QUERY DISPLAYED 
 	var idx = document.getElementById('sql').selectedIndex;
-	//alert(idx);
 	var val = document.getElementById('sql').options[idx].value;
-	//alert(val);
 	document.getElementById('sqltext').value = document.getElementById(val).value;
-	//alert (document.getElementById('sqltext').text);
+
 }
 
+//-----------------------------------------------------------------------------------
+
 function checkObjName() {
+	
 	// checks query has name and no spaces
 	var name = document.getElementById('objname');
-	//alert(name.value.length);
 	if (name.value.length == 0) {
 		name.value = "query_name_required";
 	} else {
 		name.value = name.value.replace(/ /g,"_");
 	}
+	
 }
+
+//-----------------------------------------------------------------------------------
 
 function is_int(value){ 
 	  if((parseFloat(value) == parseInt(value)) && !isNaN(value)){
@@ -507,9 +520,14 @@ function is_int(value){
 	  } 
 	}
 
+//-----------------------------------------------------------------------------------
+
+
 function isNumber(n) {
 	  return !isNaN(parseFloat(n)) && isFinite(n);
 	}
+
+//-----------------------------------------------------------------------------------
 
 function deleteQuery(id) {
 	//alert(id);
@@ -523,6 +541,7 @@ function deleteQuery(id) {
 	document.ebankform.submit();
 }
 
+//-----------------------------------------------------------------------------------
 
 function cancelQuery(id) {
 	//alert(id);
@@ -533,4 +552,19 @@ function cancelQuery(id) {
 	item.value = 'qcancel';
 	//alert(item.value);
 	document.ebankform.submit();
+}
+
+//-----------------------------------------------------------------------------------
+
+function cursor_wait() {
+	document.body.style.cursor = 'wait';
+}
+
+//-----------------------------------------------------------------------------------
+
+	// Returns the cursor to the default pointer
+	
+function cursor_clear() {
+	document.body.style.cursor = 'default';
+	
 }

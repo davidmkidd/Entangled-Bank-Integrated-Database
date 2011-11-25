@@ -107,10 +107,12 @@ function process_delete_query($db_handle, $qobjid) {
 			unset($_SESSION['names']);
 			unset($_SESSION['mids']);
 			foreach ($qobjects as $qobject) query($db_handle, $qobject['id']);
+			unset($_SESSION['info']);
 		} else {
 			unset($_SESSION['names']);
 			unset($_SESSION['qobjects']);
 			unset($_SESSION['mids']);
+			unset($_SESSION['info']);
 		}
 	} else {
 		# ELSE DO NOTHING AS QUERY ALREADY DELETED
@@ -396,12 +398,12 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 				break;
 			case 'groupfield':
 				# GPDD hardcode
-				$op = $_SESSION['NSeries_operation'];
-				$value = $_SESSION['NSeries_count'];
+				$op = $_SESSION['nseries_operator'];
+				$value = $_SESSION['nseries_value'];
 				$query = array('field'=>$qfield, 'operator'=>$op, 'value'=>$value);
 				array_push($queries, $query);
-				unset($_SESSION['NSeries_operation']);
-				unset($_SESSION['NSeries_count']);		
+				unset($_SESSION['nseries_operator']);
+				unset($_SESSION['nseries_value']);		
 				break;
 		}
 		

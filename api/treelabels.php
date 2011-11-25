@@ -22,9 +22,7 @@
 		$res = pg_query($db_handle, $str);
 		$row = pg_fetch_row($res);
 		$type = $row[0];
-		//echo "$filter<br>";
-		//print_r($filters);
-		//echo in_array('tip', $filters) && in_array('internal', $filters), "<br>";
+		
 		switch ($type) {
 			case 'phylogeny':
 				switch (true) {

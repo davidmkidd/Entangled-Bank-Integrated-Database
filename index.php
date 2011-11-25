@@ -6,7 +6,6 @@ session_start();
 //$mytimes = array("page_begin" => microtime(True));
 
 # LIBRARIES
-
 include "./lib/config_setup.php";
 include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
 include "./lib/html_utils.php";
@@ -63,9 +62,9 @@ $output_id = $_SESSION['output_id'];          // OUTPUT ID
 if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
 if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------
-#                                                                            HTML HEADERS
-# ---------------------------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------
+#                                         HTML HEADERS
+# ------------------------------------------------------------------------------------------------
 
 #HTML headers
 echo '<html>';
@@ -79,14 +78,13 @@ echo '</head>';
 
 #BODY
 echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
-//echo '<script src="./scripts/cart_utils.js" type="text/javascript"></script>';
 echo "<body onload='loadScript()'>";
-echo "<div class='main'>";
-//html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 	
 # --------------------------------------------------------------------------------------------------
-#                                           DATABASE CONNECTION
+#                                     DATABASE CONNECTION
 # --------------------------------------------------------------------------------------------------
+
+echo "<div class='main'>";
 
 set_time_limit(1200);
 
@@ -107,19 +105,9 @@ if ($db_handle == false) {
 # EB PATH FOR JS
 echo "<input type='hidden' id='eb_path' value='$eb_path' />";
 
-# -----------------------------------------------------------------------------------------------------------
-#                                                PRE-FORM PROCESSING
-# -----------------------------------------------------------------------------------------------------------
-
-//echo "Pre-form processing: ";
-//if ($qobjects) print_r($qobjects);
-//echo "stage: $stage";
-//echo ", qobjid: $qobjid<br>";
-//echo "<br>";
-
-# CURRENT OBJECT
-//if (empty($qobjects)) $qobjid = null;            # BIOTREE AND BIOTTRIBUTE FIX
-
+# -----------------------------------------------------------------------------------------------------
+#                                         PRE-FORM PROCESSING
+# -----------------------------------------------------------------------------------------------------
 
 # NAME SEARCH
 if ($stage == 'find') {
@@ -157,10 +145,8 @@ if ($stage == 'querydeleteall') {
 	}
 	
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
-//echo "before process_qset objid: $qobjid<br>";
 if ($stage == 'qset') 
 	$qobjid = process_qset($qobjid, $qterm, $oldtoken, $newtoken, $lastaction, $lastid);
-//echo "after process_qset objid: $qobjid<br>";
 
 # QVERIFY - VERIFY QUERY
 if ($stage == 'qverify') 
@@ -176,7 +162,7 @@ if ($stage == 'query') {
 	
 # NEW OUTPUT
 if ($stage == 'newoutput') {
-	$output_id = process_new_output($newtoken, $newtoken, $output_sid);
+	$output_id = process_new_output($oldtoken, $newtoken, $output_sid);
 	$stage = 'setoutput';
 }
 
@@ -218,7 +204,7 @@ if ($stage == 'write') {
 }
 
 # ----------------------------------------------------------------------------------
-#                                       HTML
+#                                       FORM
 # ----------------------------------------------------------------------------------
 
 echo '<form method="post" name="ebankform" action="' . $eb_path . 'index.php" 
@@ -233,7 +219,7 @@ if ($stage == 'sources')
 
 # MAIN INTERFACE
 if ($stage == 'main' || $stage == 'write') 
-	html_entangled_bank_main($db_handle, $name_search, $output_id, $zip);
+	html_entangled_bank_main($db_handle, $oldtoken, $newtoken, $name_search, $output_id, $zip);
 
 # QUERY SETUP
 if ($stage == 'qset')
@@ -248,13 +234,11 @@ echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';
 #CLOSE FORM
 echo '</form>';
 
-#Print mytimes array
-//$mytimes = add_key_val($mytimes, "end_page", microtime(TRUE));
+# ----------------------------------------------------------------------------------
+#                                     FOOOTER
+# ----------------------------------------------------------------------------------
 
-# FOOTER
 html_entangled_bank_footer();
-
-#Close db handle
 pg_close($db_handle);
 
 #CLOSE MAIN DIV
