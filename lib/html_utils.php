@@ -1006,7 +1006,7 @@ function html_query_groupfield ($db_handle, $qobject, $names){
 	$nop = $query['operator'];
 	$n = $query['value'];
 	
-	$ops = array(">=", "=", "<=");
+	$ops = array(">",">=","=","<","<=");
 	echo "<SELECT name='nseries_operator' id='nseries_operator'>";
 	if (!$nop) $nop = '>=';
 	foreach($ops as $op) {
@@ -1163,7 +1163,7 @@ function html_query_operator($qobject) {
 		$fval = $fname . "_value";
 				
 		# OPERATOR
-		$oparr =array('>', '>=', '<=', '<');
+		$oparr =array(">",">=","=","<","<=");
 		echo "<SELECT id='$fop' name='$fop' $disabled>";
 		foreach ($oparr as $op) echo "<OPTION value='$op'>$op</OPTION>";
 		echo "</ SELECT>";
@@ -1432,6 +1432,246 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	echo "<INPUT type='hidden' id='sid' value='$sid' />";
 	$dbloc = $source['dbloc'];
 	$queries = $qobject['queries'];
+	$colorhex = $source['colorhex'];
+	$qfields = array();
+	if ($queries) foreach ($queries as $query) array_push($qfields, $query['field']);
+	
+	html_query_null($qobject);
+
+	
+	# FIELDS
+	$fields = $source['fields'];
+	//$fields2 = $source['fields'];
+	$oldgroup = null;
+	$i = 0;
+	
+	foreach ($fields as $field) {
+		
+		$newgroup = $field['group'];
+		$color = $colorhex[$field['group']];
+		if (!$oldgroup || $newgroup !== $oldgroup) {
+			# BEGIN GROUP
+			$group = $field['group'];
+			echo "<table border='1'>";
+			echo "<tr>";
+			echo "<td class='query_title' id='$group'" , "_td' bgcolor='$color'>$group</td>";
+			#FIELDS
+			echo "<td bgcolor='$color'>";
+			foreach ($fields as $field2) {
+				if ($field2['group'] == $newgroup) {
+					$fname2 = $field2['name'];
+					$fdesc2 = $field2['desc'];
+					$dtype2 = $field2['ebtype'];
+					$falias2 = $field2['alias'];
+					if ($qfields && in_array($fname2, $qfields)) {
+						$check = ' CHECKED ';;
+					} else {
+						$check = null;;
+					}
+					
+					# FIELD CHECKBOXES
+					switch ($dtype2) {
+						case 'rangefield':
+						case 'groupfield':
+							$prog = 'showNumericField(this);';
+							break;
+						case 'catagoryfield':
+						case 'lookuptable':
+							$prog = 'showCatagoryField(this);';
+							break;
+					}
+				
+					echo "<INPUT type='checkbox' $check id='$fname2" . "_query' name='$fname2" .
+					 	"_query' onClick='$prog' />";
+					echo "<LABEL for='$fname2" . "_query' title='$fdesc2'>$falias2&nbsp;</LABEL>";
+					echo "<INPUT type='hidden' id='$fname2" . "_type' value='$dtype2' />";			
+				}
+			}
+			# DIVS
+			foreach ($fields as $field2) {
+				if ($field2['group'] == $newgroup) {
+					$fname2 = $field2['name'];
+					echo "<DIV id='$fname2" . "_div' style='display: none;'>";
+					if ($check) {
+						# TOOL
+						html_query_field_tool($db_handle, $qobject, $field, $source, $names);
+					}
+					echo "</DIV>";
+				}
+			}	
+			echo "</td></tr></table>";
+			$oldgroup = $newgroup;
+		}
+	}
+}
+
+#=======================================================================================================================
+
+function html_query_field_tool($db_handle, $qobject, $field, $source, $names) {
+	
+	$colorhex = $source['colorhex'];
+	
+	$fname = $field['name'];
+	$dbtype = $field['dbtype'];
+	$color = $colorhex[$field['group']];
+	$dtype = $field['ebtype'];
+	$queries = $qobject['queries'];
+	foreach ($queries as $query) if ($query['field'] == $fname) $vals = $query['value'];
+	
+	# NAMES
+	if ($names) $arr = array_to_postgresql($names, 'text');
+	
+	# CREATE CONTENTS OF EXISTING QUERY	
+	echo "<table>";
+	echo "<tr>";
+	echo "<td class='query_title' bgcolor='$color'>$fname</td>";
+	echo "<td bgcolor='$color'>";
+				
+	switch ($dtype) {
+	
+	case 'catagoryfield':
+		$str = "SELECT DISTINCT \"$fname\" AS item, \"$fname\" AS name FROM $dbloc ORDER BY \"$fname\"";
+		html_query_select_options($db_handle, $str, $fname, $qobject);
+		break;
+	
+	case 'lookupfield':
+		$str = "SELECT c.item AS item, c.name AS name
+			FROM source.source_fields f,
+			source.source_fieldcodes c
+			WHERE f.field_id = c.field_id
+			AND f.source_id = $sid
+			AND f.field_name = '$fname'";
+		html_query_select_options($db_handle, $str, $fname, $qobject);
+		break;
+		
+	case "rangefield":
+		# GPDDHARDCODE
+		if ($source['id'] <> 23) {
+			# Get min and max of all names
+			$str = 'SELECT MIN("' . $fname . '"), MAX("' . $fname . '")
+				FROM ' . $dbloc;
+			#Get min and max of given names
+			if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
+		} else {
+			$str = "SELECT MIN(m.\"$fname\"), MAX(m.\"$fname\")
+				FROM gpdd.main m, gpdd.taxon t
+				WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+			if ($names) $str = $str . " AND t.binomial = ANY($arr)";
+		}
+
+		if ($fname == 'StartYear') $str = $str . " AND m.\"StartYear\" <> -9999";
+		if ($fname == 'EndYear') $str = $str . " AND m.\"EndYear\" <> -9999";
+		
+		html_query_select_range($db_handle, $str, $fname, $dbtype, $qobject);
+		break;
+		
+	case 'lookuptable':
+		# Get field name from
+		switch ($fname) {
+			# GPDD HARDCODE
+			case 'Author':
+			case 'Year':
+			case 'Title':
+			case 'Reference':
+			case 'Availability':
+			case 'Notes':
+					$str = "SELECT DISTINCT s.\"$fname\" AS item, s.\"$fname\" AS name
+							FROM gpdd.taxon t, gpdd.main m, gpdd.datasource s
+						 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
+						 	AND m.\"DataSourceID\" = s.\"DataSourceID\"
+						 	AND t.binomial IS NOT NULL";
+					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+					$str = $str . " ORDER BY s.\"$fname\"";
+					html_query_select_options($db_handle, $str, $fname, $qobject);
+				break;
+			case 'TaxonomicPhylum':
+			case 'TaxonomicClass':
+			case 'TaxonomicOrder':
+			case 'TaxonomicFamily':
+			case 'TaxonomicGenus':
+			case 'binomial':
+			case 'CommonName':
+				$str = "SELECT DISTINCT t.\"$fname\" AS item, t.\"$fname\" AS name
+						FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+						 WHERE t.binomial IS NOT NULL
+						 AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+						AND ds.\"Availability\" <> 'RESTRICTED'";
+				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+				$str = $str . " ORDER BY t.\"$fname\"";
+				html_query_select_options($db_handle, $str, $fname, $qobject);
+				break;
+			case 'HabitatName':
+			case 'BiotopeType':
+				$str = "SELECT DISTINCT b.\"$fname\" AS item, b.\"$fname\" AS name
+					FROM gpdd.taxon t, gpdd.main m, gpdd.biotope b, gpdd.datasource ds
+					WHERE t.\"TaxonID\" = m.\"TaxonID\"
+					AND m.\"BiotopeID\" = b.\"BiotopeID\"
+					AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+					AND ds.\"Availability\" <> 'RESTRICTED'
+					AND t.binomial IS NOT NULL";
+					 	
+				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+				$str = $str . " ORDER BY b.\"$fname\"";
+				html_query_select_options($db_handle, $str, $fname, $qobject);
+				break;
+			case 'ExactName':
+			case 'TownName':
+			case 'CountyStateProvince':
+			case 'Country':
+			case 'Continent':
+			case 'Ocean':
+			case 'SpatialAccuracy':
+			case 'LocationExtent':
+					$str = "SELECT DISTINCT l.\"$fname\" AS item, l.\"$fname\" AS name
+							FROM gpdd.taxon t, gpdd.main m, gpdd.location l, gpdd.datasource ds
+						 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
+						 	AND m.\"LocationID\" = l.\"LocationID\"
+						 	AND t.binomial IS NOT NULL
+						 	AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+							AND ds.\"Availability\" <> 'RESTRICTED'";	
+					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+					$str = $str . " ORDER BY l.\"$fname\"";
+					html_query_select_options($db_handle, $str, $fname, $qobject);
+				break;
+				
+			default:
+				break;
+		}
+		
+		break;
+		
+	case 'groupfield':
+		html_query_groupfield($db_handle, $qobject, $names);
+		break;
+		
+	default:
+		break;
+
+	}
+	echo "</td>";
+	echo "</tr>";
+	echo "</table>";
+
+}
+
+	
+#=======================================================================================================================
+/*	
+function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) {
+
+	echo '<script src="./scripts/table_utils.js" type="text/javascript"></script>';
+
+	//print_r($qobject['queries']);
+	//echo "<br>";
+	
+	# Get source
+	$source = get_obj($sources, $qobject['sources'][0]);
+	$sid = $source['id'];
+	echo "<INPUT type='hidden' id='sid' value='$sid' />";
+	$dbloc = $source['dbloc'];
+	$queries = $qobject['queries'];
+	$colorhex = $source['colorhex'];
+	//print_r($colorhex);
 	$qfields = array();
 	if ($queries) foreach ($queries as $query) array_push($qfields, $query['field']);
 	
@@ -1443,18 +1683,27 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 	# FIELD TYPES
 	$fields = $source['fields'];
-	//print_r($fields);
+	//
 	//echo "<br>";
 
 
 	echo "<table border='0'>";
-	$fieldtitle = count($fields) . ' Fields';
-	echo "<tr><td class='query_title'>$fieldtitle</td></tr>";		
+	//$fieldtitle = count($fields) . ' Fields';
+	//echo "<tr><td class='query_title'>$fieldtitle</td></tr>";		
 	$activegroup = '';
 	
 	foreach ($fields as $field) {
+		
+		$fname = $field['name'];
+		$fdesc = $field['desc'];
+		$ftype = $field['ftype'];
+		$dtype = $field['ebtype'];
+		$dbtype = $field['dbtype'];
+		$falias = $field['alias'];
+		$color = $colorhex[$field['group']];
+		//echo "$color<br>";
 		echo "<tr>";
-		echo "<td class='query_title'>";
+		echo "<td class='query_title' id='$fname'" , "_td' bgcolor='$color'>";
 		
 		# GROUP
 		if ($field['group'] !== $activegroup) {
@@ -1463,12 +1712,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</td>";
 		echo "<td class='query_field'>";
-		$fname = $field['name'];
-		$fdesc = $field['desc'];
-		$ftype = $field['ftype'];
-		$dtype = $field['ebtype'];
-		$dbtype = $field['dbtype'];
-		$falias = $field['alias'];
+
 		
 		#FIELD RETURN
 		$i = $field['rank'];
@@ -1521,7 +1765,6 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 				break;
 				
 			case "rangefield":
-				
 				# GPDDHARDCODE
 				if ($source['id'] <> 23) {
 					# Get min and max of all names
@@ -1634,214 +1877,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</tr>";
 	}
 	echo "</table>";
-	}
-	
-	#=======================================================================================================================
-	
-/*	
-function html_query_biotable_bak($db_handle, $qobject, $qobjects, $sources, $names) {
-
-	echo '<script src="./scripts/table_utils.js" type="text/javascript"></script>';
-
-	//print_r($qobject['queries']);
-	//echo "<br>";
-	
-	# Get source
-	$source = get_obj($sources, $qobject['sources'][0]);
-	$sid = $source['id'];
-
-	$dbloc = $source['dbloc'];
-	$queries = $qobject['queries'];
-	$qfields = array();
-	if ($queries) foreach ($queries as $query) array_push($qfields, $query['field']);
-	
-	//html_query_header($qobject, $sources);
-	html_query_null($qobject);
-
-	# Names passed
-	if ($names) $arr = array_to_postgresql($names, 'text');
-	
-	# FIELD TYPES
-	$fields = $source['fields'];
-	//print_r($fields);
-	//echo "<br>";
-
-
-	echo "<table border='0'>";
-	$fieldtitle = count($fields) . ' Fields';
-	echo "<tr><td class='query_title'>$fieldtitle</td></tr>";		
-	$activegroup = '';
-	
-	foreach ($fields as $field) {
-		echo "<tr>";
-		echo "<td class='query_title'>";
-		# group
-		if ($field['group'] !== $activegroup) {
-			echo $field['group'];
-			$activegroup = $field['group'];
-		}
-		echo "</td>";
-		//if ($fieldtitle == (count($fields) . ' Fields')) $fieldtitle = '';
-		
-		echo "<td class='query_field'>";
-
-		$fname = $field['name'];
-		$fdesc = $field['desc'];
-		$ftype = $field['ftype'];
-		//echo "ftype: $ftype<br>";
-		$dtype = $field['ebtype'];
-		$dbtype = $field['dbtype'];
-		$falias = $field['alias'];
-		
-		#FIELD RETURN
-		$i = $field['rank'];
-		// Is field in an existing query?
-		if ($qfields && in_array($fname, $qfields)) {
-			$check = ' CHECKED ';
-			foreach ($queries as $query) if ($query['field'] == $fname) $vals = $query['value'];
-		} else {
-			$check = '';
-			$vals = null;
-		}
-		
-		# DIV
-		echo "<INPUT type='checkbox' $check id='$fname" . "_query' name='$fname" .
-		 	"_query' onClick='showField(this);'>";
-		echo "<LABEL for='$fname" . "_query' title='$fdesc'>$falias&nbsp;</LABEL>";
-		echo "<DIV id='$fname" . "_div' style='display: none;'>";
-		
-		switch ($dtype) {
-			
-			case 'catagoryfield':
-				$str = "SELECT DISTINCT \"$fname\" AS item, \"$fname\" AS name FROM $dbloc ORDER BY \"$fname\"";
-				//echo "$str<br>";
-				html_query_select_options($db_handle, $str, $fname, $qobject);
-				break;
-			
-			case 'lookupfield':
-				$str = "SELECT c.item AS item, c.name AS name
-					FROM source.source_fields f,
-					source.source_fieldcodes c
-					WHERE f.field_id = c.field_id
-					AND f.source_id = $sid
-					AND f.field_name = '$fname'";
-				html_query_select_options($db_handle, $str, $fname, $qobject);
-				break;
-				
-			case "rangefield":
-				
-				# GPDDHARDCODE
-				if ($source['id'] <> 23) {
-					# Get min and max of all names
-					$str = 'SELECT MIN("' . $fname . '"), MAX("' . $fname . '")
-						FROM ' . $dbloc;
-					#Get min and max of given names
-					if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
-				} else {
-					$str = "SELECT MIN(m.\"$fname\"), MAX(m.\"$fname\")
-						FROM gpdd.main m, gpdd.taxon t
-						WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-					if ($names) $str = $str . " AND t.binomial = ANY($arr)";
-				}
-		
-				if ($fname == 'StartYear') $str = $str . " AND m.\"StartYear\" <> -9999";
-				if ($fname == 'EndYear') $str = $str . " AND m.\"EndYear\" <> -9999";
-				
-				html_query_select_range($db_handle, $str, $fname, $dbtype, $qobject);
-				break;
-				
-			case 'lookuptable':
-				# Get field name from
-				switch ($fname) {
-					# GPDD HARDCODE
-					case 'Author':
-					case 'Year':
-					case 'Title':
-					case 'Reference':
-					case 'Availability':
-					case 'Notes':
-							$str = "SELECT DISTINCT s.\"$fname\", s.\"$fname\"
-									FROM gpdd.taxon t, gpdd.main m, gpdd.datasource s
-								 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
-								 	AND m.\"DataSourceID\" = s.\"DataSourceID\"
-								 	AND t.binomial IS NOT NULL";
-							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-							$str = $str . " ORDER BY s.\"$fname\"";
-							html_query_select_options($db_handle, $str, $fname, $qobject);
-						break;
-					case 'TaxonomicPhylum':
-					case 'TaxonomicClass':
-					case 'TaxonomicOrder':
-					case 'TaxonomicFamily':
-					case 'TaxonomicGenus':
-					case 'binomial':
-					case 'CommonName':
-						$str = "SELECT DISTINCT t.\"$fname\", t.\"$fname\"
-								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
-								 WHERE t.binomial IS NOT NULL
-								 AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-								AND ds.\"Availability\" <> 'RESTRICTED'";
-						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-						$str = $str . " ORDER BY t.\"$fname\"";
-						html_query_select_options($db_handle, $str, $fname, $qobject);
-						break;
-					case 'HabitatName':
-					case 'BiotopeType':
-						$str = "SELECT DISTINCT b.\"$fname\", b.\"$fname\"
-							FROM gpdd.taxon t, gpdd.main m, gpdd.biotope b, gpdd.datasource ds
-							WHERE t.\"TaxonID\" = m.\"TaxonID\"
-							AND m.\"BiotopeID\" = b.\"BiotopeID\"
-							AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-							AND ds.\"Availability\" <> 'RESTRICTED'
-							AND t.binomial IS NOT NULL";
-							 	
-						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-						$str = $str . " ORDER BY b.\"$fname\"";
-						html_query_select_options($db_handle, $str, $fname, $qobject);
-						break;
-					case 'ExactName':
-					case 'TownName':
-					case 'CountyStateProvince':
-					case 'Country':
-					case 'Continent':
-					case 'Ocean':
-					case 'SpatialAccuracy':
-					case 'LocationExtent':
-							$str = "SELECT DISTINCT l.\"$fname\", l.\"$fname\"
-									FROM gpdd.taxon t, gpdd.main m, gpdd.location l, gpdd.datasource ds
-								 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
-								 	AND m.\"LocationID\" = l.\"LocationID\"
-								 	AND t.binomial IS NOT NULL
-								 	AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-									AND ds.\"Availability\" <> 'RESTRICTED'";	
-							if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-							$str = $str . " ORDER BY l.\"$fname\"";
-							html_query_select_options($db_handle, $str, $fname, $qobject);
-						break;
-						
-					default:
-						break;
-				}
-				
-				break;
-				
-			case 'groupfield':
-				html_query_nseries($db_handle, $qobject, $names);
-				break;
-				
-
-				break;
-
-			}
-		
-		# End DIV
-		echo "</DIV>";
-		echo "</td>";
-		echo "</tr>";
-	}
-	echo "</table>";
-	}
-*/
+	}*/
 	
 #=================================================================================================================
 	

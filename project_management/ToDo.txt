@@ -9,7 +9,7 @@ Data
 	- Ephippiger (LOW)
 	
 Find
- 	- error when query after find (HIGH)
+ 	- error when query after find (FIXED)
 	
 Entangled-bank.org
 	- Move to IC? (MEDIUM)
@@ -18,7 +18,7 @@ Entangled-bank.org
 Configuration 
 	- Soft code all Windows and LINUX configuration  (HIGH - FIXED?)
 	- Sensible error on connect fail (FIXED)
-	- Talk to Bioinfromatics support (HIGH)
+	- Talk to Bioinfromatics support/Georgina (HIGH)
 	
 Back Button
 	- Sensible response (HIGH)

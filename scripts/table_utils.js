@@ -29,46 +29,64 @@ function showNumericField(entry) {
 		
 		var field = entry.name;
 		field = field.substring(0,field.length - 6);
-		var div = document.getElementById(field + "_div");
 		var type = document.getElementById(field + "_type").value;
 		var sid = document.getElementById('sid').value;
-		var objInput = document.getElementById(field + "_operator");
+		var ftable = document.getElementById(field + "_table");
+		var op = document.getElementById(field + "_operator");
+		var div = document.getElementById(field + "_div");
 		
-		if (!objInput) {
-			
-			var objSelect = document.createElement("select");
-			objSelect.name = field + "_operator";
-			objSelect.id = field + "_operator";
-			
-			if(field == 'nseries') {
-				var items = [">=","=","<="];
-			} else {
-				var items = [">",">=","<","<="];
-			}
+		if (!ftable) {
 
+			// CREATES ROW IN TABLE BELOW GROUP
+			// ORDERED BY FIELD LIST
+			
+			//alert("!");
+			var ftype = getFieldType(sid, field);
+			var ftable = document.createElement("table");
+			ftable.id = field + '_table';
+			
+			var row = ftable.insertRow(0);
+			var cell = new Array();
+			
+			// FIELD NAME
+			
+			cell[0] = document.createElement("td");
+			cell[0].className = 'field_title';
+			var color = getFieldColor(sid, ftype.group);
+			cell[0].style.backgroundColor = color;
+			var textNode = document.createTextNode(ftype.alias);
+			cell[0].appendChild(textNode);		
+			
+			
+			// OPERATION
+			var op = document.createElement("select");
+			op.name = field + "_operator";
+			op.id = field + "_operator";
+			
+			var items = [">",">=","=","<","<="];
 			for (var i=0; i <= items.length - 1; i++) {
-				var objOption = document.createElement("option");
-				objOption.text = items[i];
-				objOption.value = items[i];
-				objSelect.add(objOption);
+				var opt = document.createElement("option");
+				opt.text = items[i];
+				opt.value = items[i];
+				op.add(opt);
 			}
 			
-			var ftype = getFieldType(sid, field);
-			//alert(ftype);
+			// VALUE
 			var val = getNumericField(sid, field, 'no');
 			var val_names = getNumericField(sid, field, 'yes');
 			
-			var objInput = document.createElement("input");
-			objInput.name = field + "_value";
-			objInput.id = field + "_value";
+			var value = document.createElement("input");
+			value.name = field + "_value";
+			value.id = field + "_value";
 			var input = (Number(val[0]) + Number(val[1])) /2;
 			if (ftype.ftype == 'integer')  {
 				input = Math.round(input);
 			}
-			objInput.value = input;
-			objInput.text = input;
+			value.value = input;
+			value.text = input;
 			
-			var objLabel = document.createElement("label");
+			// LABEL
+			var label = document.createElement("label");
 			var str = "&nbsp;";
 			if (Number(val[0]) != Number(val_names[0])) {
 				str = str + "[" + val_names[0] + "]";
@@ -78,25 +96,33 @@ function showNumericField(entry) {
 				str = str + "[" + val_names[1] + "]";
 			}
 
-			objLabel.innerHTML = str;
-			objLabel.id = field + "_label";
+			label.innerHTML = str;
+			label.id = field + "_label";
 			
-			div.appendChild(objSelect);
-			div.appendChild(objInput);
-			div.appendChild(objLabel);
+			cell[1] = document.createElement("td");	
+			cell[1].style.backgroundColor = color;
+			cell[1].appendChild(op);
+			cell[1].appendChild(value);
+			cell[1].appendChild(label);
+			
+			row.appendChild(cell[0]);
+			row.appendChild(cell[1]);
+			ftable.appendChild(row);
+			div.appendChild(ftable);
 		}
-
+		
+		// DISABLED
 		if (entry.checked == true){
 			div.style.display='block';
-			if (objInput) {
-				objInput.disabled=false;
-				objInput.disabled=false;
+			if (op) {
+				op.disabled=false;
+				value.disabled=false;
 			}
 		} else {
 			div.style.display='none';
 			if (objSelect) {
-				objSelect.disabled=true;
-				objSelect.disabled=true;				
+				op.disabled=true;
+				value.disabled=true;				
 			}
 		}		
 	}
@@ -114,44 +140,49 @@ function showCatagoryField(entry) {
 		var type = document.getElementById(field + "_type").value;
 		var sid = document.getElementById('sid').value;
 		var selOptions = document.getElementById(field + "_add");
+		var table = document.getElementById(field + "_table");
 		
-		if (!selOptions) {
+		if (!table) {
 			
-			// FILTER
-			var ftable = document.createElement("table");
-			var frow = document.createElement("tr");
-			var fcell = new Array();
-			fcell[0] =	document.createElement("td");
+			var ftype = getFieldType(sid, field);
+			
+			// FIELD NAME
+			var table = document.createElement("table");
+			table.id = field + '_table';
+			var row = document.createElement("tr");
+			var cell = new Array();
+			cell[0] = document.createElement("td");
+			cell[0].className = 'field_title';
+			var color = getFieldColor(sid, ftype.group);
+			cell[0].style.backgroundColor = color;
+			cell[0].appendChild(document.createTextNode(ftype.alias));
+			
+			// TOOL
+			cell[1] = document.createElement("td");
+			cell[1].style.backgroundColor = color;
+			// FIND
 			var find = document.createElement('input');
 			find.id = field + "_findval";
 			find.className = 'eb';
-			fcell[0].appendChild(find);
+			cell[1].appendChild(find);
 			
-			fcell[1] =	document.createElement("td");
 			var findButton = document.createElement('input');
 			findButton.id = field + "_findbtn";
 			findButton.type = 'button';
 			findButton.value = 'Filter';
 			findButton.className = 'button-standard';
 			findButton.onclick = function(){addSourceFieldValues(field);}; 
-			fcell[1].appendChild(findButton);
-			
-			fcell[2] =	document.createElement("td");
+			cell[1].appendChild(findButton);
+
 			var findLabel = document.createElement('label');
 			findLabel.id = field + "_findval_label";
 			findLabel.innerHTML = "&nbsp;&nbsp;0 found | 0 in query";
-			fcell[2].appendChild(findLabel);
-			
-			for (i = 0; i <= fcell.length - 1; i++) {
-				frow.appendChild(fcell[i]);
-			}
-			
-			ftable.appendChild(frow);
-			div.appendChild(ftable)		
+			cell[1].appendChild(findLabel);
+			cell[1].appendChild(document.createElement("br"));
 			
 			// SELECT VALUES
-			var table = document.createElement("table");
-			var row = document.createElement('tr');
+			var stable = document.createElement("table");
+			var srow = document.createElement('tr');
 			
 			var selOptions = document.createElement("select");
 			selOptions.id = field;
@@ -159,12 +190,12 @@ function showCatagoryField(entry) {
 			selOptions.multiple = true;
 			selOptions.size = 8;
 					
-			var cell = new Array();
-			cell[0] = document.createElement('td');
-			cell[0].appendChild(selOptions);
+			var scell = new Array();
+			scell[0] = document.createElement('td');
+			scell[0].appendChild(selOptions);
 			
 			//BUTTONS
-			cell[1] = document.createElement('td');
+			scell[1] = document.createElement('td');
 			var buttonId = ['_____in','__allin','_allout','____out'];
 			var buttonText = ['>','>>','<<','<'];
 			for (i = 0; i <= buttonId.length - 1; i++) {
@@ -188,8 +219,8 @@ function showCatagoryField(entry) {
 				}
 				
 				btn.className = 'button-standard';
-				cell[1].appendChild(btn);
-				cell[1].appendChild(document.createElement('br'));
+				scell[1].appendChild(btn);
+				scell[1].appendChild(document.createElement('br'));
 			}
 			
 			// SELECT_ADD
@@ -199,8 +230,14 @@ function showCatagoryField(entry) {
 			selAdd.className = 'query_options';
 			selAdd.multiple = true;
 			selAdd.size = 8;
-			cell[2] = document.createElement('td');
-			cell[2].appendChild(selAdd);
+			scell[2] = document.createElement('td');
+			scell[2].appendChild(selAdd);
+			
+			for (i = 0; i <= scell.length - 1; i++) {
+				srow.appendChild(scell[i]);
+			}
+			stable.appendChild(srow);
+			cell[1].appendChild(stable);
 			
 			for (i = 0; i <= cell.length - 1; i++) {
 				row.appendChild(cell[i]);
@@ -208,7 +245,7 @@ function showCatagoryField(entry) {
 			table.appendChild(row);
 			div.appendChild(table);
 		}
-
+		
 		// VISIBILITY
 		if (entry.checked == true){
 			div.style.display='block';
@@ -241,7 +278,7 @@ function showCatagoryField(entry) {
 		url = ebpath.value + "api/source_numericfield_range.php?sid=" + sid + 
 		"&field=" + field + "&names=" + names;
 	
-		alert(url);
+		//alert(url);
 		var request = new XMLHttpRequest();
 		request.open("GET", url , false);
 		request.send(null);
@@ -282,6 +319,31 @@ function showCatagoryField(entry) {
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------
+
+	function getFieldColor(sid, group) {
+	
+		//FIELD TYPE
+		var ebpath = document.getElementById('eb_path');
+		url = ebpath.value + "api/source_field_groups.php?sid=" + sid + 
+		"&group=" + group;
+		//alert(url);
+		var request = new XMLHttpRequest();
+		request.open("GET", url , false);
+		request.send(null);
+		
+		//alert(request.status);
+		if (request.status != 200) {
+			alert("Error " + request.status + ": " + request.statusText);
+			return false;
+		} else {
+			var data = request.responseText;
+			var ret = JSON.parse(data);
+			return ret;
+		}
+	}
+
+	
 //--------------------------------------------------------------------------------------------
 	
 	function updateInfo(field) {

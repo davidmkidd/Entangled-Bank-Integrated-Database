@@ -270,6 +270,11 @@
 		font-size: 14px;
 	}
 	
+	td.field_title {
+		font-size: 14px;
+		width: 200px;
+	}
+	
 	td.quicksearch {
 		width: 650px;
 		padding-left: 10px;
@@ -312,6 +317,12 @@
 	
 	.query_title {
 		width: 105px;
+		vertical-align: middle;
+		align: left;
+	}
+	
+	td.table_title {
+		width: 170px;
 		vertical-align: middle;
 		align: left;
 	}

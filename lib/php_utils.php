@@ -319,9 +319,11 @@ function get_source_field_types($db_handle, $source) {
 
 #=================================================================================================================
 
-function add_source_fields($db_handle, &$source) {
+function get_source_add_fields($db_handle, &$source) {
 	
 	//echo "Adding fields to " . $source['name'] . "<br>";;
+	
+	$sid =$source['id'];
 	
 	# Adds namesfield and fields array to source
 	$dbtypes = array();        //field type from db
@@ -344,8 +346,6 @@ function add_source_fields($db_handle, &$source) {
 		" AND t.term_id = s.term_id 
 		AND g.fields_group_id = s.fields_group_id
 		ORDER by g.rank, s.rank;";
-	
-	//echo "$str<br>";
 	
 	$res = pg_query($db_handle, $str);
 	while ($row = pg_fetch_row($res)) {
@@ -513,9 +513,6 @@ function get_obj($objs, $id) {
 	
 function get_sources($db_handle, $ids, $type) {
 	
-//	echo "ids: " . empty($ids);
-	//print_r($ids);
-	//echo "<br>";
 	$sources = array();
 	
 	if (!$ids || empty($ids)) {	
@@ -558,21 +555,14 @@ function get_sources($db_handle, $ids, $type) {
 				break;
 		}
 		$str = $str . " AND obj.active = true";
-		# echo "$str<br>";
 		$res = pg_query($db_handle, $str);
 		$ids = pg_fetch_all_columns($res, 0);
 	}
-	//print_r($ids);
-	//echo "<br>";	
+
 	foreach($ids as $id) {
 		$source = get_source($db_handle, $id);
 		$sources[$id] = $source;
-		//echo "source " . $source['name'] . " added to sources<br>";
 	}
-	
-//	echo "sources: ";
-//	print_r($sources);
-//	echo "<br>";
 	
 	if (empty($sources)) {
 		return(false);	
@@ -641,8 +631,24 @@ function get_sources($db_handle, $ids, $type) {
 		$row = pg_fetch_row($res);
 		if ($row) $source['spatial_column'] = $row[0];
 		
+		# GET FIELD GROUP COLOURS
+		$str = "SELECT g.name, g.colorhex
+			FROM source.source_fields_group g, source.source_fields f, source.source s
+			WHERE s.source_id = f.source_id
+			AND f.fields_group_id = g.fields_group_id
+			AND s.source_id = $id";
+		$res = pg_query($db_handle, $str);
+		if ($res) {
+			$arr = array();
+			while ($row = pg_fetch_row($res)) {
+				$arr[$row[0]] = $row[1];
+			}
+			//print_r($arr);
+			$source['colorhex'] = $arr;
+		}
+		
 		# GET FIELDS
-		add_source_fields($db_handle, $source);
+		get_source_add_fields($db_handle, $source);
 		//echo "<br/>";
 		//print_r($source);
 		//echo "<br/>";
