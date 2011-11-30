@@ -28,7 +28,7 @@ $_SESSION['tmp_path'] = $config['tmp_path'];
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
-echo "oldtoken: $oldtoken, oldtoken: $newtoken<br>";
+#echo "oldtoken: $oldtoken, oldtoken: $newtoken<br>";
 
 # POST => SESSION
 foreach ($_POST as $key =>$value) {
@@ -39,19 +39,19 @@ foreach ($_POST as $key =>$value) {
 # STAGE
 $stage = $_SESSION['stage'];					// Form Stage
 if (!$stage) $stage = 'sources';
-echo "stage: $stage<br>";
+//echo "stage: $stage<br>";
 
 # LAST ACTION - dealing with the back button
 if ($_SESSION['lastaction']) $lastaction = $_SESSION['lastaction'];
 $lastid = $_SESSION['lastid'];
-echo "lastaction: $lastaction, lastid: $lastid<br>";
+//echo "lastaction: $lastaction, lastid: $lastid<br>";
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
 
 # QUERY
 $qobjid = $_SESSION['qobjid'];			// The qobj to process. Is null if new query or repost
-echo "qobjid: $qobjid<br>";		
+//echo "qobjid: $qobjid<br>";		
 $qterm = $_SESSION['qterm'];            // the type of query
 $qsources = $_SESSION['qsources'];      // the sources the query applies to
 if (!is_array($qsources)) $qsources = array($qsources);
@@ -137,10 +137,9 @@ if ($stage == 'qdelete') {
 
 # DELETE ALL QUERIES
 if ($stage == 'querydeleteall') {
-	unset ($qobjects);
-	$names = null;
 	unset ($_SESSION['qobjects']);	
-	unset ($_SESSION['names']);	
+	unset ($_SESSION['names']);
+	unset ($_SESSION['info']);
 	$stage = 'main';
 	}
 	
@@ -155,9 +154,9 @@ if ($stage == 'qverify')
 # PREPARE AND EXECUTE A QUERY
 if ($stage == 'query') {
 	query($db_handle, $qobjid);
-	$stage = 'main';
 	$qobjid = null;
 	unset ($_SESSION['qobjid']);
+	$stage = 'main';
 }
 	
 # NEW OUTPUT

@@ -34,6 +34,7 @@
 		border-bottom: 3px groove;
 	}
 	
+	
 	#ebmenu {
 		margin: 0px;
 	}
@@ -53,7 +54,7 @@
 		padding-bottom: 6px;
 	}
 	
-	#blurb {
+	.blurb {
 		font-size: small;
 		border: 3px ridge;
 		padding-left: 5px;
@@ -62,6 +63,7 @@
 		padding-bottom: 3px;
 		background-color: Gainsboro;
 	}
+
 	
 	#exit_blurb {
 		font-size: small;
@@ -82,10 +84,6 @@
 		border-bottom: 3px groove;
 		padding: 12px;
 		padding-left: 3px;
-	}
-	
-	#query_header {
-/*		background-color: Gainsboro;*/
 	}
 	
 	#info_div {
@@ -136,19 +134,26 @@
 		width: 250px;
 	}
 	
+	.eb_plus {
+		width: 350px;
+	}
+	
 	.eb_select {
 		width: 250px;
 		height: 120px;
 	}
 	
-	.eb_info {
-		width: 350px;
+	select#select_sources {
+		width: 400px;
 	}
 	
 	
-	.eb_plus {
-		width: 350px;
+	input.select_sources {
+		width: 87px;
+		height: 105px;
+		vertical-align: top;
 	}
+	
 	
 	#invalid_taxa {
 		text-color: red;
@@ -263,6 +268,10 @@
 		vertical-align: top;
 	}
 	
+	td#select_sources_title {
+		text-align: center;
+	}
+	
 	td.qtype_text {
 		width: 120px;
 		text-align: center;
@@ -270,9 +279,23 @@
 		font-size: 14px;
 	}
 	
+	td.query_field {
+		width: 740px;
+		border-left: 2px solid grey;
+	}
+	
 	td.field_title {
-		font-size: 14px;
-		width: 200px;
+		width: 150px;
+		text-align: left;
+	}
+	
+	table.field_table {
+		border-collapse: collapse;
+		border-top: 1px solid grey;	
+	}
+	
+	table.field_group_table {
+		border-collapse: collapse;
 	}
 	
 	td.quicksearch {
@@ -315,10 +338,11 @@
 		align: right;
 	}
 	
-	.query_title {
-		width: 105px;
+	td.query_title {
+		width: 115px;
 		vertical-align: middle;
 		align: left;
+		border-collapse: collapse;
 	}
 	
 	td.table_title {
@@ -335,7 +359,6 @@
 	
 	td.query_field {
 		vertical-align: middle;
-/*		width: 350px;*/
 	}
 	
 	
@@ -350,7 +373,7 @@
 	}
 	
 	td.query_header {
-		width: 300px;
+		width: 485px;
 		vertical-align: top;
 		align: right;
 	}

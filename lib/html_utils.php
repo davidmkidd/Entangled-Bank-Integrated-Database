@@ -55,7 +55,8 @@ function html_arr_to_table($arr) {
 #=======================================================================================================================
 
 function html_entangled_bank_header($stage = 'default', $eb_path, $html_path, $share_path) {
-
+	
+	
 	switch ($stage) {
 		case 'sources':
 			$restart = false;
@@ -72,23 +73,26 @@ function html_entangled_bank_header($stage = 'default', $eb_path, $html_path, $s
 			break;
 	}
 	
-	$help = "./help/$stage.php";
-
+	if (!$help) $help = "./help/$stage.php";
+	
 	echo "<div id='ebheader'>";
 	echo "<img id='ebimage' src='" , $share_path , "Entangled-Bank_small.gif' alt='Banner'>";
-	echo "<a href='" , $html_path , "index.php' target='_blank'>Home Page</a>";
-	echo " | ";
-	echo "<a href='$help' target='_blank'>Help</a>";
-	echo " | ";
-	echo "<a href='" , $html_path , "examples.php' target='_blank'>Examples</a>";
+	# BACKGROUND
+	echo "<a href='$eb_path/doc/about.php' target='_blank'>about</a>";
+	//echo " | ";
+
+	//echo " | ";
+	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path/doc/examples.php' target='_blank'>examples</a>";
 	if ($restart == true) { 
-		echo " | ";
-		echo "<a href='" , $eb_path , "./lib/restart.php'> Restart</a>";
+		//echo " | ";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "/lib/restart.php'> restart</a>";
 	}
 	if ($finish == true) {
-		echo " | <a href='" , $eb_path , "finish.php'> Exit</a>";
-	}
-	echo ' | v0.6 (Nov 2011)';
+		//echo " | <a href='" , $eb_path , "finish.php'> exit</a>";
+	}	
+	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path/doc/help_$help.php' target='_blank'>help!</a>";
+
+	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v0.6 12.2011)';
 	echo "</div>";
 
 }
@@ -1066,25 +1070,12 @@ function html_query_nnames ($formname, $qobject){
 		}
 	}
 
-#=======================================================================================================================
-
-function html_query_not($qobject) {
-	
-/*	if ($qobject['term'] !== 'bionames') {
-		if ($qobject['querynot']) {
-			echo "<input type=checkbox CHECKED name='querynot' value='not'>NOT";
-		} else {
-			echo "<input type=checkbox name='querynot' value='not'>NOT";
-		}
-	}*/
-	
-	}
 	
 #=======================================================================================================================
 
 function html_query_null($qobj) {
 	
-	echo "<table border='0'>";
+	echo "<table border='0' class='field_table' bgcolor='darkgray'>";
 	
 	$title = "Include names where some, but not all, fields have null values.";
 	echo "<tr>";
@@ -1438,7 +1429,6 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 	html_query_null($qobject);
 
-	
 	# FIELDS
 	$fields = $source['fields'];
 	//$fields2 = $source['fields'];
@@ -1452,14 +1442,26 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		if (!$oldgroup || $newgroup !== $oldgroup) {
 			# BEGIN GROUP
 			$group = $field['group'];
-			echo "<table border='1'>";
+			echo "<table class='field_group_table' border='0'>";
 			echo "<tr>";
 			echo "<td class='query_title' id='$group'" , "_td' bgcolor='$color'>$group</td>";
 			#FIELDS
-			echo "<td bgcolor='$color'>";
+			echo "<td class='query_field' bgcolor='$color'>";
+			
+			$nfields = 0;
+			$nchar = 0;
 			foreach ($fields as $field2) {
 				if ($field2['group'] == $newgroup) {
 					$fname2 = $field2['name'];
+					$nfields++;
+					$nchar = $nchar + strlen($fname2);
+/*					echo ($nfield) + ($nchar);
+					if ((($nfields) + ($nchar)) > 90) {
+						echo "<br>";
+						$nfields = 0;
+						$nchar = 0;
+					}*/
+					
 					$fdesc2 = $field2['desc'];
 					$dtype2 = $field2['ebtype'];
 					$falias2 = $field2['alias'];
@@ -1489,8 +1491,10 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			}
 			# DIVS
 			foreach ($fields as $field2) {
+
 				if ($field2['group'] == $newgroup) {
 					$fname2 = $field2['name'];
+
 					echo "<DIV id='$fname2" . "_div' style='display: none;'>";
 					if ($check) {
 						# TOOL
@@ -1529,123 +1533,123 @@ function html_query_field_tool($db_handle, $qobject, $field, $source, $names) {
 				
 	switch ($dtype) {
 	
-	case 'catagoryfield':
-		$str = "SELECT DISTINCT \"$fname\" AS item, \"$fname\" AS name FROM $dbloc ORDER BY \"$fname\"";
-		html_query_select_options($db_handle, $str, $fname, $qobject);
-		break;
+		case 'catagoryfield':
+			$str = "SELECT DISTINCT \"$fname\" AS item, \"$fname\" AS name FROM $dbloc ORDER BY \"$fname\"";
+			html_query_select_options($db_handle, $str, $fname, $qobject);
+			break;
+		
+		case 'lookupfield':
+			$str = "SELECT c.item AS item, c.name AS name
+				FROM source.source_fields f,
+				source.source_fieldcodes c
+				WHERE f.field_id = c.field_id
+				AND f.source_id = $sid
+				AND f.field_name = '$fname'";
+			html_query_select_options($db_handle, $str, $fname, $qobject);
+			break;
+			
+		case "rangefield":
+			# GPDDHARDCODE
+			if ($source['id'] <> 23) {
+				# Get min and max of all names
+				$str = 'SELECT MIN("' . $fname . '"), MAX("' . $fname . '")
+					FROM ' . $dbloc;
+				#Get min and max of given names
+				if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
+			} else {
+				$str = "SELECT MIN(m.\"$fname\"), MAX(m.\"$fname\")
+					FROM gpdd.main m, gpdd.taxon t
+					WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+				if ($names) $str = $str . " AND t.binomial = ANY($arr)";
+			}
 	
-	case 'lookupfield':
-		$str = "SELECT c.item AS item, c.name AS name
-			FROM source.source_fields f,
-			source.source_fieldcodes c
-			WHERE f.field_id = c.field_id
-			AND f.source_id = $sid
-			AND f.field_name = '$fname'";
-		html_query_select_options($db_handle, $str, $fname, $qobject);
-		break;
-		
-	case "rangefield":
-		# GPDDHARDCODE
-		if ($source['id'] <> 23) {
-			# Get min and max of all names
-			$str = 'SELECT MIN("' . $fname . '"), MAX("' . $fname . '")
-				FROM ' . $dbloc;
-			#Get min and max of given names
-			if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
-		} else {
-			$str = "SELECT MIN(m.\"$fname\"), MAX(m.\"$fname\")
-				FROM gpdd.main m, gpdd.taxon t
-				WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-			if ($names) $str = $str . " AND t.binomial = ANY($arr)";
-		}
-
-		if ($fname == 'StartYear') $str = $str . " AND m.\"StartYear\" <> -9999";
-		if ($fname == 'EndYear') $str = $str . " AND m.\"EndYear\" <> -9999";
-		
-		html_query_select_range($db_handle, $str, $fname, $dbtype, $qobject);
-		break;
-		
-	case 'lookuptable':
-		# Get field name from
-		switch ($fname) {
-			# GPDD HARDCODE
-			case 'Author':
-			case 'Year':
-			case 'Title':
-			case 'Reference':
-			case 'Availability':
-			case 'Notes':
-					$str = "SELECT DISTINCT s.\"$fname\" AS item, s.\"$fname\" AS name
-							FROM gpdd.taxon t, gpdd.main m, gpdd.datasource s
-						 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
-						 	AND m.\"DataSourceID\" = s.\"DataSourceID\"
-						 	AND t.binomial IS NOT NULL";
+			if ($fname == 'StartYear') $str = $str . " AND m.\"StartYear\" <> -9999";
+			if ($fname == 'EndYear') $str = $str . " AND m.\"EndYear\" <> -9999";
+			
+			html_query_select_range($db_handle, $str, $fname, $dbtype, $qobject);
+			break;
+			
+		case 'lookuptable':
+			# Get field name from
+			switch ($fname) {
+				# GPDD HARDCODE
+				case 'Author':
+				case 'Year':
+				case 'Title':
+				case 'Reference':
+				case 'Availability':
+				case 'Notes':
+						$str = "SELECT DISTINCT s.\"$fname\" AS item, s.\"$fname\" AS name
+								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource s
+							 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
+							 	AND m.\"DataSourceID\" = s.\"DataSourceID\"
+							 	AND t.binomial IS NOT NULL";
+						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+						$str = $str . " ORDER BY s.\"$fname\"";
+						html_query_select_options($db_handle, $str, $fname, $qobject);
+					break;
+				case 'TaxonomicPhylum':
+				case 'TaxonomicClass':
+				case 'TaxonomicOrder':
+				case 'TaxonomicFamily':
+				case 'TaxonomicGenus':
+				case 'binomial':
+				case 'CommonName':
+					$str = "SELECT DISTINCT t.\"$fname\" AS item, t.\"$fname\" AS name
+							FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+							 WHERE t.binomial IS NOT NULL
+							 AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+							AND ds.\"Availability\" <> 'RESTRICTED'";
 					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-					$str = $str . " ORDER BY s.\"$fname\"";
+					$str = $str . " ORDER BY t.\"$fname\"";
 					html_query_select_options($db_handle, $str, $fname, $qobject);
-				break;
-			case 'TaxonomicPhylum':
-			case 'TaxonomicClass':
-			case 'TaxonomicOrder':
-			case 'TaxonomicFamily':
-			case 'TaxonomicGenus':
-			case 'binomial':
-			case 'CommonName':
-				$str = "SELECT DISTINCT t.\"$fname\" AS item, t.\"$fname\" AS name
-						FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
-						 WHERE t.binomial IS NOT NULL
-						 AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-						AND ds.\"Availability\" <> 'RESTRICTED'";
-				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-				$str = $str . " ORDER BY t.\"$fname\"";
-				html_query_select_options($db_handle, $str, $fname, $qobject);
-				break;
-			case 'HabitatName':
-			case 'BiotopeType':
-				$str = "SELECT DISTINCT b.\"$fname\" AS item, b.\"$fname\" AS name
-					FROM gpdd.taxon t, gpdd.main m, gpdd.biotope b, gpdd.datasource ds
-					WHERE t.\"TaxonID\" = m.\"TaxonID\"
-					AND m.\"BiotopeID\" = b.\"BiotopeID\"
-					AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-					AND ds.\"Availability\" <> 'RESTRICTED'
-					AND t.binomial IS NOT NULL";
-					 	
-				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-				$str = $str . " ORDER BY b.\"$fname\"";
-				html_query_select_options($db_handle, $str, $fname, $qobject);
-				break;
-			case 'ExactName':
-			case 'TownName':
-			case 'CountyStateProvince':
-			case 'Country':
-			case 'Continent':
-			case 'Ocean':
-			case 'SpatialAccuracy':
-			case 'LocationExtent':
-					$str = "SELECT DISTINCT l.\"$fname\" AS item, l.\"$fname\" AS name
-							FROM gpdd.taxon t, gpdd.main m, gpdd.location l, gpdd.datasource ds
-						 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
-						 	AND m.\"LocationID\" = l.\"LocationID\"
-						 	AND t.binomial IS NOT NULL
-						 	AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-							AND ds.\"Availability\" <> 'RESTRICTED'";	
+					break;
+				case 'HabitatName':
+				case 'BiotopeType':
+					$str = "SELECT DISTINCT b.\"$fname\" AS item, b.\"$fname\" AS name
+						FROM gpdd.taxon t, gpdd.main m, gpdd.biotope b, gpdd.datasource ds
+						WHERE t.\"TaxonID\" = m.\"TaxonID\"
+						AND m.\"BiotopeID\" = b.\"BiotopeID\"
+						AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+						AND ds.\"Availability\" <> 'RESTRICTED'
+						AND t.binomial IS NOT NULL";
+						 	
 					if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
-					$str = $str . " ORDER BY l.\"$fname\"";
+					$str = $str . " ORDER BY b.\"$fname\"";
 					html_query_select_options($db_handle, $str, $fname, $qobject);
-				break;
-				
-			default:
-				break;
-		}
-		
-		break;
-		
-	case 'groupfield':
-		html_query_groupfield($db_handle, $qobject, $names);
-		break;
-		
-	default:
-		break;
+					break;
+				case 'ExactName':
+				case 'TownName':
+				case 'CountyStateProvince':
+				case 'Country':
+				case 'Continent':
+				case 'Ocean':
+				case 'SpatialAccuracy':
+				case 'LocationExtent':
+						$str = "SELECT DISTINCT l.\"$fname\" AS item, l.\"$fname\" AS name
+								FROM gpdd.taxon t, gpdd.main m, gpdd.location l, gpdd.datasource ds
+							 	WHERE t.\"TaxonID\" = m.\"TaxonID\"
+							 	AND m.\"LocationID\" = l.\"LocationID\"
+							 	AND t.binomial IS NOT NULL
+							 	AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+								AND ds.\"Availability\" <> 'RESTRICTED'";	
+						if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
+						$str = $str . " ORDER BY l.\"$fname\"";
+						html_query_select_options($db_handle, $str, $fname, $qobject);
+					break;
+					
+				default:
+					break;
+			}
+			
+			break;
+			
+		case 'groupfield':
+			html_query_groupfield($db_handle, $qobject, $names);
+			break;
+			
+		default:
+			break;
 
 	}
 	echo "</td>";
@@ -2021,8 +2025,8 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 
 		# QUERY NAME
 		echo "<td class='query_title' title='$title'>Name</td>";
-		echo "<td>";
-		echo "<INPUT type='text' id='objname' name='objname' class='eb' value='$objname' onChange='checkObjName()'>";
+		echo "<td class='eb_plus'>";
+		echo "<INPUT type='text' id='objname' name='objname' class='eb_plus' value='$objname' onChange='checkObjName()'>";
 		echo "</td>";
 		html_query_buttons($qobject);
 		echo "</tr>";
@@ -2036,7 +2040,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		
 		$qterm = $qobject['term'];
 		
-		echo "<table border='0'>";
+		echo "<table border='1'>";
 		echo "<tr>";
 		
 		# ALL/CLEAR
@@ -2065,10 +2069,10 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</td>";
 		
-		echo "<td>";
+		echo "<td class='eb_plus'>";
 		if ($qterm == 'biotree' || $qterm == 'biotable') {
 			$source = get_obj($sources, $qobject['sources'][0]);
-			echo "<input type='text' id='queryheader' class='eb' disabled='disabled' value='", $source['name'], "'></input><br>";
+			echo "<input type='text' id='queryheader' class='eb_plus' disabled='disabled' value='", $source['name'], "'></input><br>";
 		} else {
 			html_query_sources($qobject, $sources);
 		}
@@ -2274,8 +2278,8 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_search, $output_id, $zip) {
 	
 		$sources = $_SESSION['sources'];
-		$qobjects = $_SESSION['qobjects'];
-		$names = $_SESSION['names'];
+		//if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
+		//if ($_SESSION['names']) $names = $_SESSION['names'];
 		$outputs = $_SESSION['$outputs'];
 		$bioname = $_SESSION['bioname'];
 		$biotree = $_SESSION['biotree'];
@@ -2283,7 +2287,6 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_searc
 		$biogeographic = $_SESSION['biogeographic'];
 		$biotemporal= $_SESSION['biotemporal'];
 
-		
 		# name_search is an array of name and sources returned by an names search
 		
 		echo '<script src="./scripts/query_type_utils.js" type="text/javascript"></script>';
@@ -2318,7 +2321,7 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_searc
 
 		# INFO
 		html_info($db_handle, $oldtoken, $newtoken);
-		html_info_queries($qobjid, $qobjects, $sources);
+		html_info_queries();
 		
 		echo "<div id='query_div' class='margin5px'>";
 		
@@ -2804,20 +2807,26 @@ function html_select_sources($db_handle) {
 	echo "<div id='select_sources_div' class='margin5px'>";
 	
 	#ADD DESCRIPTION TO SOURCES, THEN EDIT get_sources
-	
-	# Blurb
-	echo "<br>";
-	echo "<table>";
+	echo "<table border='0'>";
 	echo "<tr>";
-	echo "<td class='query_title' title='$title'></td>";
-	echo "<td><p id='blurb'>The Entangled Bank stores taxonomies, phylogenies, abundance ";
-	echo "time-series, geographic layers and attribute tables.<br>";
-	echo "Select data sources to query by biological name, attributes, tree topoplogy, geography and time.<br>";
-	echo "Export subsetted data in a wide range of formats.</p></td>";
-	echo "<tr>";
-	echo "</table>";
-	echo "<br>";
-	#Select one or more data sources 
+	echo "<th rowspan='2' width='325' class='blurb'>";
+	echo "<img src='.\image\logo.png' class='query_type_button'/>";
+
+	echo "<td class='blurb' >";
+	echo "<p><a href='.\doc\background.php'>The Entangled Bank  Database</a> (EBDB) provides integrated access to a number of 
+		 <a href='.\doc\datasets.php'>Mammal Datasets</a> (a taxonomy, phylogeny, trait database and range maps) and the 
+		<a href='http://www3.imperial.ac.uk/cpb/research/patternsandprocesses/gpdd'>Global Population Dynamics Database</a> of long-term abundance records.
+		These data may be queried by biological name, tree topology, data set attributes, geography and time
+		 to answer complex questions that span multiple data sets, such as,</p>";
+	echo "<ul>";
+	echo "<LI>Which nocturnal South American mammals are descended from the last common ancestor of these species?</LI>";
+	echo "<LI>What are the ranges of Rodentia species that have a body mass less than than 250g and 
+		for which there are population abundance records between 1980-90?</LI>";
+	echo "</ul>";
+	echo "</td>";
+	echo "</tr>";
+
+	# SOURCES 
 	$str = "SELECT obj.source_id, obj.name, t.name, obj.description
 		FROM source.source obj, biosql.term t
 		WHERE obj.term_id = t.term_id
@@ -2828,11 +2837,11 @@ function html_select_sources($db_handle) {
 	
 	$title = 'Select one or more sources to work with. Hover over names to see data type.';
 	
-	echo "<table>";
+	//echo "<table>";
 	echo "<tr>";
-	echo "<td class='query_title' title='$title'>Sources</td>";
-	echo "<td class='query_form'>";
-	echo "<SELECT id='select_sources' class='eb_info' name='sourceids[]' SIZE=7  MULTIPLE='multiple'>";
+	//echo "<td id='select_sources_title' class='query_title' title='$title'>Sources</td>";
+	echo "<td class='blurb'>";
+	echo "<SELECT id='select_sources' class='select_sources' name='sourceids[]' SIZE=6  MULTIPLE='multiple'>";
 	if(!$result) {
 		echo "<OPTION>No Data Sets Available</OPTION>";
 	} else {
@@ -2841,15 +2850,9 @@ function html_select_sources($db_handle) {
 		}
 	}
 	echo "</SELECT>";
-	echo "</td>";
-	echo "</tr>";
-	echo "<tr>";
-	echo "<td class='query_title' title='$title'></td>";
-	echo "<td width='210px'>";
-	echo "Just press 'Next >' to select all";
-	echo "</td>";
-	echo "<td>";
-	echo '<input id="submit-button" type="submit" value="Next >">';
+	echo "<input id='submit-button' class='select_sources' type='submit' value='Next >'>";
+	echo "<br><center>";
+	echo "Select datasets or just press 'Next>' for all</center>";
 	echo "</td>";
 	echo "</tr>";
 	echo "</table>";

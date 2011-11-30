@@ -2,9 +2,9 @@
 
 function html_info($db_handle, $oldtoken, $newtoken) {
 	
-	$qobjects = $_SESSION['qobjects'];
 	$sources = $_SESSION['sources'];
-	$names = $_SESSION['names'];
+	if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
+	if ($_SESSION['names']) $names = $_SESSION['names'];
 	
 	# INFORMATION ON SOURCES, NAMES AND QUERIES
 	# SAVE TO USE AGAIN IF NEEDED: FIND

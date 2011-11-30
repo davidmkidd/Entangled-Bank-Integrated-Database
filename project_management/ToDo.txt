@@ -4,12 +4,10 @@
 ---------------------------
 
 Data
-    - Add non-binomial names to Gpdd binomial (HIGH)
+    - Add non-binomial names to Gpdd binomial (FIXED)
 	- Galliformes (MEDIUM)
 	- Ephippiger (LOW)
-	
-Find
- 	- error when query after find (FIXED)
+
 	
 Entangled-bank.org
 	- Move to IC? (MEDIUM)
@@ -17,7 +15,6 @@ Entangled-bank.org
 
 Configuration 
 	- Soft code all Windows and LINUX configuration  (HIGH - FIXED?)
-	- Sensible error on connect fail (FIXED)
 	- Talk to Bioinfromatics support/Georgina (HIGH)
 	
 Back Button

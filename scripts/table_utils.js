@@ -24,16 +24,27 @@
 	
 	
 function showNumericField(entry) {
-		
+
+	var field = entry.name;
+	field = field.substring(0,field.length - 6);
+	var div = document.getElementById(field + "_div");
+	
+	if (entry.checked == false) {
+		div.style.display='none';
+		if (objSelect) {
+			op.disabled=true;
+			value.disabled=true;				
+		}
+	} else {
+	
 		// OPENS AND ACTIVATES FIELD DIALOG DIV
 		
-		var field = entry.name;
-		field = field.substring(0,field.length - 6);
+
 		var type = document.getElementById(field + "_type").value;
 		var sid = document.getElementById('sid').value;
 		var ftable = document.getElementById(field + "_table");
 		var op = document.getElementById(field + "_operator");
-		var div = document.getElementById(field + "_div");
+		
 		
 		if (!ftable) {
 
@@ -44,6 +55,7 @@ function showNumericField(entry) {
 			var ftype = getFieldType(sid, field);
 			var ftable = document.createElement("table");
 			ftable.id = field + '_table';
+			ftable.className = 'field_table';
 			
 			var row = ftable.insertRow(0);
 			var cell = new Array();
@@ -70,11 +82,12 @@ function showNumericField(entry) {
 				opt.value = items[i];
 				op.add(opt);
 			}
-			
+			//alert("!");
 			// VALUE
 			var val = getNumericField(sid, field, 'no');
+			//alert(val);
 			var val_names = getNumericField(sid, field, 'yes');
-			
+			//alert(val_names);
 			var value = document.createElement("input");
 			value.name = field + "_value";
 			value.id = field + "_value";
@@ -104,7 +117,7 @@ function showNumericField(entry) {
 			cell[1].appendChild(op);
 			cell[1].appendChild(value);
 			cell[1].appendChild(label);
-			
+			//alert("!");
 			row.appendChild(cell[0]);
 			row.appendChild(cell[1]);
 			ftable.appendChild(row);
@@ -112,31 +125,33 @@ function showNumericField(entry) {
 		}
 		
 		// DISABLED
-		if (entry.checked == true){
-			div.style.display='block';
-			if (op) {
-				op.disabled=false;
-				value.disabled=false;
-			}
-		} else {
-			div.style.display='none';
-			if (objSelect) {
-				op.disabled=true;
-				value.disabled=true;				
-			}
-		}		
-	}
+		div.style.display='block';
+		if (op) {
+			op.disabled=false;
+			value.disabled=false;
+		}
+	}	
+}
 	
 //--------------------------------------------------------------------------------------------
 
 
 function showCatagoryField(entry) {
 		
+	var field = entry.name;
+	field = field.substring(0,field.length - 6);
+	var div = document.getElementById(field + "_div");
+	
+	if (entry.checked == false) {
+		div.style.display='none';
+		if (objSelect) {
+			selOptions.disabled=true;
+			selAdd.disabled=true;				
+		}
+	
+	} else {
+	
 		// OPENS AND ACTIVATES FIELD DIALOG DIV
-		
-		var field = entry.name;
-		field = field.substring(0,field.length - 6);
-		var div = document.getElementById(field + "_div");
 		var type = document.getElementById(field + "_type").value;
 		var sid = document.getElementById('sid').value;
 		var selOptions = document.getElementById(field + "_add");
@@ -149,6 +164,7 @@ function showCatagoryField(entry) {
 			// FIELD NAME
 			var table = document.createElement("table");
 			table.id = field + '_table';
+			table.className = 'field_table';
 			var row = document.createElement("tr");
 			var cell = new Array();
 			cell[0] = document.createElement("td");
@@ -247,20 +263,13 @@ function showCatagoryField(entry) {
 		}
 		
 		// VISIBILITY
-		if (entry.checked == true){
-			div.style.display='block';
-			if (selOptions) {
-				selOptions.disabled=false;
-				selAdd.disabled=false;
-			}
-		} else {
-			div.style.display='none';
-			if (objSelect) {
-				selOptions.disabled=true;
-				selAdd.disabled=true;				
-			}
-		}		
-	}
+		div.style.display='block';
+		if (selOptions) {
+			selOptions.disabled=false;
+			selAdd.disabled=false;
+		}
+	}	
+}
 
 
 //--------------------------------------------------------------------------------------------
@@ -426,9 +435,10 @@ function getSourceFieldValues(field) {
 		}
 	}
 	
+//--------------------------------------------------------------------------------------------
+
 	
-	
-	function checkboxes(entry) {
+/*	function checkboxes(entry) {
 		// enables-disables checkbox items in html_table_query2
 		var field = entry.name;
 		field = field.substring(0,field.length - 6) + "_chk";
@@ -444,6 +454,9 @@ function getSourceFieldValues(field) {
 			}
 		}
 	}
+	
+	//--------------------------------------------------------------------------------------------
+
 	
 	function checkselect(entry) {
 		// enables/disables select option items in html_table_query2
@@ -462,7 +475,10 @@ function getSourceFieldValues(field) {
 					div.style.visibility="collapse";
 				}
 			}
-	}
+	}*/
+	
+//--------------------------------------------------------------------------------------------
+
 	
 	function add_sel(entry) {
 		
@@ -504,6 +520,9 @@ function getSourceFieldValues(field) {
 		updateInfo(field)
 	}
 	
+	//--------------------------------------------------------------------------------------------
+
+	
 	function add_all(entry) {
 		
 		// Pushes from field select to field_add select
@@ -512,14 +531,15 @@ function getSourceFieldValues(field) {
 		var box = document.getElementById(field);
 		var selected = new Array();
 		var selected_vals = new Array();
-		for (var i = 0; i < box.options.length; i++) {
-			selected_vals.push(box.options[ i ].value);
-		    selected.push(box.options[ i ].innerHTML);
-		    box.options[i]
-		  }
-
-		field_add = field + "_add";
+		var field_add = field + "_add";
 		var addbox = document.getElementById(field_add);
+		//alert(field_add.options.length)
+		for (var i = 0; i < box.options.length; i++) {
+			selected_vals.push(box.options[i].value);
+		    selected.push(box.options[i].innerHTML);
+		  }
+		
+		addbox.options.length = 0;
 		
 		for (var i = 0; i < selected.length; i++) {
 			try {
@@ -530,6 +550,9 @@ function getSourceFieldValues(field) {
 		}
 		updateInfo(field)
 	}
+	
+	//--------------------------------------------------------------------------------------------
+
 	
 	function rem_sel(entry) {
 		// Remove selected from field_add select
@@ -545,6 +568,9 @@ function getSourceFieldValues(field) {
 		updateInfo(field)
 	}	
 	
+	//--------------------------------------------------------------------------------------------
+
+	
 	function rem_all(entry) {
 		// Remove all from field_add select
 		var field = entry.id;
@@ -557,19 +583,24 @@ function getSourceFieldValues(field) {
 		updateInfo(field)
 	}
 	
-	
-	function show_nseries(entry) {
+	//--------------------------------------------------------------------------------------------
+
+/*	function show_nseries(entry) {
 		var element = document.getElementById("nseries_div")
 		if (entry.checked == true) {
 			document.getElementById("nseries_div").style.display='block';
 			} else {
 			document.getElementById("nseries_div").style.display='none';
 			}
-	}
+	}*/
 	
+	//--------------------------------------------------------------------------------------------
+
 	function isValueInArray(arr, val) { for (i = 0; i < arr.length; i++) if (val == arr[i]) return true; return false; }
 	
-	
+	//--------------------------------------------------------------------------------------------
+
+/*	
 	function getElementsByClass(searchClass,node,tag) {
 
 		//alert(searchClass);
@@ -593,7 +624,7 @@ function getSourceFieldValues(field) {
 
 		}
 		return classElements;
-	}
+	}*/
 	
 	
 	

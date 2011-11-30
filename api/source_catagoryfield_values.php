@@ -49,6 +49,7 @@
 					case 'TaxonomicGenus':
 					case 'binomial':
 					case 'CommonName':
+					case 'TaxonName':
 						$str = "SELECT DISTINCT t.\"$field\"
 								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
 								WHERE t.binomial IS NOT NULL
