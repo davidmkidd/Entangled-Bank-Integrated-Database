@@ -214,7 +214,7 @@ html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 
 # SELECT SOURCES
 if ($stage == 'sources') 
-	html_select_sources($db_handle);	
+	html_entangled_bank_sources($db_handle);	
 
 # MAIN INTERFACE
 if ($stage == 'main' || $stage == 'write') 

@@ -47,6 +47,7 @@ Query
 		- Empty names query currently adds Names SQL, should give verification error. (FIXED)
 		- GPDD add n points to query information (MEDIUM)
 		- last mids on query re-run [see temporal] (HIGH)
+		- Look-up tables from change in vals in field (HIGH)
 	Geography
 	    - Biogeographic query failing (FIXED)
 		- Open source layer fail to draw on intitalise (FIXED)

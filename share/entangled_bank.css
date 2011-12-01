@@ -22,6 +22,11 @@
 		padding-bottom: 3px;
 	}
 	
+	div#table_fields_div {
+/*		border: 3px groove;*/
+		padding-top: 12px;
+		padding-bottom: 12px;
+	}
 
 	textarea.names_list {
 		width: 350px;
@@ -78,12 +83,25 @@
 		width: 400px;
 	}
 	
-	
 	#find_main_div {
 		clear: both;
 		border-bottom: 3px groove;
 		padding: 12px;
 		padding-left: 3px;
+	}
+	
+	#query_header_div {
+		padding-bottom: 6px;
+		border-bottom: 3px groove;
+		padding-top: 6px;
+		border-top: 3px groove;
+		margin-top: 6px;
+	}
+	
+	td#query_header_title {
+/*		padding-left: 12px;*/
+		font-size: 130%;
+		font-style: bold;
 	}
 	
 	#info_div {
@@ -102,6 +120,8 @@
 	#ebquery {
 		margin-top: 5px;
 		margin-bottom: 5px;
+/*		border-bottom: 3px groove;*/
+		padding-left: 6px;
 	}
 	
 	#names_info {
@@ -130,6 +150,12 @@
 		padding-bottom: 6px;
 	}
 	
+	div.query_sql_div {
+		padding-top: 6px;
+		padding-bottom: 6px;
+		border-top: 3px groove;
+	}
+	
 	.eb {
 		width: 250px;
 	}
@@ -147,6 +173,12 @@
 		width: 400px;
 	}
 	
+	input.query_submit {
+		width: 87px;
+		height: 55px;
+		vertical-align: top;
+	}
+		
 	
 	input.select_sources {
 		width: 87px;
@@ -206,9 +238,9 @@
 	}
 	
 	
-	#name_search {
-		width: 530px;
-	}
+/*	#name_search {*/
+/*		width: 530px;*/
+/*	}*/
 	
 	
 	#name_search_div{
@@ -263,35 +295,48 @@
 		height: 40px;
 	}
 	
-	td.qtype {
-		width: 120px;
+	td.query_type {
+		width: 100px;
 		vertical-align: top;
+		padding-right: 10px;
+		vertical-align: top;
+		text-align: center;
 	}
 	
 	td#select_sources_title {
 		text-align: center;
 	}
 	
-	td.qtype_text {
-		width: 120px;
-		text-align: center;
-		vertical-align: top;
-		font-size: 14px;
-	}
-	
 	td.query_field {
 		width: 740px;
-		border-left: 2px solid grey;
+/*		border-left: 2px solid grey;*/
+		vertical-align: middle;
 	}
 	
-	td.field_title {
-		width: 150px;
+
+	
+	div.field_div {
+		padding-bottom: 6px;
+		padding-top: 6px;
+		border-top: 1px solid silver;
+/*		border-bottom: 1px solid grey;*/
+	}
+	
+	.field_title {
+		width: 120px;
 		text-align: left;
+		padding-left: 6px;
+		font-weight: normal;
 	}
 	
 	table.field_table {
 		border-collapse: collapse;
-		border-top: 1px solid grey;	
+/*		border-top: 1px solid grey;	*/
+	}
+	
+	table#fields_table {
+		border-collapse: collapse;
+		border: 2px solid grey;
 	}
 	
 	table.field_group_table {
@@ -311,6 +356,10 @@
 	td.option_title {
 		width: 55px;
 		vertical-align: middle;
+	}
+	
+	td.header_padding {
+		width: 30px;
 	}
 	
 	td.option_title_plus {
@@ -357,10 +406,6 @@
 		horizontal-align: center;
 	}
 	
-	td.query_field {
-		vertical-align: middle;
-	}
-	
 	
 	td.query_image {
 		width: 105px;
@@ -378,6 +423,15 @@
 		align: right;
 	}
 	
+	td.query_header {
+		width: 485px;
+		vertical-align: top;
+		align: right;
+	}
+	
+	td.findval_label {
+		text-align: center;
+	}
 	
 	td.query_not {
 		width: 145px;
@@ -385,8 +439,8 @@
 		align: right;
 	}
 	
-	textarea.eb_sql {
-		width: 570px;
+	textarea.query_sql {
+		width: 730px;
 		height: 150px;
 		readonly: readonly;
 	}
@@ -395,6 +449,11 @@
 		width: 483px;
 		vertical-align: middle;
 		align: left;
+	}
+	
+	td#query_header1 {
+		border-right: 1px solid gray;
+		padding-right: 6px;
 	}
 	
 	td.cart_menu {
@@ -408,8 +467,8 @@
 	}
 	
 	
-	.find {
-		width: 527px;
+	.query_find {
+		width: 555px;
 	}
 	
 	td.query_c2_footer {
@@ -435,8 +494,22 @@
 		width: 100px;
 	}
 	
-	select.qop {
+	#queryoperator {
+	 width: 150px;
+	}
+	
+	.query_operator {
 		width: 180px;
+		text-align: center;
+	}
+	
+	td.buttons {
+		padding-left: 6px;
+		padding-right: 6px;
+	}
+	
+	table#header_outer {
+	 vertical-align: top;
 	}
 	
 	.find_name {
@@ -457,6 +530,8 @@
 	#find_hide {
 		float: left;
 	}
+	
+	
 	
 	#find_msg {
 		display: none;
@@ -490,7 +565,7 @@
 	}
 	
 	select.query_options {
-		size: 6;
+		size: 20;
 		width: 250px;
 	}
 	

@@ -480,7 +480,6 @@ function get_next_name($objs, $type) {
 	if ($objs) {
 		foreach ($objs as $obj) if ($obj['term'] == $type && $obj['name']) $i++;
 	}
-	//echo "$type $i<br>";
 	return $type . "_" . $i;
 	}
 

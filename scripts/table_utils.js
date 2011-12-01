@@ -38,7 +38,6 @@ function showNumericField(entry) {
 	} else {
 	
 		// OPENS AND ACTIVATES FIELD DIALOG DIV
-		
 
 		var type = document.getElementById(field + "_type").value;
 		var sid = document.getElementById('sid').value;
@@ -51,20 +50,19 @@ function showNumericField(entry) {
 			// CREATES ROW IN TABLE BELOW GROUP
 			// ORDERED BY FIELD LIST
 			
-			//alert("!");
 			var ftype = getFieldType(sid, field);
+			var color = getFieldColor(sid, ftype.group);
 			var ftable = document.createElement("table");
 			ftable.id = field + '_table';
 			ftable.className = 'field_table';
-			
-			var row = ftable.insertRow(0);
+
+			var row = document.createElement("tr");
 			var cell = new Array();
 			
 			// FIELD NAME
 			
 			cell[0] = document.createElement("td");
 			cell[0].className = 'field_title';
-			var color = getFieldColor(sid, ftype.group);
 			cell[0].style.backgroundColor = color;
 			var textNode = document.createTextNode(ftype.alias);
 			cell[0].appendChild(textNode);		
@@ -82,12 +80,11 @@ function showNumericField(entry) {
 				opt.value = items[i];
 				op.add(opt);
 			}
-			//alert("!");
+
 			// VALUE
 			var val = getNumericField(sid, field, 'no');
-			//alert(val);
 			var val_names = getNumericField(sid, field, 'yes');
-			//alert(val_names);
+
 			var value = document.createElement("input");
 			value.name = field + "_value";
 			value.id = field + "_value";
@@ -117,7 +114,6 @@ function showNumericField(entry) {
 			cell[1].appendChild(op);
 			cell[1].appendChild(value);
 			cell[1].appendChild(label);
-			//alert("!");
 			row.appendChild(cell[0]);
 			row.appendChild(cell[1]);
 			ftable.appendChild(row);
@@ -160,28 +156,33 @@ function showCatagoryField(entry) {
 		if (!table) {
 			
 			var ftype = getFieldType(sid, field);
+			var color = getFieldColor(sid, ftype.group);
 			
 			// FIELD NAME
 			var table = document.createElement("table");
 			table.id = field + '_table';
 			table.className = 'field_table';
+			table.style.backgroundColor = color;
+			//table.style.borderTop = '1px solid grey';
+			
 			var row = document.createElement("tr");
+			var th = document.createElement("th");
+			th.innerHTML = ftype.alias;
+			th.rowSpan = '2';
+			th.className = 'field_title';
+			th.style.backgroundColor = color;
+			row.appendChild(th);
+			
+			// FIND ROW
 			var cell = new Array();
 			cell[0] = document.createElement("td");
-			cell[0].className = 'field_title';
-			var color = getFieldColor(sid, ftype.group);
-			cell[0].style.backgroundColor = color;
-			cell[0].appendChild(document.createTextNode(ftype.alias));
-			
-			// TOOL
-			cell[1] = document.createElement("td");
-			cell[1].style.backgroundColor = color;
-			// FIND
+			cell[0].className = 'eb'
 			var find = document.createElement('input');
 			find.id = field + "_findval";
 			find.className = 'eb';
-			cell[1].appendChild(find);
+			cell[0].appendChild(find);
 			
+			cell[1] = document.createElement("td");
 			var findButton = document.createElement('input');
 			findButton.id = field + "_findbtn";
 			findButton.type = 'button';
@@ -190,27 +191,32 @@ function showCatagoryField(entry) {
 			findButton.onclick = function(){addSourceFieldValues(field);}; 
 			cell[1].appendChild(findButton);
 
+			cell[2] = document.createElement("td");
+			cell[2].className = "findval_label";
 			var findLabel = document.createElement('label');
 			findLabel.id = field + "_findval_label";
 			findLabel.innerHTML = "&nbsp;&nbsp;0 found | 0 in query";
-			cell[1].appendChild(findLabel);
-			cell[1].appendChild(document.createElement("br"));
+			cell[2].appendChild(findLabel);
+			
+			for (i = 0; i <= cell.length - 1; i++) {
+				row.appendChild(cell[i]);
+			}
 			
 			// SELECT VALUES
-			var stable = document.createElement("table");
 			var srow = document.createElement('tr');
 			
 			var selOptions = document.createElement("select");
 			selOptions.id = field;
 			selOptions.className = 'query_options';
 			selOptions.multiple = true;
-			selOptions.size = 8;
+			selOptions.size = 6;
 					
 			var scell = new Array();
 			scell[0] = document.createElement('td');
+			//scell[0].style.border = '1px solid grey';
 			scell[0].appendChild(selOptions);
 			
-			//BUTTONS
+			// BUTTONS
 			scell[1] = document.createElement('td');
 			var buttonId = ['_____in','__allin','_allout','____out'];
 			var buttonText = ['>','>>','<<','<'];
@@ -233,7 +239,6 @@ function showCatagoryField(entry) {
 						btn.onclick = function(){rem_sel(this);};
 						break;
 				}
-				
 				btn.className = 'button-standard';
 				scell[1].appendChild(btn);
 				scell[1].appendChild(document.createElement('br'));
@@ -245,20 +250,16 @@ function showCatagoryField(entry) {
 			selAdd.name = field + "_add[]";
 			selAdd.className = 'query_options';
 			selAdd.multiple = true;
-			selAdd.size = 8;
+			selAdd.size = 6;
 			scell[2] = document.createElement('td');
 			scell[2].appendChild(selAdd);
 			
 			for (i = 0; i <= scell.length - 1; i++) {
 				srow.appendChild(scell[i]);
 			}
-			stable.appendChild(srow);
-			cell[1].appendChild(stable);
 			
-			for (i = 0; i <= cell.length - 1; i++) {
-				row.appendChild(cell[i]);
-			}
 			table.appendChild(row);
+			table.appendChild(srow);
 			div.appendChild(table);
 		}
 		
