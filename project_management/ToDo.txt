@@ -4,6 +4,8 @@
 ---------------------------
 
 Data
+	- Add explainantion of names in gpdd to help. (HIGH)
+	- Spatial Accuracy Classes as text (HIGH)
     - Add non-binomial names to Gpdd binomial (FIXED)
 	- Galliformes (MEDIUM)
 	- Ephippiger (LOW)
@@ -12,10 +14,12 @@ Data
 Entangled-bank.org
 	- Move to IC? (MEDIUM)
 	- Update (HIGH)
+	- Change Architecture to more upto date version (HIGH).
 
 Configuration 
 	- Soft code all Windows and LINUX configuration  (HIGH - FIXED?)
 	- Talk to Bioinfromatics support/Georgina (HIGH)
+	- Migrate INI into PHP (HIGH)
 	
 Back Button
 	- Sensible response (HIGH)
@@ -61,8 +65,9 @@ Query
 	Attribute
 		- NULLs in attribute query (PARTIAL FIX: single 'include nulls' option for all fields in a query)
 		- Set query in edit mode (FIXED)
-		- Find for select fields. Would speed up attribute query load as all options for all fields would not need to be preloaded (MEDIUM)
-
+		- Find for select fields. Would speed up attribute query load as all options for all fields would not need to be preloaded (FIXED)
+		- ids for lookup fields in query (HIGH)
+		- Nulls on catagory and range fields (MEDIUM)
 Output
 	General
 		- Delete created files/Create temporary files. Periodic chron function or on session end (HIGH)

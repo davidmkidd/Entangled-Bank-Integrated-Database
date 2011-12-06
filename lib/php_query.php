@@ -66,7 +66,7 @@
 					$str = query_bionames_table($source, $str);
 					break;
 				case ($qterm == 'biotable'):
-					$str = query_biotable(db_handle, $qobject, $source);
+					$str = query_biotable($db_handle, $qobject, $source);
 				break;
 				case ($qterm == 'bionames' && $sterm == 'biotree'):
 					$str = query_bionames_tree($qobject, $source, $str);
@@ -148,7 +148,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		//echo "query: $qstr<br>";
+		echo "query: $qstr<br>";
 		$res = pg_query($db_handle, $str);
 		$names = pg_fetch_all_columns($res, 0);
 		
@@ -202,7 +202,7 @@
 		$qterm = $qobject['term'];
 		$queries = $qobject['queries'];
 		$fields = $source['fields'];
-		$null = $qobject['querynull'];
+		//$null = $qobject['querynull'];
 		$sterm = $source['term'];
 		$nseries_op = "";
 		
@@ -268,6 +268,7 @@
 		$nseries_type = 'no';
 		$i = 0;
 		foreach ($queries as $query) {
+			
 			$qfname = $query['field'];
 			$qfield = get_field($qfname, $fields);
 			$dtype = $qfield['ebtype'];
@@ -278,7 +279,7 @@
 			# WHERE CLAUSES
 			switch ($dtype) {
 				case 'rangefield':
-					query_biotable_rangefield($query, $str, $source['id'], $null);
+					query_biotable_rangefield($query, $str, $source['id']);
 					break;
 				case 'groupfield':
 					if (count($queries) == 1) {
@@ -291,7 +292,7 @@
 					break;
 				case 'lookupfield':
 				case 'catagoryfield':
-					query_biotable_lookupfield($query, $str, $source['id'], $null);
+					query_biotable_lookupfield($db_handle, $query, $str, $source['id']);
 					break;
 				case 'lookuptable':
 					# GPDD HARDCODE
@@ -303,12 +304,12 @@
 		}
 
 		# ALL NULL
-		if ($null && count($queries) > 1) {
+/*		if ($null && count($queries) > 1) {
 			$str = $str . " AND (";
 			foreach ($queries as $query) $str = $str . " \"" . $query['field'] . "\" IS NOT NULL AND";
 			$str = substr($str, 0, strlen($str) - 4);
 			$str = $str . ")";
-		}
+		}*/
 		
 		
 		#NOT END
@@ -481,44 +482,59 @@
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotable_lookupfield($query, &$str, $source, $null) {
+	function query_biotable_lookupfield($db_handle, $query, &$str, $sid) {
 		
-		if ($source['id'] == 23) {
+		if ($sid == 23) {
 			$s = 'm';
 		} else {
 			$s = 'd';
 		}
+		
 		$field = $query['field'];
 		$ftype = $query['ftype'];
 		$values = $query['value'];
-		$arr = array_to_postgresql($values, $ftype);
+		$null = $query['null'];
+		//echo empty($values), ", ", $null, "<br>";
+		if (!empty($values)) {
+			$arr = array_to_postgresql($values, $ftype);
+			//echo "$arr<br>";
+			$str2 = " SELECT c.item FROM source.source_fields f, source.source_fieldcodes c";
+			$str2 = $str2 . " WHERE c.field_id = f.field_id";
+			$str2 = $str2 . " AND f.source_id = $sid";
+			$str2 = $str2 . " AND f.field_name = '$field'";
+			$str2 = $str2 . " AND c.name = ANY($arr)";
+			$str2 = $str2 . " ORDER BY c.item";
+			//echo "$str2<br>";
+			$res = pg_query($db_handle, $str2);
+			$ids = pg_fetch_all_columns($res);
+			$arr = array_to_postgresql($ids, 'numeric');
+		}
 		
-		if ($null) $str = $str . "(";
-		
-		$str = $str . " $s.\"$field\" = ANY ($arr)";
-		
-		if ($null) $str = $str . " OR $s.\"$field\" IS NULL)";
-		
-		//return ($str);
+		if (!empty($values) && $null) $str = $str . " (";
+		if (!empty($values)) $str = $str . " $s.\"$field\" = ANY($arr)";
+		if (!empty($values) && $null) $str = $str . " OR";
+		if ($null) $str = $str . " $s.\"$field\" IS NULL";
+		if (!empty($values) && $null) $str = $str . ")";
 	}
 	
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotable_rangefield ($query, &$str, $source, $null) {
+	function query_biotable_rangefield ($query, &$str, $sid) {
 		
+		print_r($query);
+		echo "<br>";
 		$field = $query['field'];
 		$value = $query['value'];
 		$op = $query['operator'];
+		$null = $query['null'];
 		
 		if ($null) $str = $str . "(";
-		
-		if ($source['id'] == 23) {
+		if ($sid == 23) {
 			$s = 'm';
 		} else {
 			$s = 'd';
 		}
-				
 		$str = $str . " $s.\"$field\" $op $value";
 		if ($null) $str = $str . " OR $s.\"$field\" IS NULL)";
 

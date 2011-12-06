@@ -319,7 +319,7 @@ function get_source_field_types($db_handle, $source) {
 
 #=================================================================================================================
 
-function get_source_add_fields($db_handle, &$source) {
+function get_source_fields($db_handle, &$source) {
 	
 	//echo "Adding fields to " . $source['name'] . "<br>";;
 	
@@ -346,21 +346,20 @@ function get_source_add_fields($db_handle, &$source) {
 		" AND t.term_id = s.term_id 
 		AND g.fields_group_id = s.fields_group_id
 		ORDER by g.rank, s.rank;";
-	
+	//if ($source['id'] == 23) echo "$str<br>";
 	$res = pg_query($db_handle, $str);
-	while ($row = pg_fetch_row($res)) {
-		array_push($fnames,$row[0]);
-		array_push($ebtypes,$row[1]);
-		array_push($franks,$row[2]);
-		array_push($fdescs,$row[3]);
-		array_push($faliases,$row[4]);
-		array_push($fgroup,$row[5]);
-		array_push($fgrouprank,$row[6]);
-	}
+	$fnames = pg_fetch_all_columns($res,0);
+	$ebtypes = pg_fetch_all_columns($res,1);
+	$franks = pg_fetch_all_columns($res,2);
+	$fdescs = pg_fetch_all_columns($res,3);
+	$faliases = pg_fetch_all_columns($res,4);
+	$fgroup = pg_fetch_all_columns($res,5);
+	$fgrouprank = pg_fetch_all_columns($res,6);
 	
 	# FTYPE
 	$i = 0;
 	foreach($fnames as $fname) {
+		//echo "$fname, ";
 		$ebtype = $ebtypes[$i];
 		switch ($ebtype) {
 			case 'rangefield':
@@ -557,11 +556,10 @@ function get_sources($db_handle, $ids, $type) {
 		$res = pg_query($db_handle, $str);
 		$ids = pg_fetch_all_columns($res, 0);
 	}
+	
+	//print_r($ids);
 
-	foreach($ids as $id) {
-		$source = get_source($db_handle, $id);
-		$sources[$id] = $source;
-	}
+	foreach($ids as $id) $sources[$id] = get_source($db_handle, $id);
 	
 	if (empty($sources)) {
 		return(false);	
@@ -647,7 +645,7 @@ function get_sources($db_handle, $ids, $type) {
 		}
 		
 		# GET FIELDS
-		get_source_add_fields($db_handle, $source);
+		get_source_fields($db_handle, $source);
 		//echo "<br/>";
 		//print_r($source);
 		//echo "<br/>";
@@ -1072,14 +1070,15 @@ function query_uvals($qobj, $fname) {
 
 function remove_element($arr, $val){
 	foreach ($arr as $key => $value){
-		if ($arr[$key] == $val){
-		unset($arr[$key]);
+		if ($value == $val) {
+			//echo "unsetting $value, $val<br>";
+			unset($arr[$key]);
 		}
 	}
 	return $arr = array_values($arr);
 }
 
-	
+
 #=================================================================================================================
 
 function save_obj($objs, $newobj) {

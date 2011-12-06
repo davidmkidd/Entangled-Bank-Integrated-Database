@@ -68,7 +68,6 @@
 		padding-bottom: 3px;
 		background-color: Gainsboro;
 	}
-
 	
 	#exit_blurb {
 		font-size: small;
@@ -158,6 +157,10 @@
 	
 	.eb {
 		width: 250px;
+	}
+	
+	.eb_find {
+		width: 225px;
 	}
 	
 	.eb_plus {
@@ -664,4 +667,20 @@
 		vertical-align: middle;
 		align: left;
 		font-style: normal;
+	}
+	
+	td.about_txt {
+		width: 26em;
+	}
+	
+	img.about_img {
+		size: 400px;
+	}
+	
+	p.citation {
+		font-style: italic;
+	}
+	
+	p.legend {
+		font-style: italic;
 	}

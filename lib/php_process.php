@@ -324,6 +324,7 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	
 	//echo "begin validate table<br>";
 	$source = get_obj($sources, $qobject['sources'][0]);
+	$sid = $source['id'];
 	$fields = $source['fields'];
 	$queries = array();
 	$qfields = array();            //fields in query
@@ -366,33 +367,74 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	$dtype = $field['ebtype'];
 	$lookup = $field['lookup'];
 	
-		///echo "field: $qfield, $dtype<br>";
+		//echo "field: $qfield, $dtype<br>";
 		switch ($dtype) {
 			case 'rangefield':
 				$op = $qfield . '_operator';
 				$val = $qfield . '_value';
-				$query = array('field'=>$qfield, 'operator'=>$_SESSION[$op], 'value'=>$_SESSION[$val]);
+				$null = $_SESSION[$qfield . '_null'];
+				if ($null == 'on') {
+					$null = true;
+				} else {
+					$null = false;
+				}
+				$query = array('field'=>$qfield, 'operator'=>$_SESSION[$op], 'value'=>$_SESSION[$val], 'null'=>$null);
+				//print_r($query);
+				//echo "<br>";
 				unset($_SESSION[$op]);
 				unset($_SESSION[$val]);
+				unset($_SESSION[$null]);
 				array_push($queries, $query);
 				break;
+				
 			case 'lookupfield':
 			case 'namefield':
 			case 'catagoryfield':
 				$field = $qfield . "_add";
 				$values = $_SESSION[$field];
+				# GET CATAGORIES FROM IDS
+				if ($dtype == 'lookupfield') {
+					//print_r($values);
+					$values_arr = array_to_postgresql($values,'numeric');
+					$str =  "SELECT c.name FROM source.source_fields f, source.source_fieldcodes c";
+					$str = $str . " WHERE c.field_id = f.field_id";
+					$str = $str . " AND f.source_id = $sid";
+					$str = $str . " AND f.field_name = '$qfield'";
+					$str = $str . " AND c.item = ANY($values_arr)";
+					$str = $str . " ORDER BY c.item";
+					//echo "$str<br>";
+					$res = pg_query($db_handle, $str);
+					$values = pg_fetch_all_columns($res, 0);
+				}
+				if (in_array('NULL', $values)) {
+					$null = true;
+					$values = remove_element($values, 'NULL');
+				} else {
+					$null = false;
+				}
 				//echo "field: $field, values: $values<br>";
-				$ops = array_fill(0, count($values), '=');
-				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values);
+				if (!empty($values)) $ops = array_fill(0, count($values), '=');
+				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'null'=>$null);
+				//print_r($query);
+				//echo " !!<br>";
 				array_push($queries, $query);
 				unset($_SESSION[$field]);
 				break;
+				
 			case 'lookuptable':
 				$field = $qfield . "_add";
 				$values = $_SESSION[$field];
-				echo "field: $field, values: $values<br>";
+				if (in_array('NULL', $values)) {
+					$null = true;
+					remove_element($values, 'NULL');
+				} else {
+					$null = false;
+				}			
+				//echo "field: $field, values: $values<br>";
 				$ops = array_fill(0, count($values), '=');
-				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'lookup'=>$lookup);
+				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'lookup'=>$lookup, 'null'=>$null);
+				print_r($query);
+				echo " !<br>";				
 				array_push($queries, $query);
 				unset($_SESSION[$field]);
 				break;

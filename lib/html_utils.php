@@ -54,7 +54,7 @@ function html_arr_to_table($arr) {
 	
 #=======================================================================================================================
 
-function html_entangled_bank_header($stage = 'default', $eb_path, $html_path, $share_path) {
+function html_entangled_bank_header($stage = 'default', $eb_path) {
 	
 	
 	switch ($stage) {
@@ -67,16 +67,18 @@ function html_entangled_bank_header($stage = 'default', $eb_path, $html_path, $s
 			$restart = true;
 			$finish = false;			
 			break;
+		case '':
+			break;
 		default:
 			$restart = true;
 			$finish = true;
 			break;
 	}
 	
-	if (!$help) $help = "./help/$stage.php";
+	if (!$help) $help = "help.php";
 	
 	echo "<div id='ebheader'>";
-	echo "<img id='ebimage' src='" , $share_path , "Entangled-Bank_small.gif' alt='Banner'>";
+	echo "<img id='ebimage' src='$eb_path/share/Entangled-Bank_small.gif' alt='Banner'><br>";
 	# BACKGROUND
 	echo "<a href='$eb_path/doc/about.php' target='_blank'>about</a>";
 	//echo " | ";
@@ -90,7 +92,7 @@ function html_entangled_bank_header($stage = 'default', $eb_path, $html_path, $s
 	if ($finish == true) {
 		//echo " | <a href='" , $eb_path , "finish.php'> exit</a>";
 	}	
-	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path/doc/help_$help.php' target='_blank'>help!</a>";
+	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "/doc/$help' target='_blank'>help!</a>";
 
 	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v0.6 12.2011)';
 	echo "</div>";
@@ -1142,6 +1144,7 @@ function html_query_operator($qobject) {
 		# SELECT VALUES FROM A RANGE FIELD
 		# $str 		query string to return min and max values
 		# $fname	the name of the field
+		//echo "$str<br>";
 		
 		$res = pg_query($db_handle, $str);
 		$row = pg_fetch_row($res);
@@ -1153,12 +1156,14 @@ function html_query_operator($qobject) {
 		foreach ($queries as $query) {
 			if ($query['field'] == $fname) {
 				$val = $query['value'];
+				$null = $query['null'];
 				$disabled = '';
 			}
 		}
 		
 		$fop = $fname . "_operator";
 		$fval = $fname . "_value";
+		$fnull = $fname . "_null";
 	
 		echo "<tr>";
 		echo "<td class='field_title'>$fname</td>";
@@ -1176,6 +1181,14 @@ function html_query_operator($qobject) {
 		
 		# ELEMENTS
 		echo "<INPUT type='text' name='$fval' id='$fval' class='eb_range_input' $disabled size=8 value='$val' onchange='validateRangeField(\"$fval\")'>";
+		
+		# NULLS?
+		if ($null) {
+			echo "<INPUT type='checkbox' value'$null'";
+			if ($null == true) echo " checked=checked ";
+			echo " />";
+		}
+		
 		$t = 'Range of values in database';
 		echo "<LABEL for='$fval' title='$t'>&nbsp;$row[0] - $row[1]</ LABEL>";
 		echo "</td>";
@@ -1184,22 +1197,47 @@ function html_query_operator($qobject) {
 	
 #=================================================================================================================
 	
-	function html_query_select_options($db_handle, $fname, $alias, $qobject) {
+	function html_query_select_options($db_handle, $fname, $alias, $dtype, $qobject) {
 		
 	//HTML select box set with 'in' and 'out' controls
 	// SQL must return two fields the value to pass and the item to display
 		
 	if ($qobject['queries']) {
 		$queries = $qobject['queries'];
+		$sid = $qobject['sources'][0];
 	} else {
 		$queries = array();
 	}
 	
+	
 	foreach ($queries as $query) {
-		if ($query['field'] == $fname) $vals = $query['value'];
+		if ($query['field'] == $fname) {
+			$vals = $query['value'];
+			$null = $query['null'];
+			if ($null == true) array_push($vals, 'NULL');
+			//echo "$dtype<br>";
+			if ($dtype == 'lookupfield') {
+				# GET IDS
+				$arr = array_to_postgresql($vals, $ftype);
+				//echo "$arr<br>";
+				$str2 = " SELECT c.item FROM source.source_fields f, source.source_fieldcodes c";
+				$str2 = $str2 . " WHERE c.field_id = f.field_id";
+				$str2 = $str2 . " AND f.source_id = $sid";
+				$str2 = $str2 . " AND f.field_name = '$fname'";
+				$str2 = $str2 . " AND c.name = ANY($arr)";
+				$str2 = $str2 . " ORDER BY c.item";
+				//echo "$str2<br>";
+				$res = pg_query($db_handle, $str2);
+				$ids = pg_fetch_all_columns($res);
+			} else {
+				$ids = $vals;
+			}
+		$vals = array_combine($ids, $vals);
+		}
 	}
 
-	$sid = $qobject['sources'][0];
+	//print_r($vals);
+	//echo "<br>";
 	//$res = pg_query($db_handle, $str);
 	$s = 6;
 	
@@ -1239,10 +1277,9 @@ function html_query_operator($qobject) {
 	echo "<td>";
 	echo "<SELECT id='$fname" . "_add' name='$fname" . "_add[]' class='query_options' MULTIPLE size='$s'>";
 	if ($vals) {
-		foreach ($vals as $val) {
+		foreach ($vals as $key => $val) {
 			# GET ID IF LOOKUP ELSE DOUBLE VAL
-			echo "<OPTION value='" , $val , "'>" , $val , "</option>";
-
+			echo "<OPTION value='" , $key , "'>" , $val , "</option>";
 		}
 	}
 	echo "</SELECT>";
@@ -1339,10 +1376,10 @@ function html_query_sources ($qobject, $sources) {
 							. $source['id'] . "'  onClick='checkCount()'> " . $source['name'] . "<br>";
 				break;
 				
-			default:
-				// echo "html_query_sources: $qtype on $stype not supported";
-				// exit;
-				break;
+			//default:
+				//echo "html_query_sources: $qterm on $sterm not supported";
+				//exit;
+				//break;
 			}
 		}
 
@@ -1379,20 +1416,22 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	$colorhex = $source['colorhex'];
 	$qfields = array();
 	if ($queries) foreach ($queries as $query) array_push($qfields, $query['field']);
-	//print_r($qfields);
-	//echo "<br>";
 	
 	echo "<DIV id='table_fields_div'>";
 	
 	# INCLUDE NULLS
-	html_query_null($qobject);
+	//html_query_null($qobject);
 	
 	# FIELDS
 	$fields = $source['fields'];
+	
+	//print_r($fields);
+	//echo "<br>";
+	
 	$oldgroup = null;
 	$i = 0;
 	foreach ($fields as $field) {
-		
+		//echo $field['name'] , "<br>";
 		$newgroup = $field['group'];
 		$color = $colorhex[$field['group']];
 		if (!$oldgroup || $newgroup !== $oldgroup) {
@@ -1470,8 +1509,6 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			$oldgroup = $newgroup;
 		}
 	}
-	//echo "</td></tr>";
-	//echo "</TABLE>"; // table_fields
 	echo "</DIV>";    // table_fields_div
 }
 
@@ -1497,7 +1534,7 @@ function html_query_biotable_tool($db_handle, $qobject, $field, $color, $source,
 		case 'catagoryfield':
 		case 'lookuptable':
 		case 'lookupfield':
-			html_query_select_options($db_handle, $fname, $alias, $qobject);
+			html_query_select_options($db_handle, $fname, $alias, $dtype, $qobject);
 			break;
 			
 		case "rangefield":
@@ -1505,7 +1542,7 @@ function html_query_biotable_tool($db_handle, $qobject, $field, $color, $source,
 			if ($source['id'] <> 23) {
 				# Get min and max of all names
 				$str = 'SELECT MIN("' . $fname . '"), MAX("' . $fname . '")
-					FROM ' . $dbloc;
+					FROM ' . $source['dbloc'];
 				#Get min and max of given names
 				if ($names) $str = $str . " WHERE " . $source['namefield'] . " = ANY($arr)";
 			} else {
@@ -1514,10 +1551,8 @@ function html_query_biotable_tool($db_handle, $qobject, $field, $color, $source,
 					WHERE m.\"TaxonID\" = t.\"TaxonID\"";
 				if ($names) $str = $str . " AND t.binomial = ANY($arr)";
 			}
-	
 			if ($fname == 'StartYear') $str = $str . " AND m.\"StartYear\" <> -9999";
 			if ($fname == 'EndYear') $str = $str . " AND m.\"EndYear\" <> -9999";
-			
 			html_query_select_range($db_handle, $str, $fname, $dbtype, $qobject);
 			break;
 
@@ -2313,6 +2348,7 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_searc
 #=======================================================================================================================
 	
 	function html_query_select_source($sources, $term) {
+		
 		echo "<div id='$term" , "_select_div' style='display: none;'>";
 		echo "<table border='0'>";
 		echo "<tr>";
@@ -2705,7 +2741,7 @@ function html_entangled_bank_sources($db_handle) {
 	echo "<img src='.\image\logo.png' class='query_type_button'/>";
 
 	echo "<td class='blurb' >";
-	echo "<p><a href='.\doc\background.php'>The Entangled Bank Database</a> provides integrated access to a number of 
+	echo "<p><a href='.\doc\about.php'>The Entangled Bank Database</a> provides integrated access to a number of 
 		 <a href='.\doc\datasets.php'>Mammal Datasets</a> (a taxonomy, phylogeny, trait database and range maps) and the 
 		<a href='http://www3.imperial.ac.uk/cpb/research/patternsandprocesses/gpdd'>Global Population Dynamics Database</a> of long-term abundance records.
 		These data may be queried by biological name, tree topology, data set attributes, geography and time

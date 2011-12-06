@@ -92,7 +92,7 @@ $db_handle = eb_connect_pg($config);
 
 if ($db_handle == false) {
 	$stage = 'dbfail';
-	html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
+	html_entangled_bank_header($stage, $eb_path);
 	# FOOTER
 	html_entangled_bank_footer();
 	#CLOSE MAIN DIV

@@ -48,7 +48,7 @@
 use strict;
 use PHP::Session;
 use Switch; 
-use DBI;
+#use DBI;
 use Bio::TreeIO;                # creates Bio::Tree::TreeI0 objects
 use Bio::Tree::TreeI;
 use Bio::Tree::Node;

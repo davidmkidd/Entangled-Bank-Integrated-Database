@@ -60,13 +60,11 @@ function showNumericField(entry) {
 			var cell = new Array();
 			
 			// FIELD NAME
-			
 			cell[0] = document.createElement("td");
 			cell[0].className = 'field_title';
 			cell[0].style.backgroundColor = color;
 			var textNode = document.createTextNode(ftype.alias);
 			cell[0].appendChild(textNode);		
-			
 			
 			// OPERATION
 			var op = document.createElement("select");
@@ -83,7 +81,9 @@ function showNumericField(entry) {
 
 			// VALUE
 			var val = getNumericField(sid, field, 'no');
-			var val_names = getNumericField(sid, field, 'yes');
+			var val_null = getNumericFieldNull(sid, field, 'no');
+			//var val_names = getNumericField(sid, field, 'yes');
+			
 
 			var value = document.createElement("input");
 			value.name = field + "_value";
@@ -95,16 +95,25 @@ function showNumericField(entry) {
 			value.value = input;
 			value.text = input;
 			
+			if (val_null == true) {
+				var nullvals = document.createElement("input");
+				nullvals.name = field + "_null";
+				nullvals.id = field + "_null";
+				nullvals.type = 'checkbox';
+				var textNull = document.createTextNode(' nulls');
+			}
+
+			
 			// LABEL
 			var label = document.createElement("label");
 			var str = "&nbsp;";
-			if (Number(val[0]) != Number(val_names[0])) {
-				str = str + "[" + val_names[0] + "]";
-			}
+			//if (Number(val[0]) !== Number(val_names[0])) {
+			//	str = str + "[" + val_names[0] + "]";
+			//}
 			str = str + val[0] + "&nbsp;-&nbsp;" + val[1];
-			if (Number(val[1]) != Number(val_names[1])) {
-				str = str + "[" + val_names[1] + "]";
-			}
+			//if (Number(val[1]) !== Number(val_names[1])) {
+			//	str = str + "[" + val_names[1] + "]";
+			//}
 
 			label.innerHTML = str;
 			label.id = field + "_label";
@@ -113,6 +122,11 @@ function showNumericField(entry) {
 			cell[1].style.backgroundColor = color;
 			cell[1].appendChild(op);
 			cell[1].appendChild(value);
+			if (textNull) {
+				cell[1].appendChild(textNull);
+				cell[1].appendChild(nullvals);
+			}
+			
 			cell[1].appendChild(label);
 			row.appendChild(cell[0]);
 			row.appendChild(cell[1]);
@@ -179,8 +193,15 @@ function showCatagoryField(entry) {
 			cell[0].className = 'eb'
 			var find = document.createElement('input');
 			find.id = field + "_findval";
-			find.className = 'eb';
+			find.className = 'eb_find';
 			cell[0].appendChild(find);
+			var null_vals = document.createElement('input');
+			null_vals.id = field + "_null";
+			null_vals.type = 'checkbox';
+			null_vals.checked = true;
+			null_vals.title = 'include nulls';
+			cell[0].appendChild(null_vals);
+			
 			
 			cell[1] = document.createElement("td");
 			var findButton = document.createElement('input');
@@ -305,6 +326,39 @@ function showCatagoryField(entry) {
 		
 	}
 
+	
+//--------------------------------------------------------------------------------------------
+
+	function getNumericFieldNull(sid, field, names) {
+		
+		if (!names) names = 'no';
+		if (names != 'yes') names = 'no';
+		
+		//Returns Maximum and Minimum for numeric fields
+		
+		//var findval = document.getElementById(field + '_findval');
+		var ebpath = document.getElementById('eb_path');
+		
+		url = ebpath.value + "api/source_numericfield_null.php?sid=" + sid + 
+		"&field=" + field + "&names=" + names;
+	
+		//alert(url);
+		var request = new XMLHttpRequest();
+		request.open("GET", url , false);
+		request.send(null);
+		
+		//alert(request.status);
+		if (request.status != 200) {
+			alert("Error " + request.status + ": " + request.statusText);
+			return false;
+		} else {
+			var data = request.responseText;
+			var ret = JSON.parse(data);
+			return ret;
+		}
+		
+	}
+	
 //--------------------------------------------------------------------------------------------
 
 	function getFieldType(sid, field) {
@@ -375,11 +429,24 @@ function addSourceFieldValues(field) {
 	items = getSourceFieldValues(field);
 	var field_element = document.getElementById(field);
 	field_element.length = 0;
-	for (i=0; i <= items.length - 1; i++ ) {
-		var objOption = document.createElement("option");
-		objOption.text = items[i];
-		objOption.value = items[i];
-		field_element.add(objOption);
+	// If lookupfield then key-value array, else 
+	//alert(items.length);
+	if (items.length) {
+		//alert("!");
+		for (i=0; i <= items.length - 1; i++ ) {
+			var objOption = document.createElement("option");
+			objOption.text = items[i];
+			objOption.value = items[i];
+			field_element.add(objOption);
+		}
+	} else {
+		//alert("!!");
+        for(var item in items) {
+			var objOption = document.createElement("option");
+			objOption.text = items[item];
+			objOption.value = item;
+			field_element.add(objOption);
+        }
 	}
 	updateInfo(field);
 	cursor_clear();
@@ -396,22 +463,26 @@ function getSourceFieldValues(field) {
 		var ebpath = document.getElementById('eb_path');
 		var sid = document.getElementById('sid').value;
 		var findval = document.getElementById(field + '_findval').value;
+		var nulls = document.getElementById(field + '_null').value;
 		
 		url = ebpath.value + "api/source_catagoryfield_values.php?sid=" + sid + 
 		"&field=" + field + "&query=" + findval;
+		
+		if (nulls == true) url = url + "&null=true";
 	
-		//alert(url);
+		alert(url);
 		var request = new XMLHttpRequest();
 		request.open("GET", url , false);
 		request.send(null);
 		
-		//alert(request.status);
 		if (request.status != 200) {
 			alert("Error " + request.status + ": " + request.statusText);
 			return false;
 		} else {
 			var data = request.responseText;
+			//alert(data);
 			var ret = JSON.parse(data);
+			//alert(ret);
 			return ret;
 		}
 }
