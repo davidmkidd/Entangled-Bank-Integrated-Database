@@ -148,7 +148,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		echo "query: $qstr<br>";
+		//echo "query: $qstr<br>";
 		$res = pg_query($db_handle, $str);
 		$names = pg_fetch_all_columns($res, 0);
 		
@@ -1002,7 +1002,6 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 				$str = "SELECT m.\"MainID\"";
 				$str = $str . " FROM gpdd.main m, gpdd.taxon t";
 				$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
-				$qstr = $str;
 				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 				//if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY($midsarr)";
 				break;
@@ -1056,7 +1055,6 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 				}
 				
 				$str = $str . " AND t.binomial IS NOT NULL";
-				$qstr = $str;
 				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 				//if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
 				break;
@@ -1077,7 +1075,6 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 				$str = $str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
 				$str = $str . " AND ds.\"Availability\" <> 'Restricted'";
 				$str = $str . " AND t.binomial IS NOT NULL";
-				$qstr = $str;
 				if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 				//if ($midsarr) $str = $str . " AND m.\"MainID\" = ANY ($midsarr)";
 					
@@ -1096,14 +1093,13 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 					break;
 				}
 				$str = $str . $str2;
-				$qstr = $qstr . $str2;
 				break;
 			default:
 			break;
 		}   #term
 		
 		//echo "qstr: $qstr<br>";
-		query_add_series_sql($qobject, $qobjects, $qstr);
+		query_add_series_sql($qobject, $qobjects, $str);
 		
 		$op = $qobject['queryoperator'];
 		if ($midsarr) $str = "$str $op SELECT UNNEST($midsarr) as mid";	

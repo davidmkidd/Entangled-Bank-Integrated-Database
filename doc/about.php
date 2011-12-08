@@ -73,6 +73,11 @@ These data may be queried by biological name, tree topology, data set attributes
 <LI>Which South American taxa are descended from the last common ancestor of these genera?</LI>
 </ul>
 
+<h4><a name="work">How does it work?</a></h4>
+<p>
+The EBDB finds taxon names in data sets that meet the selection criteria...
+</p>
+
 <h4><a name="architecture">Architecture</a></h4>
 <p>The EBDB is a <a href="http://www.postgresql.org/">PostgreSQL</a> database which implements a variety of schemas that support various data types.
  Tabular data are stored as relational tables

@@ -145,7 +145,7 @@ if ($stage == 'querydeleteall') {
 	
 # QSET - CREATE NEW QUERY, MANAGE QUERIES OR END QUERYING
 if ($stage == 'qset') 
-	$qobjid = process_qset($qobjid, $qterm, $oldtoken, $newtoken, $lastaction, $lastid);
+	$qobjid = process_new_query($qobjid, $qterm, $oldtoken, $newtoken, $lastaction, $lastid);
 
 # QVERIFY - VERIFY QUERY
 if ($stage == 'qverify') 

@@ -154,7 +154,7 @@
 				}
 			break;
 	}	
-	//echo "$str<br>";
+	echo "$str<br>";
 	$res = pg_query($db_handle, $str);
 	
 	if ($ifield['ebtype'] == 'lookupfield') {

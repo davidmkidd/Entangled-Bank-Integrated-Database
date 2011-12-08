@@ -430,6 +430,7 @@ function addSourceFieldValues(field) {
 	var field_element = document.getElementById(field);
 	field_element.length = 0;
 	// If lookupfield then key-value array, else 
+	//alert("!");
 	//alert(items.length);
 	if (items.length) {
 		//alert("!");

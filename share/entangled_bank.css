@@ -101,6 +101,7 @@
 /*		padding-left: 12px;*/
 		font-size: 130%;
 		font-style: bold;
+		width: 350px;
 	}
 	
 	#info_div {
@@ -114,6 +115,10 @@
 	#ebimage {
 		border: grey 1px solid;
 		margin-bottom: 1px;
+	}
+	
+	textarea#report {
+		width: 570px;
 	}
 	
 	#ebquery {
@@ -169,7 +174,7 @@
 	
 	.eb_select {
 		width: 250px;
-		height: 120px;
+/*		height: 80px;*/
 	}
 	
 	select#select_sources {
@@ -426,11 +431,6 @@
 		align: right;
 	}
 	
-	td.query_header {
-		width: 485px;
-		vertical-align: top;
-		align: right;
-	}
 	
 	td.findval_label {
 		text-align: center;

@@ -42,7 +42,7 @@
 			$str = "SELECT COUNT(*)
 				FROM gpdd.main m, gpdd.taxon t
 				WHERE m.\"TaxonID\" = t.\"TaxonID\"
-				AND m.\"$field\" IS NOT NULL";
+				AND m.\"$field\" IS NULL";
 			if ($arr) $str = $str . " AND t.binomial = ANY($arr)";
 			if ($field == 'StartYear') $str = $str . " AND m.\"StartYear\" > 1500";
 			if ($field == 'EndYear') $str = $str . " AND m.\"EndYear\" > 1500";

@@ -25,7 +25,7 @@ function html_info($db_handle, $oldtoken, $newtoken) {
 	
 	# HEADERS;
 	echo "<tr>";
-	echo "<td class='query_title'>Selection</td>";
+	echo "<td class='query_title'>Session</td>";
 	echo "<td>";
 	
 	# INNER TABLE

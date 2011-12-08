@@ -18,17 +18,18 @@ $stage = html_entangled_bank_header(null, '../');
 <h4>Contents</h4>
 <OL>
 <LI><a href="#what">What does the EBDB do?</a></LI>
-<LI><a href="#start">Select some data sets to query</a></LI>
-<LI><a href="#find"> Find taxa data in data sets</a></LI>
-<LI><a href="#query">Query data sets by</a></LI>
+<LI><a href="#start">Select data to query</a></LI>
+<LI><a href="#main">The EBDB main screen</a></LI>
+<LI><a href="#query">Query by</a></LI>
 <ol>
 <LI><a href="#name">Biological Name</a></LI>
-<LI><a href="#tree">Taxonomy or Phylogeny</a></LI>
-<LI><a href="#tree">Attribute Values</a></LI>
+<LI><a href="#tree">Tree (Taxonomy or Phylogeny)</a></LI>
+<LI><a href="#attribute">Attribute Value</a></LI>
 <LI><a href="#query">Geography</a></LI>
 <LI><a href="#query">Time</a></LI>
 </ol>
 <LI><a href="#output">Return data</a></LI>
+<LI><a href="#examples" alt='Entangled Bank Examples'>Examples</a></LI>
 <LI><a href="#browser">Browser compatability</a></LI>
 </OL>
 
@@ -37,75 +38,173 @@ $stage = html_entangled_bank_header(null, '../');
 The Entangled Bank Database (EBDB) supports the querying, subsetting and extraction of data sets by biological name, tree topology,
 attribute values, geography and time through a Web-based interface.
 It is currenlty populated with a number of <a href="./doc/data.php#mammal">datasets for all mammals</a> 
-and the <a href="./doc/data.php#gpdd">Global Population Dynamics Database</a> of long-term abundance records. 
-Some <a href="./doc/examples.php" alt='Entangled Bank Examples'>use examples</a> are provided.
+and the <a href="./doc/data.php#gpdd">Global Population Dynamics Database</a> of long-term abundance records.
 </p>
 
 
-<h3><a name="start">Select some data sets to query</a></h3>
+<h3><a name="start">Select Data</a></h3>
 <p>
-The first action beginning an Entangled Bank session you must select which data sources you are interested in, i.e. that you would like query or return data from. 
-Selecting a subset of sources reduces the interface complexity and speed up actions that report information about your queries.
+The first step in using the EBDB is select the data sets <a href='data.php'>data sets</a> you wish to query and return data from. 
+Only selecting the data of interest increases speed and reduces interface complexity.
+</p>
+<Center>
+<a href='./image/start.gif'><IMAGE src='./image/start.gif' width='600px'/></a>
+<p class='caption'>Figure 1. Start Screen</p>
+</Center>
+
+
+<h3><a name="main">The Main Screen</a></h3>
+<p>
+You control your session from the EBDB main screen. 
+The <a href='#find'>FIND</a> tool provides a quick way of discovering which data sets a taxon is in. 
+The <a href='#session'>SESSION</a> bar provides information on your current selection,
+ initially all names and GPDD time series in the EBDB.
+ The <a href='#query'>QUERIES</a> bar is present once a query has been run; it shows your query chain. 
+ Click to edit queries.
+ The <a href='#query'>ADD QUERY</a> buttons open query dialogs.
+ The <a href='#output'>OUTPUTS<a> bar is visible once an output has been added. Click to edit outputs.
+ The <a href='#output'>ADD OUTPUT<a> tool creates a new data set output. 
+</p>
+<p>
+TOOL TIPS provide tool-specific information. Reveal by hovering over page elements.
+</p>
+<Center>
+<a href='./image/main.gif'><IMAGE src='./image/main.gif' width='600px'/></a>
+<a name="fig2"><p class='caption'>Figure 2. Main Screen</p></a>
+</Center>
+
+<a name='find'></a><h3 >Find</h3>
+<p>
+'Find' simply shows presence or absence of names in data sets and does not effect queries.
+Type a comma-seperated list into the input, then press 'find' to discover which names are in which data sets.
+Find searches are case-sensitive and do not support wildcards.
+</p>
+<Center>
+<a href='./image/find.gif'><IMAGE src='./image/find.gif' width='600px'/></a>
+<p class='caption'>Figure 3. Find</p>
+</Center>
+<p>
+Find results are displayed on the main screen as a table with one line for each taxon and columns for each data set.
+A green dot is displayed where the taxon is found in a data set, otherwise a red dot is displayed. 
+A tool tip gives column data set name.
 </p>
 
 
-<h3><a name="cart">3. Shopping Cart</a></h3>
+<h3><a name="query">Query</a></h3>
 <p>
-The shopping cart contains information on your Entangled Bank session including,
-<OL>
-<LI>The number of sources being queried, with an option to view the number of selected names in each source.</LI>
-<LI>The number of bionames selected, with options to view (i) a simple list the names,
- and (ii) a table showing which names are in which sources with out-links to Wikipedia.
- Note: Wikipedia links are based on the name, which in the case of nodes in the phylogeny may not exist or may link to a completely unconnected wikipedia topic.</LI>
-<LI>The number of queries, with options to view, (i) a table showing which names are in each query (with Wikipedia out-links), and (ii) query SQL</LI>
-<LI>The number of outputs and a a decription of each output.</LI>
-</OL>
+Data may be queried by <a href="#names">biological name</a>, <a href="#tree">tree topology</a>,
+ <a href="#attribute">attributes</a>, <a href="#geography">geography</a> or <a href='#time'>time</a>.
+ Name, geography and time queries may be applied to one or more data sets, 
+ attribute and tree queries operate on single data sets.
+ Queries connected by AND, OR and MINUS interquery operators form the 'query chain' that is displyed as the query bar. 
+ Queries are displayed with the same symbols as the add query buttons. 
+ Interquery operators are displayed as Venn diagrams diagram and tool tips (<a href='#fig2'>Fig 2</a>).
 </p>
-
-<h3><a name="query">4. Query</a></h3>
 <p>
-The Entangled Bank interface allows users to create a sequential set of queries which return bionames that match the query crieria.
- Queries are connected by AND, OR and MINUS inter-query operators.
- Four types of query are supprted:
-<OL>
-<LI><a href="#query_names"> Names queries</a> that select bionames across multiple sources.</LI>
-<LI><a href="#query_table"> Tabular queries</a> that select bionames from field values in a flat aspatial or spatial table.</LI>
-<LI><a href="#query_spatial"> Geographic queries</a> that select bionames across multiple spatial sources.</LI>
-<LI><a href="#query_tree"> Tree queries</a> that select bionames from a tree source.</LI></LI>
-</OL>
-All queries have a name which will be truncated at the first white space.
-The default name is a numerical increment on the query type, 
+Queries are intiated by selecting one of the query types.
+ Tree and attribute queries present a dialog to select a data set to query.
+</p>
+<Center>
+<a href='./image/single-source.gif'><IMAGE src='./image/single-source.gif' width='500px'/></a>
+<p class='caption'>Figure 4. Single source prompt</p>
+</Center>
+ 
+<p>
+In multi-source queries (names, geography and time) data set selection is part of the query dialog.
+Queries must be applied to at least one dataset. 
+N SOURCES set a criteria for how many datasets each names must be in. 
+In the below figure only names present in all three selected datasets are returned.
+This figure also shows <a href='#query_name'>QUERY NAME</a>, interquery operator dialog (which must be set for all but the first query in the chain) and the
+ <a href='#query_buttons'>CANCEL</a>, <a href='#query_buttons'>DELETE</a> and <a href='#query_buttons'>RUN ></a> buttons.
+</p>
+<p>
+Once a query has been run QUERY SQL is added to the query dialog. 
+By default the SQL that returns names for the selected query is displayed.
+This can be changed to SQL that returns GPDD series identifiers or, 
+ if more than one query exists, the SQL for the entire query chain <a href='fig6'>(fig 6)</a>.
+</p>
+<Center>
+<a href='./image/multi-source.gif'><IMAGE src='./image/multi-source.gif' width='600px'/></a>
+<p class='caption'>Figure 5. Multi-source prompt for a names query</p>
+</Center>
+
+<p>
+<a name='query_name'></a>All queries have a name. Names must not include white space.
+The default is a numerical increment on the query type, 
 i.e. the first bionames will be 'bionames1' and the second 'bionames2' irrespective of whether the first name was changed.
 Query names do not have to be unique as they have a unique internal reference; however using the same name is not recommended.
 </p>
-
-<h4><a name="query_names">4.1 Name Query</a></h4>
 <p>
-Names queries search for bionames across one or more sources. 
-Having selected the sources to seach across, the names query interface is displayed.
-Bionames are entered one per line in the text area, alternatively check 'All names' to search for all bionames in sources.
- 'All names' overrides any entered names.
-</p>
-<p>
-Example names list:
-</p>
-<p>
-Mus musculus<br>
-Homo sapiens<br>
-Glis glis<br>
-Pongo pongo
-</p>
-<p>
-'Number of sources names must be in' removes bionames not found in at least that number of sources. 
-The default is the number of sources and thus bionames must be in all query sources.
-</p>
-<p>
-Queries that involve trees can be constrained to return tip or internal names only.
+<a name='query_buttons'></a>Unsurprisinly, 'Run >' runs a query. 'Delete' deletes the query. 
+'Cancel' returns to the main screen from an existing query edit. No changes are saved following a cancel. 
+To implement changes to a query run the query.
 </p>
 
-<h4><a name="query_table">4.2 Tabular Query</a></h4>
+<h4><a name="names">Biological Name</a></h4>
 <p>
-Tabular queries select bionames using the values of variables in a flat or spatial table.
+Names queries search for names across one or more data sets. 
+Names may be found with the FILTER tool or may be entered as one per line to the text box.
+FIND performs an 'case-sensitive double-wild card' search on input text given the N SERIES criterion, 
+thus in Fig 6. the find on 'Mus' returns all names containing 'Mus' found in all five datasets.
+Alternatively, checking 'All names' will return all names that match the name-dataset criteria.
+'All names' overrides any entered names.
+</p>
+<center>
+<a name="fig6">
+<a href='./image/names.gif'><IMAGE src='./image/names.gif' width='600px'/></a>
+<p class='caption'>Figure 6. Names query</p>
+</center>
+</a>
+<p>
+Run names queries include a taxon name REPORT and the QUERY SQL.
+</p>
+
+
+<h4><a name="tree">Tree</a></h4>
+<p>
+Tree queries select bionames from a single phylogeny or taxonomy dataset. 
+Phylogeny and taxonmy queries only differ in their FILTER options.
+</p>
+<p>
+Four tree OPERATORS are supported:
+</p>
+<table border='1'>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>Most Recent Common Ancestor Subtree (default)</td>
+<td>Returns all names in the subtree defined by the most recent common ancestor of the selected names</td>
+</tr>
+<tr>
+<td>Most Recent Common Ancestor</td>
+<td>Returns the name of the most recent common ancestor of the selected names</td>
+</tr>
+<tr>
+<td>Selected</td>
+<td>Returns selected names only</td>
+</tr>
+<tr>
+<td>All</td>
+<td>Returns all names in the tree. Ignores any selected names.</td>
+</tr>
+</table>
+<p>
+FILTER SCOPE controls whether FILTER classes are applied to both Find and Query results, or just to Find.
+FILTER classes control the taxonomic level of names returned by Find and Query. Checked classes are returned.
+Phylogeny classes are 'internal' and 'tip' nodes.
+FIND performs an 'case-sensitive double-wild card' search on input text given the FILTER criteria.
+</p>
+<center>
+<a name="fig7">
+<a href='./image/taxonomy.gif'><IMAGE src='./image/taxonomy.gif' width='600px'/></a>
+<p class='caption'>Figure 7. Taxonomy query</p>
+</center>
+
+<h4><a name="attribute">Attribute Value</a></h4>
+<p>
+Attribute queries select names from the values of variables in a flat or spatial table.
 Users select which fields they wish to query from a list and are then presented with options for each selected field.
 Field containing discrete values are presented as a set of check boxs, while minimum and and maximum ranges can be set for continious value fields.
 To select names between two disjunct ranges, e.g. (between 10 and 100) and (between 200 and 300) two seperate queries must be created linked by an 'OR'.
@@ -119,14 +218,7 @@ Spatial queries select bionames from one or more spatial sources using a boundin
 To query an OVERLAP box that crosses -180/+180 longitude, enter the larger longitude in West and the smaller in East.
 </p>
 
-<h4><a name="query_tree">4.4 Tree Query</a></h4>
-<p>
-Tree queries select bionames from a single tree source. 
-Phylogenies and taxonomies are examples of tree sources.
-All bionames in a tree can be selected, or a subset returned from a free text input, or selection from a list. 
-Input or selected bionames may be processed individually or used to obtain all bionames with the least common ancestor subtree they define.
-Queries can be constrained to return tip or internal names only.
-</p>
+
 
 <h3><a name="query_manage">5. Query Management</a></h3>
 <p>

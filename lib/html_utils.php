@@ -838,7 +838,7 @@ function html_query_join($formname, $qobj) {
 
 function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 
-	//print_r($qobject);
+	//print_r($qobject['sql_series_query']);
 	//echo "<br>";
 	
 	//echo '<script src="./scripts/names_utils.js" type="text/javascript"></script>';
@@ -846,6 +846,7 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	//html_query_header($qobject, $sources);
 	//html_query_name($qobject);
 	
+	# ALL NAMES AND FIND
 	echo "<table border = '0'>";
 	
 	#ALL NAMES
@@ -854,25 +855,24 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	# FIND
 	$t = "Case sensitive search for names containing text. Leave blank to return all names.";
 	echo "<tr title='$t'>";
-	echo "<td class='query_title' >Find</td>";
+	echo "<td class='query_title'>Find</td>";
 	echo "<td eb_select>";
 	echo "<INPUT type='text' class='eb' $disabled id='findval' name='findval' value=''>";
-	echo "&nbsp;<BUTTON type='button' $disabled id='findbtn' class='button-standard' name='findbtn' onClick='findSourceNames()' >Find</BUTTON><br>";
+	echo "&nbsp;<BUTTON type='button' $disabled id='findbtn' class='button-standard' 
+		name='findbtn' onClick='findSourceNames()'>Find</BUTTON><br>";
 	echo "</td>";
-	echo "<td><label id='findval_label' for='findval'><label></td>";
-	
-	# INPUT TAXA LABEL
-	//echo "<td id='names_in_query_label' class='eb' >Names in query</td>";
+	echo "<td class='eb'><label id='findval_label' for='findval'><label></td>";
 	echo "</tr>";
+	echo "</table>";
 
-	echo "<tr>";
+	//echo "<tr>";
 	# INNER TABLE
 	echo "<table border='0'>";
 	echo "<tr>";
 	echo "<td class='query_title'>Names</td>";
 	echo "<td>";
 	$t ='Names found';
-	echo "<SELECT id='found_names' name='found_names' $disabled MULTIPLE class='eb_select' title='$t'></SELECT>";
+	echo "<SELECT id='found_names' name='found_names' $disabled size='6' MULTIPLE class='eb_select' title='$t'></SELECT>";
 	echo "</td>";
 	
 	# Add Buttons
@@ -887,49 +887,56 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	$title = "One name on each line or select all names.";
 	
 	# Get valid names and errors
-	if ($qobject['taxa']) $taxa = $qobject['taxa'];
-	if ($qobject['invalid_taxa']) $invalid = $qobject['invalid_taxa'];
+	//if ($qobject['taxa']) $taxa = $qobject['taxa'];
+	//if ($qobject['invalid_taxa']) $invalid = $qobject['invalid_taxa'];
+	if ($qobject['ntaxa']) $ntaxa = $qobject['ntaxa'];
+	
 	# Taxa text area
-	$t = "Enter one name on each line. Type directtly into box or find and copy across.";
+	$t = "Enter one name on each line. Type directly into box or find and copy across.";
 	echo "<td>";
-	if (empty($taxa)) {
-		echo "<textarea id='taxa' $disabled name='taxa' class='eb_select' title='$t' wrap='soft'></textarea>";
+	if (empty($ntaxa)) {
+		echo "<textarea id='taxa' $disabled name='taxa' class='eb_select' rows='6' title='$t' wrap='soft'></textarea>";
 	} else {
 		$mystr = "";
-		foreach ($taxa as $name) $mystr = $mystr . "$name\n";
+		foreach ($ntaxa as $key => $value) $mystr = $mystr . "$key\n";
 		//echo "<td>";
-		echo "<textarea id='taxa' $disabled name='taxa' class='eb_select' title='$t' wrap='soft'>" . chop($mystr, "\n") . "</textarea>";
+		echo "<textarea id='taxa' $disabled name='taxa' class='eb_select' rows='6' title='$t' wrap='soft'>" . chop($mystr, "\n") . "</textarea>";
 		echo "</td>";
 	}
 	echo "</td>";
 	echo "</tr>";
-	# CLOSE INNER TABLE
 	echo "</table>";
-	echo "</tr>";
 	
-	if ($invalid and !empty($invalid)) {
-		$t = "Unrecognised names, edit or delete.";
-		#write list of invalidnames
-		echo "<tr>";
-		echo "<td class='query_title'>Unrecognised Names</td>";
-		echo "<td class='eb_select'></td>";
-		$mystr = "";
-		foreach ($invalid as $name) {
-			$mystr = $mystr . "$name\n";
+	# REPORT
+	if ($ntaxa and !empty($ntaxa)) {
+		$n_taxa = array();
+		foreach ($ntaxa as $key => $value) {
+			if (!array_key_exists($value, $n_taxa)) {
+				$n_taxa[$value] = $key;
+			} else {
+				$n_taxa[$value] = $n_taxa[$value] . ", $key";
+			}
 		}
-		echo "<td></td>";
+		ksort($n_taxa);
+		$mystr = '';
+		foreach($n_taxa as $key => $value) 
+			$mystr = $mystr . "In $key datasets: $value\n";
+		
+		$t = "Number of datasets taxa are in";
+		echo "<table>";
+		echo "<tr>";
+		echo "<td class='query_title'>Report</td>";
 		echo "<td>";
-		echo "<textarea id='invalid_taxa' name='invalid_taxa' class='eb_select' title='$t' wrap='soft' style='color:#FF0000'>"
-			. chop($mystr, "\n") . "</textarea>";
+		$s = count($n_taxa);
+		if ($s > 6) $s = 6;
+		echo "<textarea id='report' $disabled name='report' class='query_report' rows='$s' title='$t' wrap='soft'>" . chop($mystr, "\n") . "</textarea>";
 		echo "</td>";
 		echo "</tr>";
-	}
-	
-	# CLOSE OUTER TABLE
-	echo "</table>";	
+		echo "</table>";
+	}	
 
-	unset($qobject['taxa']);
-	unset($qobject['invalid_taxa']);
+	//unset($qobject['taxa']);
+	//unset($qobject['invalid_taxa']);
 }
 	
 
@@ -1919,23 +1926,22 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "<table border='0'>";
 		echo "<tr>";
 		echo "<td class='query_title'>";
-		//echo "<center>";
 		html_query_image($qobject['term'], 'non-active', null, 'query', false);
-		//echo "</center>";
 		echo "</td>";
 		echo "<td id='query_header_title'>", ucfirst($qobject['term']), " query", "</td>";
+		html_query_interoperator($qobject, $qobjects);
+		html_query_buttons($qobject);
 		echo "</tr>";
 		echo "</table>";
-
 		echo "<div id='query_header_div'>";
 		echo "<table id='header_outer' border='0'>";
 		echo "<tr>";
-		echo "<td id='query_header1'>";
+		echo "<td >";
 		html_query_header1($qobject, $qobjects, $sources);
 		echo "</td>";
-		echo "<td style='vertical-align: top;'>";
-		html_query_header2($qobject, $qobjects);
-		echo "</td>";
+		//echo "<td style='vertical-align: top;'>";
+		//html_query_header2($qobject, $qobjects);
+		//echo "</td>";
 		echo "</tr>";
 		echo "</table>";
 		echo "</div>";
@@ -1956,7 +1962,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		$title = "Query name";
 		
 		echo "<td class='query_title' title='$title'>Name</td>";
-		echo "<td class='eb_plus'>";
+		echo "<td>";
 		echo "<INPUT type='text' id='objname' name='objname' class='eb_plus' value='$objname' onChange='checkObjName()'>";
 		echo "</td>";
 		echo "</tr>";
@@ -2010,18 +2016,6 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "</table>";
 	}
 	
-
-#=================================================================================================================
-
-	function html_query_header2 ($qobject, $qobjects) {
-		
-		echo "<table border='0'>";
-		# INTERQUERY
-		html_query_interoperator($qobject, $qobjects);
-		# BUTTONS
-		html_query_buttons($qobject);
-		echo "</table>";
-	}
 	
 #=================================================================================================================
 	
@@ -2954,7 +2948,7 @@ function html_query_tree_operator($mode = 'subtree') {
 	
 	echo "<td class='eb'>";
 	$vals = array('subtree','lca','selected','all');			
-	$label = array('Least Common Ancestor Subtree','Least Common Ancestor','Selected','All');
+	$label = array('Most Recent Common Ancestor Subtree','Most Recent Common Ancestor','Selected','All');
 	echo "<SELECT id='subtree' name='subtree' class='eb' onChange='operatorChange()'>";
 	$i = 0;
 	foreach ($vals as $val) {
