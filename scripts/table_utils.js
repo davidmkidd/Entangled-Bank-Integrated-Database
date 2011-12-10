@@ -61,7 +61,7 @@ function showNumericField(entry) {
 			
 			// FIELD NAME
 			cell[0] = document.createElement("td");
-			cell[0].className = 'field_title';
+			//cell[0].className = 'field_title';
 			cell[0].style.backgroundColor = color;
 			var textNode = document.createTextNode(ftype.alias);
 			cell[0].appendChild(textNode);		
@@ -84,10 +84,10 @@ function showNumericField(entry) {
 			var val_null = getNumericFieldNull(sid, field, 'no');
 			//var val_names = getNumericField(sid, field, 'yes');
 			
-
 			var value = document.createElement("input");
 			value.name = field + "_value";
 			value.id = field + "_value";
+			value.className = 'eb_range_input';
 			var input = (Number(val[0]) + Number(val[1])) /2;
 			if (ftype.ftype == 'integer')  {
 				input = Math.round(input);
@@ -100,36 +100,39 @@ function showNumericField(entry) {
 				nullvals.name = field + "_null";
 				nullvals.id = field + "_null";
 				nullvals.type = 'checkbox';
+				nullvals.title = 'Check to return with NULL values';
 				var textNull = document.createTextNode(' nulls');
 			}
 
-			
-			// LABEL
-			var label = document.createElement("label");
-			var str = "&nbsp;";
-			//if (Number(val[0]) !== Number(val_names[0])) {
-			//	str = str + "[" + val_names[0] + "]";
-			//}
-			str = str + val[0] + "&nbsp;-&nbsp;" + val[1];
-			//if (Number(val[1]) !== Number(val_names[1])) {
-			//	str = str + "[" + val_names[1] + "]";
-			//}
-
-			label.innerHTML = str;
-			label.id = field + "_label";
-			
 			cell[1] = document.createElement("td");	
 			cell[1].style.backgroundColor = color;
+			cell[1].className = 'query_field_values';
 			cell[1].appendChild(op);
 			cell[1].appendChild(value);
+			
 			if (textNull) {
-				cell[1].appendChild(textNull);
+				//cell[1].appendChild(textNull);
 				cell[1].appendChild(nullvals);
 			}
 			
-			cell[1].appendChild(label);
+			// LABEL
+			cell[2] = document.createElement("td");		
+			var label = document.createElement("label");
+			//if (Number(val[0]) !== Number(val_names[0])) {
+			//	str = str + "[" + val_names[0] + "]";
+			//}
+			//if (Number(val[1]) !== Number(val_names[1])) {
+			//	str = str + "[" + val_names[1] + "]";
+			//}
+			
+			var str = 'From ' + val[0] + "&nbsp;to&nbsp;" + val[1];
+			label.innerHTML = str;
+			label.id = field + "_label";
+			cell[2].appendChild(label);
+			
 			row.appendChild(cell[0]);
 			row.appendChild(cell[1]);
+			row.appendChild(cell[2]);
 			ftable.appendChild(row);
 			div.appendChild(ftable);
 		}
@@ -148,6 +151,8 @@ function showNumericField(entry) {
 
 function showCatagoryField(entry) {
 		
+	// ADDS CATAGORY FIELD DIALOG
+	
 	var field = entry.name;
 	field = field.substring(0,field.length - 6);
 	var div = document.getElementById(field + "_div");
@@ -195,11 +200,22 @@ function showCatagoryField(entry) {
 			find.id = field + "_findval";
 			find.className = 'eb_find';
 			cell[0].appendChild(find);
+			
 			var null_vals = document.createElement('input');
 			null_vals.id = field + "_null";
 			null_vals.type = 'checkbox';
-			null_vals.checked = true;
+			
 			null_vals.title = 'include nulls';
+			var val_null = getCatagoryFieldNull(sid, field, 'no');
+			//alert(val_null);
+			if (val_null == 't') {
+				null_vals.checked = true;
+				null_vals.disabled = false;
+			} else {
+				null_vals.checked = false;
+				null_vals.disabled = true;			
+			}
+
 			cell[0].appendChild(null_vals);
 			
 			
@@ -207,9 +223,9 @@ function showCatagoryField(entry) {
 			var findButton = document.createElement('input');
 			findButton.id = field + "_findbtn";
 			findButton.type = 'button';
-			findButton.value = 'Filter';
+			findButton.value = 'Find';
 			findButton.className = 'button-standard';
-			findButton.onclick = function(){addSourceFieldValues(field);}; 
+			findButton.onclick = function(){addCatagoryFieldValues(field);}; 
 			cell[1].appendChild(findButton);
 
 			cell[2] = document.createElement("td");
@@ -422,11 +438,11 @@ function showCatagoryField(entry) {
 //--------------------------------------------------------------------------------------------
 
 
-function addSourceFieldValues(field) {
+function addCatagoryFieldValues(field) {
 	
 	// ADDS FILTER RESULTS
-	cursor_wait();
-	items = getSourceFieldValues(field);
+	document.body.style.cursor = 'wait';
+	items = getCatagoryFieldValues(field);
 	var field_element = document.getElementById(field);
 	field_element.length = 0;
 	// If lookupfield then key-value array, else 
@@ -441,37 +457,75 @@ function addSourceFieldValues(field) {
 			field_element.add(objOption);
 		}
 	} else {
-		//alert("!!");
+		//
         for(var item in items) {
 			var objOption = document.createElement("option");
+			//alert(item + " : " + items[item]);
+			if (!items[item]) items[item] = 'NULL';
 			objOption.text = items[item];
 			objOption.value = item;
 			field_element.add(objOption);
         }
 	}
 	updateInfo(field);
-	cursor_clear();
+	document.body.style.cursor = 'default';
 	return;
 	
 }
 
 //--------------------------------------------------------------------------------------------
 
-function getSourceFieldValues(field) {
+
+function getCatagoryFieldNull(sid, field, names) {
+	
+	if (!names) names = 'no';
+	if (names != 'yes') names = 'no';
+	
+	// RETURNS TRUE IF NULLS IN FIELD ELSE FALSE
+	
+	//var findval = document.getElementById(field + '_findval');
+	var ebpath = document.getElementById('eb_path');
+	
+	url = ebpath.value + "api/source_catagoryfield_null.php?sid=" + sid + 
+	"&field=" + field + "&names=" + names;
+
+	//alert(url);
+	var request = new XMLHttpRequest();
+	request.open("GET", url , false);
+	request.send(null);
+	
+	//alert(request.status);
+	if (request.status != 200) {
+		alert("Error " + request.status + ": " + request.statusText);
+		return false;
+	} else {
+		var data = request.responseText;
+		var ret = JSON.parse(data);
+		return ret;
+	}
+	
+}
+//--------------------------------------------------------------------------------------------
+
+function getCatagoryFieldValues(field) {
 	
 		//alert(field);
 		//RETURNS DISTINCT NAMES IN A FIELD
 		var ebpath = document.getElementById('eb_path');
 		var sid = document.getElementById('sid').value;
 		var findval = document.getElementById(field + '_findval').value;
-		var nulls = document.getElementById(field + '_null').value;
-		
+		var nulls = document.getElementById(field + '_null').checked;
+
 		url = ebpath.value + "api/source_catagoryfield_values.php?sid=" + sid + 
 		"&field=" + field + "&query=" + findval;
 		
-		if (nulls == true) url = url + "&null=true";
-	
-		alert(url);
+		if (nulls) {
+			url = url + "&null=y";
+		} else {
+			url = url + "&null=n";
+		}
+		//alert(url);
+		
 		var request = new XMLHttpRequest();
 		request.open("GET", url , false);
 		request.send(null);

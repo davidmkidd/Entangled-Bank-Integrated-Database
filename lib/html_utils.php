@@ -197,28 +197,27 @@ function html_obj_name($obj) {
 		$term = $output['term'];
 		$id = $output['id'];
 		$status = $output['status'];
-		
-		//print_r($output);
-		//echo " --- $id<br>";
-		
-		echo "<td id='output_buttons' class='output_buttons' align='right'>";
-		# CANCEL
-		if ($status !== 'new') echo "<input type='button' name='cancel' class='cancel' value='Cancel' onClick='cancelOutput(\"$id\")'/>";
-		
-		# DELETE
+
+		# CANCEL & DELETE
+		echo "<td class='buttons'>";
+		if ($status !== 'new') {
+			echo "<input type='button' name='cancel' class='cancel' value='Cancel' onClick='cancelOutput(\"$id\")'/><br>";
+		} else {
+			echo "<input type='button' name='cancel' class='cancel' disabled='disabled' value='Cancel' onClick='cancelOutput(\"$id\")'/><br>";
+		}
 		echo "<input type='button' name='delete' class='delete' value='Delete' onClick='deleteOutput(\"$id\")'/>";
+		echo "</td>";
 		
 		# OK
+		echo "<td class='buttons'>";
 		switch ($term) {
 			case 'biotable' :
-				echo "<input id='submit-button' type='submit' class='button-standard' onClick='addBiotableOutput(\"$id\")' value='OK' />";
+				echo "<input id='submit-button' type='submit' class='query_submit' onClick='addBiotableOutput(\"$id\")' value='OK' />";
 				break;
 			default:
-				echo "<input id='submit-button' type='submit' class='button-standard' onClick='addOutput(\"$id\")' value='OK' />";
+				echo "<input id='submit-button' type='submit' class='query_submit' onClick='addOutput(\"$id\")' value='OK' />";
 				break;
 		}
-		
-
 		echo "</td>";
 	}
 #=================================================================================================================
@@ -560,11 +559,11 @@ function html_query_sql($qobject) {
 		echo "<td class='query_title'>SQL</td>";
 		echo "<td>";
 		$str = $qobject['sql_names_query'];
-		echo "<textarea id='sqltext' class='query_sql' $disabled>$str</textarea>";
+		echo "<textarea id='sqltext' class='query_sql' readonly='readonly'>$str</textarea>";
 		echo "</td></tr>";
 		
 		echo "<tr><td class='query_title'></td>";
-		echo "<td class='eb'><SELECT id='sql' class='eb' $disabled onChange='sqlDisplay()'>";
+		echo "<td class='eb'><SELECT id='sql' class='eb' onChange='sqlDisplay()'>";
 		if ($qobject['sql_names_query']) echo "<OPTION value='sql_names_query'>Names Query SQL</OPTION>";
 		if ($qobject['sql_series_query']) echo "<OPTION value='sql_series_query'>GPDD Query SQL</OPTION>";
 		if ($qobject['sql_names_queries']) echo "<OPTION value='sql_names_queries'>Names Queries SQL</OPTION>";
@@ -678,7 +677,7 @@ function html_query_spatial_operator ($s_operator) {
 	echo "<table>";
 	echo "<tr>";
 	$title='Point and line queries are ignored by \'Within\'';
-	echo "<td class='query_title' title='$title'>Spatial Operator</td>";
+	echo "<td class='query_title' title='$title'>Operator</td>";
 	
 	echo "<td>";
 	echo "<select name='s_operator' class='eb'>";
@@ -1038,29 +1037,30 @@ function html_query_groupfield ($db_handle, $qobject, $names){
 		echo "<OPTION value='$op' $selected>$op</OPTION>";
 	}
 	echo "</SELECT>";
-	
 
 	# N SERIES IN SELECT SET
-	$str = "SELECT MAX(n) FROM (
+	## CHECK !!!##
+	$str = "SELECT MIN(n), MAX(n) FROM (
 		 SELECT t.binomial, COUNT(*) AS n
 		 FROM gpdd.main m,
-		 gpdd.taxon t
-		 WHERE m.\"TaxonID\" = t.\"TaxonID\"
-		 AND t.binomial IS NOT NULL";
-	if($names) {
+		 gpdd.taxon t,
+		 gpdd.datasource ds
+		 WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+	$str = $str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
+	$str = $str . " AND ds.\"Availability\" <> 'Restricted'";
+	if ($names) {
 		$taxa_array = array_to_postgresql($names, 'text');
 		$str = $str . " AND t.binomial = ANY($taxa_array)";
 	}
 	$str = $str . " GROUP BY t.binomial) AS myquery";
-	##echo $str;
+	//echo $str;
 	$result = pg_query($db_handle,$str);
 	$row = pg_fetch_row($result);
-	$ns = $row[0];
-	If (!$n) $n = $ns;
 
-	
-	# N SERIES
-	echo "<SELECT id='nseries_value' name='nseries_value'>";
+	# N SERIES	
+	//$ns = $row[0];
+	//If (!$n) $n = $ns;
+/*	echo "<SELECT id='nseries_value' name='nseries_value'>";
 	for ($i = 1; $i <= $ns; $i++) {
 		if ($i == $n) {
 			$selected = ' SELECTED';
@@ -1069,7 +1069,10 @@ function html_query_groupfield ($db_handle, $qobject, $names){
 		}
 		echo "<OPTION value=$i $selected>$i</OPTION>";
 	}
-	echo "</SELECT>";
+	echo "</SELECT>";*/
+	echo "<INPUT id='nseries_value' name='nseries_value' class='eb_range_input' value='$n'/>";
+	
+	echo " from $row[0] to $row[1]";
 	
 }
 
@@ -1173,11 +1176,19 @@ function html_query_operator($qobject) {
 		$fnull = $fname . "_null";
 	
 		echo "<tr>";
-		echo "<td class='field_title'>$fname</td>";
-		echo "<td>";
+		echo "<td>$fname</td>";
+		echo "<td class='query_field_values'>";
+		
+		# NULLS?
+		if ($null) {
+			echo "<INPUT type='checkbox' value'$null'";
+			if ($null == true) echo " checked=checked ";
+			echo " />";
+		}		
+		
 		# OPERATOR
-		$oparr =array(">",">=","=","<","<=");
-		echo "<SELECT id='$fop' name='$fop' $disabled>";
+		$oparr = array(">",">=","=","<","<=");
+		echo "&nbsp;&nbsp;<SELECT id='$fop' name='$fop' $disabled>";
 		foreach ($oparr as $op) echo "<OPTION value='$op'>$op</OPTION>";
 		echo "</ SELECT>";
 		# VALUE
@@ -1187,17 +1198,13 @@ function html_query_operator($qobject) {
 		if (substr($dbtype, 0, 3) == 'int') $val = intval($val);
 		
 		# ELEMENTS
-		echo "<INPUT type='text' name='$fval' id='$fval' class='eb_range_input' $disabled size=8 value='$val' onchange='validateRangeField(\"$fval\")'>";
+		echo "&nbsp;&nbsp;<INPUT type='text' name='$fval' id='$fval' class='eb_range_input' $disabled size=8 value='$val' onchange='validateRangeField(\"$fval\")'>";
 		
-		# NULLS?
-		if ($null) {
-			echo "<INPUT type='checkbox' value'$null'";
-			if ($null == true) echo " checked=checked ";
-			echo " />";
-		}
+
 		
-		$t = 'Range of values in database';
-		echo "<LABEL for='$fval' title='$t'>&nbsp;$row[0] - $row[1]</ LABEL>";
+		$t = 'Check to return with NULL values';
+		echo "</td><td>";
+		echo "<LABEL for='$fval' title='$t'>From &nbsp;$row[0] to $row[1]</ LABEL>";
 		echo "</td>";
 		echo "</tr>";
 	}
@@ -1308,12 +1315,13 @@ function html_query_sources ($qobject, $sources) {
 	$qsources = $qobject['sources'];
 	$form_id = 'qsources';
 	$formname = "qsources[]";
-	
+	//print_r($qobject);
+	//echo "<br>";
 	# SOURCES LIST
 	$first = true;
-	$disabled = '';
-	if (count($sources) == 1) $disabled = "disabled='disabled'";
 	
+	if (!$qsources || count($qsources) == 1) $disabled = "disabled='disabled'";
+	//echo "$disabled<br>";
 	foreach ($sources as $source) {
 	
 		$sterm = $source['term'];
@@ -1324,19 +1332,19 @@ function html_query_sources ($qobject, $sources) {
 			case ($qterm == 'biogeographic' && $sterm == 'biogeographic'):
 				if (!$qsources) {
 					if ($first) {
-						echo "<input type=checkbox CHECKED name=$formname id=$form_id value='"
+						echo "<input type=checkbox $disabled CHECKED name=$formname id=$form_id value='"
 							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
 							$first = false;
 						} else {
-						echo "<input type=checkbox CHECKED name=$formname id=$form_id value='"
+						echo "<input type=checkbox $disabled CHECKED name=$formname id=$form_id value='"
 							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
 						}
 					} else {
 					if (in_array($source['id'], $qsources)) {
-						echo "<input type=checkbox CHECKED name=$formname id=$form_id value='"
+						echo "<input type=checkbox $disabled CHECKED name=$formname id=$form_id value='"
 							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";	
 						} else {
-						echo "<input type=checkbox name=$formname id=$form_id value='"
+						echo "<input type=checkbox $disabled name=$formname id=$form_id value='"
 							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
 						}
 					}
@@ -1349,28 +1357,28 @@ function html_query_sources ($qobject, $sources) {
 				} else {
 					$checked = "";
 				}
-				echo "<input type=checkbox $checked name=$formname id=$form_id
+				echo "<input type=checkbox $checked $disabled name=$formname id=$form_id
 					 value='26' onClick='checkCount()'> Global Population Dynamics Database (Point)<br>";
 				if (!$qsources || ($source['id'] == 23 && in_array(27, $qsources))) {
 					$checked = 'CHECKED';
 				} else {
 					$checked = "";
 				}
-				echo "<input type=checkbox $checked name=$formname id=$form_id
+				echo "<input type=checkbox $checked $disabled name=$formname id=$form_id
 					 value='27' onClick='checkCount()'> Global Population Dynamics Database (Box)<br>";				
 				break;
 			
 			# ALL SOURCES CHECKBOX
 			case ($qterm == 'bionames'):
 				if (!$qsources) {
-					echo "<input type=checkbox CHECKED name=$formname id=$form_id value='"
+					echo "<input type=checkbox CHECKED $disabled name=$formname id=$form_id value='"
 						. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
 					} else {
 					if (in_array($source['id'], $qsources)) {
-						echo "<input type=checkbox CHECKED name=$formname id=$form_id value='"
+						echo "<input type=checkbox CHECKED $disabled name=$formname id=$form_id value='"
 							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";	
 						} else {
-						echo "<input type=checkbox name=$formname id=$form_id value='"
+						echo "<input type=checkbox $disabled name=$formname id=$form_id value='"
 							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
 						}
 					}
@@ -1455,16 +1463,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 			$nchar = 0;
 			foreach ($fields as $field2) {
 				if ($field2['group'] == $newgroup) {
-					$fname2 = $field2['name'];
-					//$nfields++;
-					//$nchar = $nchar + strlen($fname2);
-/*					echo ($nfield) + ($nchar);
-					if ((($nfields) + ($nchar)) > 90) {
-						echo "<br>";
-						$nfields = 0;
-						$nchar = 0;
-					}*/
-					
+					$fname2 = $field2['name'];	
 					$fdesc2 = $field2['desc'];
 					$dtype2 = $field2['ebtype'];
 					$falias2 = $field2['alias'];
@@ -1522,6 +1521,9 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 #=======================================================================================================================
 
 function html_query_biotable_tool($db_handle, $qobject, $field, $color, $source, $names) {
+	
+	print_r($field);
+	echo "<br>";
 	
 	$fname = $field['name'];
 	$dbtype = $field['dbtype'];
@@ -1855,29 +1857,21 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		
 		echo "<td>";
 		
-		# FROM OPERATOR
+		# OPERATOR
 		echo "<SELECT NAME='toperator' id='toperator'>";
 		if (!$qoperator) $qoperator = 'DURING';
-		switch ($qoperator) {
-			case 'BEFORE':
-				echo "<OPTION VALUE='BEFORE' SELECTED>Before";
-				echo "<OPTION VALUE='DURING'>During";
-				echo "<OPTION VALUE='AFTER'>After";
-				break;
-			case 'DURING':
-				echo "<OPTION VALUE='BEFORE'>Before";
-				echo "<OPTION VALUE='DURING' SELECTED>During";
-				echo "<OPTION VALUE='AFTER'>After";
-				break;				
-			case 'AFTER':
-				echo "<OPTION VALUE='BEFORE'>Before";
-				echo "<OPTION VALUE='DURING'>During";
-				echo "<OPTION VALUE='AFTER' SELECTED>After";
-				break;
-		}
+		$ops = array("BEFORE", "DURING", "AFTER");
+		foreach ($ops as $op) {
+			if ($op == $qoperator) {
+				$selected = 'SELECTED=SELECTED';
+			} else {
+				unset($selected);
+			}
+			echo "<OPTION VALUE='$op' $selected >", ucfirst(strtolower($op));;
+			}
 		echo "</SELECT>";
 		
-		# DAY
+		# FROM DAY
 		echo "<SELECT NAME='day' id='day'>";
 		for ($i = 1; $i <= 31; $i++) {
 			if ($i != $qday) {
@@ -1888,7 +1882,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</SELECT> ";
 		
-		# MONTH
+		# FROM MONTH
 		echo "<SELECT NAME='month' id='month'>";
 		for ($i = 1; $i <= 12; $i++) {
 			if ($i != $qmonth) {
@@ -1899,7 +1893,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</SELECT> ";
 		
-		#  YEAR
+		#  FROM YEAR
 		if (!$qyear) $qyear = 2000;
 		echo "<SELECT NAME='year' id='year'>";
 		for ($i = $minyear; $i <= $maxyear; $i++) {
@@ -1911,6 +1905,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		}
 		echo "</SELECT>";
 		echo "</td>";
+		
 		echo "</tr>";
 		echo "</table>";
 	
@@ -1918,8 +1913,27 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 #=================================================================================================================
 	
-	function html_query_header ($qobject, $qobjects, $sources) {
+	function html_output_header ($output, $source) {
 		
+		echo "<div id='output_header_div'>";
+		echo "<table border='0'>";
+		echo "<tr>";
+		echo "<td class='query_title'>";
+		html_query_image($source['term'], 'non-active', null, 'query', false);
+		echo "</td>";
+		echo "<td id='query_header_title'>",$source['name'], "</td>";
+		//echo "<td title='$t' class='query_operator'></td>";
+		html_output_buttons($output);
+		echo "</tr>";
+		echo "</table>";
+		echo "</div>";
+		
+	}
+	
+	
+#=================================================================================================================
+	
+	function html_query_header ($qobject, $qobjects, $sources) {
 		
 		//html_query_image($qobject['term'], 'non-active', null, 'query', false);
 		//
@@ -1928,7 +1942,26 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "<td class='query_title'>";
 		html_query_image($qobject['term'], 'non-active', null, 'query', false);
 		echo "</td>";
-		echo "<td id='query_header_title'>", ucfirst($qobject['term']), " query", "</td>";
+		
+		switch ($qobject['term']) {
+			case 'biotable':
+				$type = 'Attribute';
+				break;
+			case 'biogeographic':
+				$type = 'Geographic';
+				break;
+			case 'bionames':
+				$type = 'Names';
+				break;
+			case 'biotemporal':
+				$type = 'Temporal';
+				break;
+			case 'biotree':
+				$type = 'Tree';
+				break;
+		}
+		
+		echo "<td id='query_header_title'>$type query", "</td>";
 		html_query_interoperator($qobject, $qobjects);
 		html_query_buttons($qobject);
 		echo "</tr>";
@@ -2329,7 +2362,7 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_searc
 		html_output_source($sources);
 		echo "</tr>";
 		echo "</table>";
-		html_info_outputs($output_id);
+		html_info_outputs();
 		echo "</div>";
 		
 		# LINK TO OUTPUT ZIP FILE 
@@ -2661,12 +2694,12 @@ function html_output_set($db_handle, $output_id) {
 	
 	if (!$outname) {
 		$outname = get_next_output_name($outputs, $source);
-		//echo "outname: $outname";
 		$output['name'] = $outname;
 	}
 	
-	echo "<br>";
-	echo "<div id='output'>";
+	html_output_header($output, $source);
+	
+	echo "<div id='output_tool'>";
 	echo "<table border='0'>";
 	
 	# OUTPUT NAME
@@ -2677,12 +2710,7 @@ function html_output_set($db_handle, $output_id) {
 	echo "<td class='eb'>";
 	html_obj_name($output);
 	echo "</td>";
-	# OK/CANCEL/DELETE
-	html_output_buttons($output);
 	echo "</tr>";
-	
-	# SOURCE
-	html_output_source_name($source);
 	
 	switch ($sterm) {
 		case "biotable" :

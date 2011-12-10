@@ -11,6 +11,7 @@
 		if (count($qobjects) == 1 && $_SESSION['names']) unset($_SESSION['names']);
 		if ($_SESSION['names']) $names = $_SESSION['names'];
 		
+		
 		$qobject = get_obj($qobjects, $qobjid);
 		$qterm = $qobject['term'];
 		$queryop = $qobject['queryoperator'];
@@ -36,7 +37,7 @@
 		# TAXA IN QUERY
 		if ($qobject['taxa']) $taxa_array = array_to_postgresql($qobject['taxa'], 'text');
 		# TAXA FROM PREVIOUS QUERY IN STACK
-		if ($names) $names_array = array_to_postgresql($names, 'text');
+		if (!empty($names)) $names_array = array_to_postgresql($names, 'text');
 		
 		$n = 1;
 		$str = '';
@@ -148,7 +149,7 @@
 		}
 			
 		# RUN NAMES QUERY
-		//echo "query: $qstr<br>";
+		echo "query: $qstr<br>";
 		$res = pg_query($db_handle, $str);
 		$names = pg_fetch_all_columns($res, 0);
 		
@@ -205,6 +206,7 @@
 		//$null = $qobject['querynull'];
 		$sterm = $source['term'];
 		$nseries_op = "";
+		//print_r($source);
 		
 		# SELECT CLAUSE
 		if ($source['id'] !== '23') {
@@ -216,22 +218,18 @@
 		} else {
 			
 			# GPDD
+			$str = "SELECT t.binomial AS bioname FROM gpdd.main m";
 			# TABLES
 			$tables = array();				
 			$tables['taxon'] = ", gpdd.taxon t";
-			$str = "SELECT t.binomial AS bioname FROM gpdd.main m";
-			
+			$tables['datasource'] = ", gpdd.datasource ds";
 			foreach ($queries as $query) {
 				switch (true) {
 					case ($query['lookup'] == 25):
 						$tables['location'] = ", gpdd.location l";
 						break;					
 					case ($query['lookup'] == 28):
-						$tables['biotope'] = ", gpdd.biotope b";
-						break;
-					case ($query['lookup'] == 31):
-						$tables['datasource'] = ", gpdd.datasource ds";
-						break;		
+						$tables['biotope'] = ", gpdd.biotope b";	
 				}
 			}
 			
@@ -239,7 +237,7 @@
 			foreach ($tables_val as $val) $str = $str . $val;
 			
 			# WHERE JOINS
-			$str = $str . " WHERE ";
+			$str = $str . " WHERE";
 			$first = true;
 			
 			$table_keys = array_keys($tables);
@@ -258,22 +256,28 @@
 						break;						
 					case 'datasource' :
 						$str = $str . " m.\"DataSourceID\" = ds.\"DataSourceID\"";
+						$str = $str . " AND ds.\"Availability\" <> 'Restricted'";
 						break;				
 				}
-			$first = false;
+				$first = false;
 			}
+			//$str = chop($str, 'AND');
 		}
+		
+		//echo "WHERE query: $str<br>";
 		
 		# WHERE CONDTIONS
 		$nseries_type = 'no';
+		
 		$i = 0;
 		foreach ($queries as $query) {
 			
 			$qfname = $query['field'];
 			$qfield = get_field($qfname, $fields);
 			$dtype = $qfield['ebtype'];
+			$ftype = $qfield['ftype'];
 			
-			if ($i > 0) $str = $str . " AND";
+			if ($i > 0 || $source['id'] == '23') $str = $str . " AND";
 			$i++;
 			
 			# WHERE CLAUSES
@@ -289,10 +293,15 @@
 					}
 					$nseries = $query['value'];
 					$nseries_op = $query['operator'];
+					$str = $str . " t.\"binomial\" IN (SELECT t.binomial  AS bioname";
+					$str = $str . " FROM gpdd.main m, gpdd.taxon t";
+					$str = $str . " WHERE m.\"TaxonID\" = t.\"TaxonID\"";
+					$str = $str . " GROUP BY t.binomial";
+					$str = $str . " HAVING COUNT(*) $nseries_op $nseries)";
 					break;
 				case 'lookupfield':
 				case 'catagoryfield':
-					query_biotable_lookupfield($db_handle, $query, $str, $source['id']);
+					query_biotable_lookupfield($db_handle, $query, $str, $source['id'],$ftype, $dtype);
 					break;
 				case 'lookuptable':
 					# GPDD HARDCODE
@@ -302,20 +311,11 @@
 					break;
 			}
 		}
-
-		# ALL NULL
-/*		if ($null && count($queries) > 1) {
-			$str = $str . " AND (";
-			foreach ($queries as $query) $str = $str . " \"" . $query['field'] . "\" IS NOT NULL AND";
-			$str = substr($str, 0, strlen($str) - 4);
-			$str = $str . ")";
-		}*/
-		
 		
 		#NOT END
-		if ($not == 'NOT' && $nseries_only == 'only') $str = $str . ")";
+		//if ($not == 'NOT' && $nseries_only == 'only') $str = $str . ")";
 		
-		if ($source['id'] == '23') $str = $str . " AND t.binomial IS NOT NULL";
+		//if ($source['id'] == '23') $str = $str . " AND t.binomial IS NOT NULL";
 		
 		# GROUP BY CLAUSES
 		if ($source['id'] == '23' && $nseries_type == 'yes') {
@@ -471,7 +471,7 @@
 		}
 		$arr = array_to_postgresql($values, $ftype);
 		
-		$str = $str . " AND";
+		//$str = $str . " AND";
 		if ($null) $str = $str . "(";
 		
 		$str = $str . " $letter.\"$field\" = ANY ($arr)";
@@ -482,7 +482,7 @@
 	
 	# --------------------------------------------------------------------------------
 	
-	function query_biotable_lookupfield($db_handle, $query, &$str, $sid) {
+	function query_biotable_lookupfield($db_handle, $query, &$str, $sid, $ftype, $dtype) {
 		
 		if ($sid == 23) {
 			$s = 'm';
@@ -491,12 +491,15 @@
 		}
 		
 		$field = $query['field'];
-		$ftype = $query['ftype'];
+
 		$values = $query['value'];
 		$null = $query['null'];
-		//echo empty($values), ", ", $null, "<br>";
-		if (!empty($values)) {
-			$arr = array_to_postgresql($values, $ftype);
+		
+		if (!empty($values)) $arr = array_to_postgresql($values, $ftype);
+		//print_r($values);
+		//echo empty($values), ", ", $ftype, "<br>";
+		
+		if ($dtype == lookupfield) {
 			//echo "$arr<br>";
 			$str2 = " SELECT c.item FROM source.source_fields f, source.source_fieldcodes c";
 			$str2 = $str2 . " WHERE c.field_id = f.field_id";
@@ -522,8 +525,8 @@
 	
 	function query_biotable_rangefield ($query, &$str, $sid) {
 		
-		print_r($query);
-		echo "<br>";
+		//print_r($query);
+		//echo "<br>";
 		$field = $query['field'];
 		$value = $query['value'];
 		$op = $query['operator'];

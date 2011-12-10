@@ -20,15 +20,15 @@ $stage = html_entangled_bank_header(null, '../');
 <LI><a href="#what">What does the EBDB do?</a></LI>
 <LI><a href="#start">Select data to query</a></LI>
 <LI><a href="#main">The EBDB main screen</a></LI>
-<LI><a href="#query">Query by</a></LI>
+<LI><a href="#query">How to query</a></LI>
 <ol>
 <LI><a href="#name">Biological Name</a></LI>
-<LI><a href="#tree">Tree (Taxonomy or Phylogeny)</a></LI>
+<LI><a href="#tree">Tree (taxonomy or phylogeny)</a></LI>
 <LI><a href="#attribute">Attribute Value</a></LI>
-<LI><a href="#query">Geography</a></LI>
-<LI><a href="#query">Time</a></LI>
+<LI><a href="#geography">Geography</a></LI>
+<LI><a href="#time">Time</a></LI>
 </ol>
-<LI><a href="#output">Return data</a></LI>
+<LI><a href="#output">How to return data</a></LI>
 <LI><a href="#examples" alt='Entangled Bank Examples'>Examples</a></LI>
 <LI><a href="#browser">Browser compatability</a></LI>
 </OL>
@@ -90,7 +90,7 @@ A tool tip gives column data set name.
 </p>
 
 
-<h3><a name="query">Query</a></h3>
+<h3><a name="query">How to query</a></h3>
 <p>
 Data may be queried by <a href="#names">biological name</a>, <a href="#tree">tree topology</a>,
  <a href="#attribute">attributes</a>, <a href="#geography">geography</a> or <a href='#time'>time</a>.
@@ -162,11 +162,11 @@ Run names queries include a taxon name REPORT and the QUERY SQL.
 
 <h4><a name="tree">Tree</a></h4>
 <p>
-Tree queries select bionames from a single phylogeny or taxonomy dataset. 
+Tree queries select names from a single phylogeny or taxonomy dataset. 
 Phylogeny and taxonmy queries only differ in their FILTER options.
 </p>
 <p>
-Four tree OPERATORS are supported:
+Four TREE OPERATORS are supported:
 </p>
 <table border='1'>
 <tr>
@@ -202,65 +202,120 @@ FIND performs an 'case-sensitive double-wild card' search on input text given th
 <p class='caption'>Figure 7. Taxonomy query</p>
 </center>
 
-<h4><a name="attribute">Attribute Value</a></h4>
+<h4><a name="attribute">Attribute</a></h4>
 <p>
-Attribute queries select names from the values of variables in a flat or spatial table.
-Users select which fields they wish to query from a list and are then presented with options for each selected field.
-Field containing discrete values are presented as a set of check boxs, while minimum and and maximum ranges can be set for continious value fields.
-To select names between two disjunct ranges, e.g. (between 10 and 100) and (between 200 and 300) two seperate queries must be created linked by an 'OR'.
-A check box allows the return of names where the searched fields contain null values.
- Seperate queries are required to include nulls from one field but not from others.
+Attribute queries select names from the values of variables in a normal and spatial table.
+</p>
+<center>
+<a name="fig8">
+<a href='./image/table.gif'><IMAGE src='./image/table.gif' width='600px'/></a>
+<p class='caption'>Figure 8. Querying the attributes of the GPDD</p>
+</center>
+<p>
+Attribute fields are grouped into general classes of
+ Count, Identifier, Taxonomy, Time, Geography, Place, Sampling,Referece and notes.
+ Hover over field names for descriptions. Check field name to open QUERY DIALOG. Query dialogs are of two types, numerical and catagorical. 
+</p>
+<p>
+The numerical dialog ('GR Min Lat dd' in fig. 8) has an OPERATOR and VALUE. 
+When a field includes null values a check box is provided to include names with NULLs for that field in the query result.
+</p>
+<p>
+Use the case sensitive double-wildcard FIND to discover catagory VALUES ('Activity Cycle' in fig. 8).
+Copy values from the lefthand find return box to the righthand query box.
+The check box controls whether find returns NULL or not.
 </p>
 
-<h4><a name="query_spatial">4.3 Spatial Query</a></h4>
+
+<h4><a name="geography">Geography</a></h4>
 <p>
-Spatial queries select bionames from one or more spatial sources using a bounding box search with OVERLAP and WITHIN operators.
-To query an OVERLAP box that crosses -180/+180 longitude, enter the larger longitude in West and the smaller in East.
+Geographic queries select names from spatial datasets.
+Polygon, line and point QUERY FEATRUES can be drawn on the map using the drawing tools in the upper right of the map.
+BOUNDING BOX features are added numerically. CLEAR MAP to erase all query features.
+Use <IMAGE src='./image/openlayers_layerswitcher.gif'/> to change background map.
+Features can not cross the anti-meidian (-180/+180 longitude).
+</p>
+
+<center>
+<a name="fig9">
+<a href='./image/geography.gif'><IMAGE src='./image/geography.gif' width='600px'/></a>
+<p class='caption'>Figure 9. Geographic query</p>
+</center>
+
+<p>
+Four SPATIAL OPERATORS are suppoted:
+</p>
+<table border='1'>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>Overlap by Box</td>
+<td>Returns names and data associated with geographical features whose bounding box INTERSECTS the bounding boxes of the query features
+(&amp&amp PostGIS operator).</td>
+</tr>
+<tr>
+<td>Overlap by Box</td>
+<td>Returns names and data associated with geographical features whose bounding box is WITHIN the bounding boxes of the query features
+(&#126; PostGIS operator).</td>
+</tr>
+<tr>
+<td>Overlap Features</td>
+<td>Returns names and data associated with geographical features which INTERSECT the query features
+(ST_Overlaps PostGIS function).</td>
+</tr>
+<tr>
+<td>Within Polygons</td>
+<td>Returns names and data associated with geographical features that are WITHIN query features
+(ST_Within PostGIS function).</td>
+</tr>
+</table>
+<br>
+
+<h4><a name="time">Time</a></h4>
+<p>
+Temporal queries select names and data that exists BEFORE, DURING or AFTER a particular day.
+</p>
+<center>
+<a name="fig9">
+<a href='./image/time.gif'><IMAGE src='./image/time.gif' width='600px'/></a>
+<p class='caption'>Figure 10. Temporal query</p>
+</center>
+<br>
+
+<h3><a name="output">Returning data</a></h3>
+<p>
+Data is returned by adding dataset OUTPUTS.
+Output dialogs reflect the composition of data types that compose each dataset, so, for example,
+ mammal ranges may be exported as either spatial or tabular formats, whereas the GPDD is comprised of
+ tabular and spatial data. Data extracts are returned compressed within a zip file with a
+  SESSION METADATA file (readme.txt) that describes the queries undertaken and data returns.
+</p>
+
+<h4><a name="output_table">Tabular Output</a></h4>
+<p>
+Tabular data such as Panthria or the GPDD may be exported as comma-delineated (*.csv)' 
+or 'tab-delineated (*.txt)' ascii files. All or a subset of fields may be output.
+</p>
+
+<h4><a name="output_spatial">Geographic Output</a></h4>
+<p>
+Spatial data such as can be exported as a <a href=''>ESRI Shapefile</a>, <a href=''>MapInfo</a>, <a href=''>DGN</a>, 
+ <a href=''>DXF</a>, <a href=''>Geographic Markup Language (GML)</a>
+ and <a href=''>Keyhole Markup Language (KML)</a> formats. [Add non-spatial]
+</p>
+
+<h4><a name="output_tree">Tree Output</a></h4>
+<p>
+Trees may be exported in <a href=''>newick</a>, <a href=''>nhx</a>, 
+<a href=''>tab-indented ascii</a> or <a href=''>lintree formats</a>.
+Trees may be the subtree defined by the last common ancestor of the selected names or pruned to only the name set.
+Branch attributes (e.g. ages) may be be output in the tree file.
 </p>
 
 
-
-<h3><a name="query_manage">5. Query Management</a></h3>
-<p>
-Queries can be deleted or edited. 
-Query re-ordering is not currently supported. 
-</p>
-
-<h3><a name="output">6. Output</a></h3>
-<p>
-Having selected bionames sources can be subsetted by those names and output in a variety of formats.
- Multiple outputs of the same data in different formats can be set.
-Outputs are zip compressed into a single file with a text file (readme.txt) describing the queries undertaken and data returned.
-<OL>
-<LI><a href="#output_table"> Tabular outputs</a>, which output tables as a comma seperated values file</LI>
-<LI><a href="#output_spatial"> Spatial outputs</a>, which output spatial layers in a variety of formats</LI>
-<LI><a href="#output_tree"> Tree outputs</a>, which trees models with branch attributes in a variety of formats</LI>
-<LI><a href="#output_readme"> Tabular outputs</a>, which output tables as a comma seperated values file</LI>
-</OL>
-</p>
-
-<h4><a name="output_table">6.1 Tabular Output</a></h4>
-<p>
-All or a subset of the fields in a table can be exported as a csv file.
-</p>
-
-<h4><a name="output_spatial">6.2 Spatial Output</a></h4>
-<p>
-Spatial data can be exported as a ESRI Shapefile, MapInfo, DGN, DXF, Geographic Markup Language (GML) and Keyhole Markup Language (KML) formats.
-</p>
-
-<h4><a name="output_tree">6.3 Tree Output</a></h4>
-<p>
-Trees pruned to the name set or the least common ancestor of the names can be exported as newick, nhx, tab-indented ascii or lintree formats (NeXML will be supported soon).
-Optionally, trees branch attributes (e.g. ages) can be output in the tree file.
-</p>
-
-<h3><a name="output_manage">7. Output Management</a></h3>
-<p>
-Outputs can be edited or deleted. 
-</p>
-
-<h4><a name="readme">8. Readme.txt</a></h4>
+<h4><a name="readme">Session metadata</a></h4>
 <p>
 Readme.txt contains information on the queries undertaken and returned data.
 </p>

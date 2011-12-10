@@ -356,12 +356,12 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	
 	foreach ($qfields as $qfield) {
 			
-	//$i = array_search($qfield, $fields);
-	$field = get_field($qfield, $fields);
-	//print_r($field);
-	//echo "<br>";
-	$dtype = $field['ebtype'];
-	$lookup = $field['lookup'];
+		//$i = array_search($qfield, $fields);
+		$field = get_field($qfield, $fields);
+		print_r($field);
+		echo "<br>";
+		$dtype = $field['ebtype'];
+		$lookup = $field['lookup'];
 	
 		//echo "field: $qfield, $dtype<br>";
 		switch ($dtype) {
@@ -420,6 +420,7 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 			case 'lookuptable':
 				$field = $qfield . "_add";
 				$values = $_SESSION[$field];
+				echo "$field<br>";
 				if (in_array('NULL', $values)) {
 					$null = true;
 					remove_element($values, 'NULL');

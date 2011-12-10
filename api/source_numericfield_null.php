@@ -1,7 +1,7 @@
 <?php
 
 	# RETURNS TRUE IF FIELD HAS NULL VALUES
-	# A QUERY MAY BE APPLIED
+	# A NAMES QUERY MAY BE APPLIED
 	session_start();
 	include "config_setup.php";
 	include "../lib/php_utils.php";

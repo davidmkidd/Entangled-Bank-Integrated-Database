@@ -15,6 +15,7 @@ Entangled-bank.org
 	- Move to IC? (MEDIUM)
 	- Update (HIGH)
 	- Change Architecture to more upto date version (HIGH).
+	- !!!HIGH!!! Figure links 
 
 Configuration 
 	- Soft code all Windows and LINUX configuration  (HIGH - FIXED?)
@@ -63,6 +64,7 @@ Query
 		- XMLHttpRequest (FIXED)
 		- Node Operator for taxonomy levels not just 'internal' and 'tip'. (FIXED)
 	Attribute
+		- !!!HIGH!!! GPDD N Series and other query -> perhaps error in utils.js? 
 		- NULLs in attribute query (PARTIAL FIX: single 'include nulls' option for all fields in a query)
 		- Set query in edit mode (FIXED)
 		- Find for select fields. Would speed up attribute query load as all options for all fields would not need to be preloaded (FIXED)

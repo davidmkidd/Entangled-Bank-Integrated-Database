@@ -268,10 +268,10 @@ function info_gpdd($db_handle, $source, $qobjects, &$info) {
 	
 # ------------------------------------------------------------------------------------------------------------
 	
-function html_info_outputs($output_id) {
+function html_info_outputs() {
 	
 	$outputs = $_SESSION['outputs'];
-	$qobjects = $_SESSION['$qobjects'];
+	$qobjects = $_SESSION['qobjects'];
 	
 	if ($outputs) {
 		
@@ -299,18 +299,9 @@ function html_info_outputs($output_id) {
 				$name = $output['name'];
 				$id = $output['id'];
 				if ($first == false) echo "&nbsp;";
-				if ($output['status'] !== 'new' && $output['id'] !== $output_id) {
-					# NON-ACTIVE QUERY
-					$class = 'non-active';
-					//echo "<a>";
-					echo "<a href='javascript: editOutput(\"$id\");'>";
-					html_query_image($output['term'], $class, $name, 'output');
-				} else {
-					# ACTIVE QUERY
-					$class = 'active';
-					echo "<a>";
-					html_query_image($output['term'], $class , $name, 'output');
-				}
+				$class = 'non-active';
+				echo "<a href='javascript: editOutput(\"$id\");'>";
+				html_query_image($output['term'], $class, $name, 'output');
 				echo "</a>";
 				$first = false;
 			}

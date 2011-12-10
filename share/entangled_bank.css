@@ -321,6 +321,12 @@
 		vertical-align: middle;
 	}
 	
+	td.query_field_values {
+		width: 250px;
+/*		border-left: 2px solid grey;*/
+		vertical-align: middle;
+		padding-left: 20px;
+	}
 
 	
 	div.field_div {
@@ -445,7 +451,8 @@
 	textarea.query_sql {
 		width: 730px;
 		height: 150px;
-		readonly: readonly;
+		background-color: rgb(204, 204, 204);
+		border: 1px solid gray;
 	}
 	
 	td.query_sources {
@@ -592,7 +599,7 @@
 	}
 	
 	input.eb_range_input {
-		width: 202px;
+		text-align: right;
 	}
 	
 	input.bbox {

@@ -32,7 +32,7 @@ $newtoken = $_POST['token'];
 
 # POST => SESSION
 foreach ($_POST as $key =>$value) {
-	//echo "$key => $value<br>";
+	echo "$key => $value<br>";
 	$_SESSION[$key] = $value;
 	}
 

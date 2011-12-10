@@ -12,8 +12,15 @@
 	$sid = $_GET['sid'];
 	$field = $_GET['field'];
 	$null = $_GET['null'];
+
+	if ($null == 'n') {
+		$null = false;
+	} else {
+		$null = true;
+	}
+	if (!$query) $query = "";
 	
-	if (!$null || $null !== true) $null = false;
+	//echo "query: $query<br>";
 	if (!$sid || !$field) exit("sid=source_id and field=\$field required");
 
 	$sources = $_SESSION['sources'];
@@ -39,19 +46,16 @@
 				$str = $str . " SELECT c.item, c.name FROM source.source_fields f, source.source_fieldcodes c";
 				$str = $str . " WHERE c.field_id = f.field_id";
 				$str = $str . " AND f.source_id = $sid";
-				$str = $str . " AND f.field_name = '$field'";
-				if ($null == true || $query) $str = $str . " AND";
-				if ($null == true && $query) $str = $str . " (";
-				if ($query)	$str = $str . " c.name LIKE '%$query%'";
-				if ($null == true) $str = $str . " OR c.name IS NULL";
-				if ($null == true  && $query) $str = $str . ")";
+				$str = $str . " AND f.field_name = '$field' AND";
+				if ($null) $str = $str . "(";
+				$str = $str . " c.name LIKE '%$query%'";
+				if ($null) $str = $str . " OR c.name IS NULL)";
 				$str = $str . " ORDER BY c.item";
+				
 			} else {
-				$str = $str . " SELECT DISTINCT \"" . $field . "\"  FROM " . $source['dbloc'] . " WHERE";
-				if ($null == true && $query) $str = $str . " (";
-				if ($query)	$str = $str . " \"" . $field . "\" LIKE '%$query%'";
-				if ($null == true) $str = $str . " OR c.name IS NULL";
-				if ($null == true  && $query) $str = $str . ")";
+				$str = $str . " SELECT DISTINCT \"" . $field . "\"  FROM " . $source['dbloc'] . 
+					" WHERE \"" . $field . "\" LIKE '%$query%'";
+				if (!$null) $str = $str . " OR \"$field\" IS NULL";
 				$str = $str . " ORDER BY \"$field\"";
 			}
 
@@ -70,11 +74,13 @@
 							WHERE t.\"TaxonID\" = m.\"TaxonID\"
 							AND m.\"DataSourceID\" = ds.\"DataSourceID\"
 							AND ds.\"Availability\" <> 'RESTRICTED'";
-						if ($null == true || $query) $str = $str . " AND";
-						if ($null == true && $query) $str = $str . " (";
-						if ($query)	$str = $str . " ds.\"" . $field . "\" LIKE '%$query%'";
-						if ($null == true) $str = $str . " OR ds.\"" . $field . "\" IS NULL";
-						if ($null == true  && $query) $str = $str . ")";
+						if ($null == true) {
+							$str = $str . " AND (";
+						} else {
+							$str = $str . " AND";
+						}
+						$str = $str . " ds.\"" . $field . "\" LIKE '%$query%'";
+						if ($null == true) $str = $str . " OR ds.\"" . $field . "\" IS NULL)";
                         $str = $str . " ORDER BY ds.\"$field\"";
 						break;
 					case 'TaxonomicPhylum':
@@ -86,33 +92,35 @@
 					case 'CommonName':
 					case 'TaxonName':
 						$str = "SELECT DISTINCT t.\"$field\"
-								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
-								WHERE t.binomial IS NOT NULL
-								AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-								AND ds.\"Availability\" <> 'RESTRICTED'";
-						if ($null == true || $query) $str = $str . " AND";
-						if ($null == true && $query) $str = $str . " (";
-						if ($query)	$str = $str . " AND t.\"" . $field . "\" LIKE '%$query%'";
-						if ($null == true) $str = $str . " OR t.\"" . $field . "\" IS NULL";
-						if ($null == true  && $query) $str = $str . ")";						
+							FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+							WHERE m.\"TaxonID\" = t.\"TaxonID\"
+							AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+							AND ds.\"Availability\" <> 'RESTRICTED'";
+						if ($null == true) {
+							$str = $str . " AND (";
+						} else {
+							$str = $str . " AND";
+						}
+						$str = $str . " t.\"" . $field . "\" LIKE '%$query%'";
+						if ($null == true) $str = $str . " OR t.\"" . $field . "\" IS NULL)";
                         $str = $str . " ORDER BY t.\"$field\"";
 						break;
 					case 'HabitatName':
 					case 'BiotopeType':
 						$str = "SELECT DISTINCT b.\"$field\"
 							FROM gpdd.taxon t, gpdd.main m, gpdd.biotope b, gpdd.datasource ds
-							 WHERE t.\"TaxonID\" = m.\"TaxonID\"
-							 AND m.\"BiotopeID\" = b.\"BiotopeID\"
-							 AND t.binomial IS NOT NULL
-							 AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+							WHERE t.\"TaxonID\" = m.\"TaxonID\"
+							AND m.\"BiotopeID\" = b.\"BiotopeID\"
+							AND m.\"DataSourceID\" = ds.\"DataSourceID\"
 							AND ds.\"Availability\" <> 'RESTRICTED'";
-						if ($null == true || $query) $str = $str . " AND";
-						if ($null == true && $query) $str = $str . " (";
-						if ($query)	$str = $str . " b.\"" . $field . "\" LIKE '%$query%'";
-						if ($null == true) $str = $str . " OR b.\"" . $field . "\" IS NULL";
-						if ($null == true  && $query) $str = $str . ")";	
+						if ($null == true) {
+							$str = $str . " AND (";
+						} else {
+							$str = $str . " AND";
+						}
+						$str = $str . " b.\"" . $field . "\" LIKE '%$query%'";
+						if ($null == true) $str = $str . " OR b.\"" . $field . "\" IS NULL)";
                         $str = $str . " ORDER BY b.\"$field\"";
-
 						break;
 					case 'ExactName':
 					case 'TownName':
@@ -122,39 +130,41 @@
 					case 'Ocean':
 					case 'SpatialAccuracy':
 					case 'LocationExtent':
-							$str = "SELECT DISTINCT l.\"$field\"
-								FROM gpdd.taxon t, gpdd.main m, gpdd.location l, gpdd.datasource ds
-								 WHERE t.\"TaxonID\" = m.\"TaxonID\"
-								 AND m.\"LocationID\" = l.\"LocationID\"
-								 AND t.binomial IS NOT NULL
-								AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-								AND ds.\"Availability\" <> 'RESTRICTED'";
-						if ($null == true || $query) $str = $str . " AND";
-						if ($null == true && $query) $str = $str . " (";	
-						if ($query)	$str = $str . " l.\"" . $field . "\" LIKE '%$query%'";
-						if ($null == true) $str = $str . " OR l.\"" . $field . "\" IS NULL";
-						if ($null == true  && $query) $str = $str . ")";
+						$str = "SELECT DISTINCT l.\"$field\"
+							FROM gpdd.taxon t, gpdd.main m, gpdd.location l, gpdd.datasource ds
+							WHERE t.\"TaxonID\" = m.\"TaxonID\"
+							AND m.\"LocationID\" = l.\"LocationID\"
+							AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+							AND ds.\"Availability\" <> 'RESTRICTED'";
+						if ($null == true) {
+							$str = $str . " AND (";
+						} else {
+							$str = $str . " AND";
+						}
+						$str = $str . " l.\"" . $field . "\" LIKE '%$query%'";
+						if ($null == true) $str = $str . " OR l.\"" . $field . "\" IS NULL)";
                         $str = $str . " ORDER BY l.\"$field\"";
 						break;
 						
 					default:
 						$str = "SELECT DISTINCT m.\"$field\"
-							FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+							FROM gpdd.main m, gpdd.datasource ds
 							WHERE t.binomial IS NOT NULL
 							AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-							AND ds.\"Availability\" <> 'RESTRICTED'
-							AND t.\"TaxonID\" = m.\"TaxonID\"";
-						if ($null == true || $query) $str = $str . " AND";
-						if ($null == true && $query) $str = $str . " (";
-						if ($query)	$str = $str . " t.\"" . $field . "\" LIKE '%$query%'";
-						if ($null == true) $str = $str . " OR m.\"" . $field . "\" IS NULL";
-						if ($null == true  && $query) $str = $str . ")";						
+							AND ds.\"Availability\" <> 'RESTRICTED'";
+						if ($null == true) {
+							$str = $str . " AND (";
+						} else {
+							$str = $str . " AND";
+						}
+						$str = $str . " m.\"" . $field . "\" LIKE '%$query%'";
+						if ($null == true) $str = $str . " OR m.\"" . $field . "\" IS NULL)";
                         $str = $str . " ORDER BY m.\"$field\"";
 						break;
 				}
 			break;
 	}	
-	echo "$str<br>";
+	//echo "$str<br>";
 	$res = pg_query($db_handle, $str);
 	
 	if ($ifield['ebtype'] == 'lookupfield') {

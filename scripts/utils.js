@@ -475,6 +475,7 @@ function submitTableQuery(id) {
 				for (j = 0; j <= control[i].options.length - 1; j++) {
 					control[i].options[j].selected = true;
 				}
+				alert(fname + ' has ' + j + ' options');
 			}
 		}
 		document.ebankform.submit();
