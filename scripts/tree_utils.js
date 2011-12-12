@@ -84,7 +84,7 @@ function findNodes() {
 }
 
 
-function findNode(){
+/*function findNode(){
 	
 	// Finds values in tree select box
 	//alert('!!!');
@@ -139,7 +139,7 @@ function findNode(){
 			treeval.value = '';
 			break;
 	}
-}
+}*/
 
 function add() {
 	var treeval = document.getElementById('treeval');

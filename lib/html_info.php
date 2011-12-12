@@ -266,13 +266,14 @@ function info_gpdd($db_handle, $source, $qobjects, &$info) {
 		}
 	}
 	
+	
 # ------------------------------------------------------------------------------------------------------------
 	
-function html_info_outputs() {
+function html_info_outputs($zip) {
 	
 	$outputs = $_SESSION['outputs'];
 	$qobjects = $_SESSION['qobjects'];
-	
+	$tmp = $_SESSION['full_tmp_path'];
 	if ($outputs) {
 		
 		echo "<input type='hidden' id='output_id' name='output_id' value=''>";
@@ -288,34 +289,38 @@ function html_info_outputs() {
 		echo "</td>";
 		echo "<td>";
 		$first = true;
-		if ($n == 0) {
-			# NO OUTPUTS
-			$title = 'No Outputs';
-			echo "<img src='./image/no-output.gif' alt='$title' title='$title' class='query_type_button_non_active'>";
-		} else {
-			$title = "Outputs";
-			foreach ($outputs as $output) {
-				# IF EQ QOBJID OR NEW THEN LARGE
-				$name = $output['name'];
-				$id = $output['id'];
-				if ($first == false) echo "&nbsp;";
-				$class = 'non-active';
-				echo "<a href='javascript: editOutput(\"$id\");'>";
-				html_query_image($output['term'], $class, $name, 'output');
-				echo "</a>";
-				$first = false;
-			}
+
+		$title = "Outputs";
+		foreach ($outputs as $output) {
+			# IF EQ QOBJID OR NEW THEN LARGE
+			$name = $output['name'];
+			$id = $output['id'];
+			if ($first == false) echo "&nbsp;";
+			$class = 'non-active';
+			echo "<a href='javascript: editOutput(\"$id\");'>";
+			html_query_image($output['term'], $class, $name, 'output');
+			echo "</a>";
+			$first = false;
+		}
+		
+		# DELETE ALL
+		$t = "Delete all outputs";
+		echo "&nbsp;<a href='javascript: deleteAllOutputs()' >";
+		echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
 			
-			# DELETE ALL
-			$t = "Delete all outputs";
-			echo "&nbsp;<a href='javascript: deleteAllOutputs()' >";
-			echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
-			
-			# RETURN DATA
+		if (!$zip) {
+			# DATA CART
 			$title = 'Return Data';
 			echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' alt='return data' title='$title';></img></a>";
+			echo "</td>";
+		} else {
+			#DATA PACKAGE;
+			$t = "Data package:  Right-click and &#145;save&#146; to download";
+			echo "<td>";
+			echo "<a href='", $tmp , $zip , "'";
+			echo "'><img width='45px' src='./image/parcel.gif' title='$t'/>$t</a>";
+			echo "</td>";
 		}
-		echo "</td>";
 		echo "</tr>";
 		echo "</table>";
 		echo "</div>";

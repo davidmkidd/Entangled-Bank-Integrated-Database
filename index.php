@@ -6,8 +6,9 @@ session_start();
 //$mytimes = array("page_begin" => microtime(True));
 
 # LIBRARIES
-include "./lib/config_setup.php";
-include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
+//include "./lib/config_setup.php";
+//include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
+include "./lib/config.php";
 include "./lib/html_utils.php";
 include "./lib/php_utils.php";
 include "./lib/php_query.php";
@@ -15,12 +16,17 @@ include "./lib/php_process.php";
 include "./lib/php_write.php";
 include "./lib/html_info.php";
 
+
+
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
 $html_path = "http://" . $config['htmlhost'] . "/";
 if($config['html_path']) $html_path = $html_path . $config['html_path'] . '/';
 $share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 $_SESSION['tmp_path'] = $config['tmp_path'];
-
+$_SESSION['full_tmp_path'] = "http://" . $config['ebhost'] . '/' . $config['tmp_path'] . '/';
+# EB PATH FOR JS
+echo "$eb_path<br>";
+echo "<input type='hidden' id='eb_path' value='$eb_path' />";
 # ---------------------------------------------------------------------------------------------------
 #                                                _POST AND SESSION
 # ---------------------------------------------------------------------------------------------------
@@ -32,7 +38,7 @@ $newtoken = $_POST['token'];
 
 # POST => SESSION
 foreach ($_POST as $key =>$value) {
-	echo "$key => $value<br>";
+	//echo "$key => $value<br>";
 	$_SESSION[$key] = $value;
 	}
 
@@ -101,9 +107,6 @@ if ($db_handle == false) {
 	echo '</html>';
 	echo exit;
 }
-
-# EB PATH FOR JS
-echo "<input type='hidden' id='eb_path' value='$eb_path' />";
 
 # -----------------------------------------------------------------------------------------------------
 #                                         PRE-FORM PROCESSING
@@ -218,7 +221,7 @@ if ($stage == 'sources')
 
 # MAIN INTERFACE
 if ($stage == 'main' || $stage == 'write') 
-	html_entangled_bank_main($db_handle, $oldtoken, $newtoken, $name_search, $output_id, $zip);
+	html_entangled_bank_main($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id, $zip);
 
 # QUERY SETUP
 if ($stage == 'qset')

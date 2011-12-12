@@ -29,24 +29,7 @@
 
 	}
 	
-	function openSelect(entry) {
-		div_id = entry + '_select_div';
-		var div = document.getElementById(div_id);
-		
-		if (entry == 'biotree') {
-			other_div_id = 'attribute_select_div';
-		} else {
-			other_div_id = 'biotree_select_div';
-		}
-		var other_div = document.getElementById(other_div_id);
-		
-		if (div.style.display == 'none') {
-			div.style.display = 'block';
-			other_div.style.display = 'none';
-		} else {
-			div.style.display = 'none';
-		}
-	}
+
 	
 
 

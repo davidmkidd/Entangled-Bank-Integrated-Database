@@ -1522,8 +1522,8 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 
 function html_query_biotable_tool($db_handle, $qobject, $field, $color, $source, $names) {
 	
-	print_r($field);
-	echo "<br>";
+	//print_r($field);
+	//echo "<br>";
 	
 	$fname = $field['name'];
 	$dbtype = $field['dbtype'];
@@ -2231,7 +2231,7 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_search, $output_id, $zip) {
+function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id, $zip) {
 	
 		$sources = $_SESSION['sources'];
 		//if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
@@ -2350,23 +2350,23 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_searc
 		# QTYPE HIDDEN INPUT
 		echo "<INPUT type='hidden' name='qterm' id = 'qterm' value='none' />";
 		
+		//print_r($biotree);
 		# SOURCE SELECTOR
-		if (!empty($biotable)) html_query_select_source ($sources,'biotree');
+		if (!empty($biotree)) html_query_select_source ($sources,'biotree');
 		if (!empty($biotable)) html_query_select_source ($sources,'attribute');
 		
 		# OUTPUTS
+		$t = "Create a new output";
 		echo "<div id='output_div'>";
 		echo "<table border='0'>";
 		echo "<tr>";
-		echo "<td class='query_title' title='$title'>Add Output</td>";
+		echo "<td class='query_title' title='$t'>Add Output</td>";
 		html_output_source($sources);
 		echo "</tr>";
 		echo "</table>";
-		html_info_outputs();
+		html_info_outputs($zip);
 		echo "</div>";
 		
-		# LINK TO OUTPUT ZIP FILE 
-		if ($zip) html_write($zip);#
 		echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";
 		echo "<input type='hidden' id='qobjid' name='qobjid' value=''>";
 		echo "<input type='hidden' id='qobjid' name='lastaction' value='main'>";
@@ -2375,6 +2375,8 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_searc
 #=======================================================================================================================
 	
 	function html_query_select_source($sources, $term) {
+		
+		//echo "!<br>";
 		
 		echo "<div id='$term" , "_select_div' style='display: none;'>";
 		echo "<table border='0'>";
@@ -3072,25 +3074,6 @@ function html_tree_level_options($db_handle, $tree, $parent_id, $qnames, $indent
 	
 }
 
-#=================================================================================================================
-	
-function html_write($zip) {
-	echo "<div id='data_output'>";
-	echo "<table border='0'><tr>";
-	echo "<td class='query_title'>Data package</td>";
-	echo "<td>";
-	If ($zip === false) {
-		echo "Data file creation failed! Please email a bug report.";
-		} else {
-		echo "<a href='http://" . $config['host'] . '/' . $config['tmp_path'] . '/' . $zip;
-		echo "'>$zip</a>";
-		echo ", right-click and 'Save as' to download data archive";
-		//echo "<p id='thanks'>Thank you for using the Entangled Bank&nbsp;&nbsp;<input id='submit-button' type='submit' value='Another query?'></p>";
-	}
-	echo "</td>";
-	echo "</tr></table>";
-	echo "</div>";
-}
 
 #=================================================================================================================	
 

@@ -167,6 +167,28 @@ function submitQuery(id) {
 
 //-----------------------------------------------------------------------------------
 
+
+function openSelect(entry) {
+	div_id = entry + '_select_div';
+	var div = document.getElementById(div_id);
+	//alert(div.id);
+	if (entry == 'biotree') {
+		other_div_id = 'attribute_select_div';
+	} else {
+		other_div_id = 'biotree_select_div';
+	}
+	var other_div = document.getElementById(other_div_id);
+	
+	if (div.style.display == 'none') {
+		div.style.display = 'block';
+		other_div.style.display = 'none';
+	} else {
+		div.style.display = 'none';
+		other_div.style.display = 'block';
+	}
+}
+//-----------------------------------------------------------------------------------
+
 function textareaFormat(id) {
 	
 	//	Adds/removes double quotes from textbox
@@ -424,19 +446,22 @@ function submitTableQuery(id) {
 	// IF SELECT THEN AT LEAST ONE VALUES IN QUERY BOX
 	// SELECT ALL SELECT ENTRIES FOR POST
 	// Check if any _query check boxes checked
+	//alert(id);
 	var control = document.getElementsByTagName("input");
+	
 	var check_ok = false;
-
+	//alert('begin');
 	for (var i = 0; i < control.length; i++) {
 		var pattern = new RegExp("_query",'i');
 		if (control[i].id.search(pattern) != - 1) {
-			//alert(control[i].id + "," + control[i].checked);
 			if (control[i].checked == true) {
 				// _query on
+				//alert(control[i].id + " is checked");
 				// so get _query type
 				check_ok = true;
 				var fname = control[i].id.substring(0, control[i].id.length - 6); 
 				var range = document.getElementById(item + "_min");
+				
 				if (range) {
 					//RangeField
 					var min_item = document.getElementById(fname + "_min");
@@ -453,29 +478,36 @@ function submitTableQuery(id) {
 						return null;
 					}
 				} else {
-					// Lookup so check at least one entry selected
+					
 					var item = document.getElementById(fname + "_add");
-					if (item.options.length == 0) {
-						alert (fname + ": select at least one option or close field to ignore.");
-						//check_ok == false;
-						return null;
+					if (item) {
+						// Lookup so check at least one entry selected
+						//alert (item.id + ' has ' + item.options.length + ' options');
+						if (item.options.length == 0) {
+							alert (fname + ": select at least one option or close field to ignore.");
+							check_ok == false;
+							return null;
+						}
+					} else {
+						//groupfield
 					}
 				}
-				check_ok = true;
-			}
-			
+			}		
 		}
 	}
+	
+	//alert('check: ' + check_ok)
 	if (check_ok == true) {
 		// AT LEAST ONE _query is CHECKED, SO CHECK IF ENTRIES AND IF SO SELECT
 		var control = document.getElementsByTagName("select");
 		for (var i = 0; i < control.length; i++) {
 			var pattern = new RegExp("_add",'i');
 			if (control[i].id.search(pattern) != - 1) {
+				//alert(control[i].name + ' has ' + control[i].options.length + ' option');
 				for (j = 0; j <= control[i].options.length - 1; j++) {
 					control[i].options[j].selected = true;
 				}
-				alert(fname + ' has ' + j + ' options');
+				//alert(fname + ' has ' + j + ' options');
 			}
 		}
 		document.ebankform.submit();

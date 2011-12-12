@@ -3,91 +3,86 @@
  Entangled Bank To Do List
 ---------------------------
 
-Data
-	- Add explainantion of names in gpdd to help. (HIGH)
-	- Spatial Accuracy Classes as text (HIGH)
-    - Add non-binomial names to Gpdd binomial (FIXED)
-	- Galliformes (MEDIUM)
-	- Ephippiger (LOW)
-
-	
-Entangled-bank.org
-	- Move to IC? (MEDIUM)
-	- Update (HIGH)
-	- Change Architecture to more upto date version (HIGH).
-	- !!!HIGH!!! Figure links 
-
 Configuration 
-	- Soft code all Windows and LINUX configuration  (HIGH - FIXED?)
-	- Talk to Bioinfromatics support/Georgina (HIGH)
-	- Migrate INI into PHP (HIGH)
+	- Migrate INI into PHP 
+	- Soft code all Windows and LINUX configuration.
+	- Hosting.
+	
 	
 Back Button
-	- Sensible response (HIGH)
-
-Get Sources
-	 - sort select_sources by term (LOW)
+	HIGH
+	- Sensible response
 	 	
-Main
-	- Tool tips showing sources available for each query type (FIXED)
-	- Query by geography and time offered when only tree selected (FIXED)
-
 Validation
-	- Suggestions for invalid names (LOW)
-	- all validation as javascript, except names in names query (HIGH)
+	HIGH
+	- all validation as javascript, except names in names query
+	LOW
+	- Suggestions for invalid names	
 	
 Cross-browser compatability (MEDIUM)
 	- XMLHttpRequests back compatability with < IE7 and other browsers
 	
 Query
 	General
-		- If only one possible source for a query go direct, i.e. one tree or table available (med: would need hidden field)
-		- NOT option on all queries (LOW: may be quite complex for multiple source queries)
+		HIGH
 		- htmlspecialchars on database text fields in select boxes (?)
-		- javascript find to get host path from config (FIXED)
-		- petty format SQL (MEDIUM)
-		- Spatial SQL for UDig/J (MEDIUM)
-		- Hyperlink query list to query (FIXED)
-		- Row headings on select tables (med: how would they look?)
-		- Empty names query currently adds Names SQL, should give verification error. (FIXED)
-		- GPDD add n points to query information (MEDIUM)
-		- last mids on query re-run [see temporal] (HIGH)
-		- Look-up tables from change in vals in field (HIGH)
-	Geography
-	    - Biogeographic query failing (FIXED)
-		- Open source layer fail to draw on intitalise (FIXED)
-		- Clear query features.Clear button implemented needs better positioning. (FIXED)
-		- Generalised range maps (low)
-		- Queries that cross the Anti-Meridian (NOT ISSUE, open layers prevents cross-antimeridian features)
-		- Quick search using && only (FIXED)
-	Tree
-		- XMLHttpRequest (FIXED)
-		- Node Operator for taxonomy levels not just 'internal' and 'tip'. (FIXED)
-	Attribute
-		- !!!HIGH!!! GPDD N Series and other query -> perhaps error in utils.js? 
-		- NULLs in attribute query (PARTIAL FIX: single 'include nulls' option for all fields in a query)
-		- Set query in edit mode (FIXED)
-		- Find for select fields. Would speed up attribute query load as all options for all fields would not need to be preloaded (FIXED)
-		- ids for lookup fields in query (HIGH)
-		- Nulls on catagory and range fields (MEDIUM)
-Output
-	General
-		- Delete created files/Create temporary files. Periodic chron function or on session end (HIGH)
-		- Extract write from html_write (FIXED)
+		MEDIUM
+		- If only one possible source for a query go direct, i.e. one tree or table available (med: would need hidden field)
+		- petty format SQL
+		- Spatial SQL for UDig/J
+		- GPDD add n points to query information
+		LOW
+		- NOT option on all queries (: may be quite complex for multiple source queries)
 	
 	Geography
-		- OGR2OGR shell escapes for GPDD (FIXED)
+		LOW
+		- Generalised range maps
+
 	Tree
-		- Write to lintree, tab and nhx with Bio::TreeIO (low)
-		- Write to Nexml with BioPhylo (MEDIUM)
-		- Migrate subtree extraction to SQL (FIXED)
+		HIGH
+		Tree query dialog not displayed when only one tree
+
+	Attribute
+
+
+OUTPUT
+
+	General
+		HIGH
+		 - Tree download error
+		 - Path to zip file [javascript find gets host path from config]
+		 FIXED
+		 - Delete created files/Create temporary files. Periodic chron function or on session end
+		 - Extract write from html_write
+	
+	Geography
+		FIXED
+		- OGR2OGR shell escapes for GPDD
+	Tree
+		MEDIUM
+		- Write to Nexml with BioPhylo
+		LOW
+		- Write to lintree, tab and nhx with Bio::TreeIO
+
 	Table
-		- Dbase output formats (MEDIUM)
-		- Field order in output (LOW)
+		MEDIUM
+		- Dbase output formats
 
 CSS
-	- Convert px to em (MEDIUM)
-	- Rationalise CSS classes and ids (MEDIUM)
+	MEDIUM
+	- Convert px to em
+	- Rationalise CSS classes and ids
+
+INPUT
+	MEDIUM
+	- Data input interface
+
+DATA
+	MEDIUM
+	- Spatial Accuracy Classes as text
+	- Galliformes
+	LOW
+	- Ephippiger
 
 ---------------
 Test Names List

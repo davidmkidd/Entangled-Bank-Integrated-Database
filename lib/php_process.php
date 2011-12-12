@@ -245,22 +245,23 @@ function process_query ($db_handle, $qobjid, $qsources) {
 
 function process_cleanup($config) {
 	
-	#DELETES ALL FILES IN ./tmp that are older than a day
-	
+	#DELETES ALL FILES IN ./tmp that are older than 1 hour
 	$path = $config['out_path'];
-	
+	//echo "path: $path<br>";
 	if ($handle = opendir($path)) {
-	
-	    while (false !== ($file = readdir($handle))) { 
-	        $filelastmodified = filemtime($file);
-	
-	        if(($filelastmodified-time()) > 24*3600)
-	        {
-	           unlink($file);
-	        }
-	
+	    while (false !== ($file = readdir($handle))) {
+	    	if ($file != "." && $file != "..") {
+	    		if (strpos($_SERVER['SERVER_SOFTWARE'], 'Unix')) {
+	    			$filelastmodified = filemtime("$path/$file");
+	    		} else {
+	    			$filelastmodified = fileatime("$path/$file");
+	    		}
+	        	//echo "$path/$file was last modified: " . date ("F d Y H:i:s.", $filelastmodified);
+	        	if (($filelastmodified - time()) > 1*3600) {
+	           		unlink($file);
+	        	}
+	    	}
 	    }
-	
 	    closedir($handle); 
 	}
 }
@@ -274,7 +275,6 @@ function process_biogeographic(&$qobject) {
 	$qobject['q_geometry'] = $_SESSION['q_geometry'];
 
 }
-
 
 #=================================================================================================================
 
@@ -358,8 +358,8 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 			
 		//$i = array_search($qfield, $fields);
 		$field = get_field($qfield, $fields);
-		print_r($field);
-		echo "<br>";
+		//print_r($field);
+		//echo "<br>";
 		$dtype = $field['ebtype'];
 		$lookup = $field['lookup'];
 	
@@ -420,18 +420,22 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 			case 'lookuptable':
 				$field = $qfield . "_add";
 				$values = $_SESSION[$field];
-				echo "$field<br>";
-				if (in_array('NULL', $values)) {
-					$null = true;
-					remove_element($values, 'NULL');
+				//echo "$field<br>";
+				if (is_array($values)) {
+					if (in_array('NULL', $values)) {
+						$null = true;
+						remove_element($values, 'NULL');
+					} else {
+						$null = false;
+					}
 				} else {
 					$null = false;
-				}			
+				}
 				//echo "field: $field, values: $values<br>";
-				$ops = array_fill(0, count($values), '=');
+				if ($values) $ops = array_fill(0, count($values), '=');
 				$query = array('field'=>$qfield, 'operator'=>$ops, 'value'=>$values, 'lookup'=>$lookup, 'null'=>$null);
-				print_r($query);
-				echo " !<br>";				
+				//print_r($query);
+				//echo " !<br>";				
 				array_push($queries, $query);
 				unset($_SESSION[$field]);
 				break;
@@ -597,37 +601,26 @@ function validate_names($db_handle, &$qobject, $sources) {
 		$output['term'] = $term;
 	
 		switch ($term) {
+			
 			case 'biotable':
-				# ADD KEYS
 				$output['fields'] = $_SESSION['fields_add'];
 				$output['db_format'] = $_SESSION['db_format'];
-				// ADD STRING
-				//$as_string = "RETURN " . count($output['fields']) . " fields FROM " . $source['name'] . " AS " . $output['db_format'];
-				//$output['as_string'] = $as_string;
 				break;
+				
 			case 'biogeographic':
-				# ADD KEYS
 				$output['sp_format'] = $_SESSION['sp_format'];
-				// ADD STRING
-				//$as_string = "RETURN "  . $source['name'] . " AS " . $output['sp_format'];
-				//$output['as_string'] = $as_string;
 				break;
 				
 			case 'biorelational':
 				$output['db_format'] = 'csv';
 				$output['sp_format'] = $_SESSION['sp_format'];
-				//$as_string = "RETURN gpdd.tables FROM " . $source['name'] . " AS " . $output['db_format'];
-				//$as_string = $as_string . " AND gpdd.geography FROM " . $source['name'] . " AS " . $output['sp_format'];
-				//$output['as_string'] = $as_string;
 				break;
 				
 			case 'biotree':
-				# ADD KEYS
 				$output['tree_id'] = $source['tree_id'];
 				$format = $_SESSION['format'];
 				$brqual = $_SESSION['brqual'];
 				$outsubtree = $_SESSION['outsubtree'];
-		
 				if ($format) {
 					$output['format'] = $format;
 					$output['subtree'] = $outsubtree;
@@ -635,13 +628,12 @@ function validate_names($db_handle, &$qobject, $sources) {
 				if ($brqual) {
 					$output['brqual'] = $brqual;
 					}
-					
 				break;
+				
 			}
 
 		$output['status'] = 'valid';
-		$outputs = save_obj($outputs, $output);
-		
+		$outputs = save_obj($outputs, $output);	
 		$_SESSION['outputs'] = $outputs;
 	}
 	
