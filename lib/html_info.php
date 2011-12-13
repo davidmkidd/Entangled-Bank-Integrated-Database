@@ -269,11 +269,16 @@ function info_gpdd($db_handle, $source, $qobjects, &$info) {
 	
 # ------------------------------------------------------------------------------------------------------------
 	
-function html_info_outputs($zip) {
+function html_info_outputs() {
 	
 	$outputs = $_SESSION['outputs'];
 	$qobjects = $_SESSION['qobjects'];
 	$tmp = $_SESSION['full_tmp_path'];
+	$zips = $_SESSION['zips'];
+	
+	//print_r($zips);
+	//echo "<br>";
+	
 	if ($outputs) {
 		
 		echo "<input type='hidden' id='output_id' name='output_id' value=''>";
@@ -284,9 +289,7 @@ function html_info_outputs($zip) {
 		echo "<div id='output_cart'>";
 		echo "<table border='0'>";
 		echo "<tr>";
-		echo "<td class='query_title'>";
-		echo "Outputs";
-		echo "</td>";
+		echo "<td class='query_title'>Outputs</td>";
 		echo "<td>";
 		$first = true;
 
@@ -308,20 +311,30 @@ function html_info_outputs($zip) {
 		echo "&nbsp;<a href='javascript: deleteAllOutputs()' >";
 		echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
 			
-		if (!$zip) {
-			# DATA CART
-			$title = 'Return Data';
-			echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' alt='return data' title='$title';></img></a>";
-			echo "</td>";
-		} else {
+		# DATA CART
+		$title = 'Return Data';
+		echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' alt='return data' title='$title';></img></a>";
+		echo "</td>";
+		echo "</tr>";
+		if ($zips) {
 			#DATA PACKAGE;
 			$t = "Data package:  Right-click and &#145;save&#146; to download";
+			echo "<tr>";
+			echo "<td class='query_title'>Data Packages</td>";
 			echo "<td>";
-			echo "<a href='", $tmp , $zip , "'";
-			echo "'><img width='45px' src='./image/parcel.gif' title='$t'/>$t</a>";
+			$i = 0;
+			foreach ($zips as $zip) {
+				if ($i > 0) echo "&nbsp;";
+				echo "<a href='", $tmp , $zip , "'";
+				echo "'><img width='45px' src='./image/parcel.gif' title='$t'/></a>";
+				$i++;
+			}
+			echo "&nbsp;<a href='javascript: deleteAllPackages()' >";
+			echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
 			echo "</td>";
+			echo "<tr>";
 		}
-		echo "</tr>";
+		
 		echo "</table>";
 		echo "</div>";
 		}

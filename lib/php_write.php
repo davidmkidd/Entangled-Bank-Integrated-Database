@@ -10,7 +10,7 @@ function write_outputs($db_handle, $config) {
 	if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
 	if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 	if ($_SESSION['sources']) $sources = $_SESSION['sources'];
-	
+	if ($_SESSION['zips']) $zips = $_SESSION['zips'];
 	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
 	$oid = substr(md5(uniqid()),0,4);
 	$_SESSION['oid'] = $oid;
@@ -62,7 +62,12 @@ function write_outputs($db_handle, $config) {
 		foreach ($files_to_zip as $file) {
 			if (file_exists($file)) unlink($file);
 		}
-		return $zn;
+		# ADD to zips
+		if (!$zips) $zips = array();
+		array_push($zips, $zn);
+		//echo "<br>$zn<br>";
+		//print_r($zips);
+		$_SESSION['zips'] = $zips;
 	}
 }
 

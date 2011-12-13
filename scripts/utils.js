@@ -70,6 +70,15 @@ function deleteAllOutputs() {
 	item.value = 'outputdeleteall';
 	document.ebankform.submit();
 }
+
+//-----------------------------------------------------------------------------------
+
+function deleteAllPackages() {
+	var item = document.getElementById('stage');
+	item.value = 'outputdeleteallpackages';
+	document.ebankform.submit();
+}
+
 //-----------------------------------------------------------------------------------
 
 function deleteAllQueries() {

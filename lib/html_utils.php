@@ -2231,7 +2231,7 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id, $zip) {
+function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id) {
 	
 		$sources = $_SESSION['sources'];
 		//if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
@@ -2364,7 +2364,7 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $stage, $na
 		html_output_source($sources);
 		echo "</tr>";
 		echo "</table>";
-		html_info_outputs($zip);
+		html_info_outputs();
 		echo "</div>";
 		
 		echo "<input type = 'hidden' id='stage' name ='stage' value='qset'>";

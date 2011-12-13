@@ -187,6 +187,23 @@ if ($stage == 'outputdeleteall') {
 	$stage = 'main';
 }
 	
+# DELETE ALL DATA PACKAGES
+if ($stage == 'outputdeleteallpackages') {
+	//echo "Deleting ", count($_SESSION['zips']), " package<br>";
+	if ($_SESSION['zips']) {
+		$zips = $_SESSION['zips'];
+		foreach($zips as $zip) {
+			$file = $config['out_path'] . "/$zip";
+			//echo "file: $file exists:", file_exists($file), " <br>";
+			if (file_exists($file)) {
+				unlink($file);
+			}
+		}
+	}
+	unset ($_SESSION['zips']);	
+	$stage = 'main';
+}
+
 # VERIFY OUTPUT POSTED DATA TO OUTPUT
 if ($stage == 'outputvalidate' && $output_id) {
 	process_output($db_handle, $output_id);
@@ -196,7 +213,7 @@ if ($stage == 'outputvalidate' && $output_id) {
 
 # WRITE OUTPUT FILES
 if ($stage == 'write') {
-	$zip = write_outputs($db_handle, $config);
+	write_outputs($db_handle, $config);
 	# DELETE OLD FILES - COULD BE BETTER MANAGED
 	process_cleanup($config);
 } else {
@@ -219,14 +236,15 @@ if ($stage == 'sources')
 
 # MAIN INTERFACE
 if ($stage == 'main' || $stage == 'write') 
-	html_entangled_bank_main($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id, $zip);
+	html_entangled_bank_main($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id);
 
 # QUERY SETUP
 if ($stage == 'qset')
 	html_query_set($db_handle, $qobjid);
 
 # OUTPUT DIALOGS
-if ($stage == 'setoutput') html_output_set($db_handle, $output_id);
+if ($stage == 'setoutput') 
+	html_output_set($db_handle, $output_id);
 
 # UNIQUE ID FOR FORM INSTANCE
 echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';

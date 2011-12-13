@@ -256,9 +256,13 @@ function process_cleanup($config) {
 	    		} else {
 	    			$filelastmodified = fileatime("$path/$file");
 	    		}
-	        	//echo "$path/$file was last modified: " . date ("F d Y H:i:s.", $filelastmodified);
-	        	if (($filelastmodified - time()) > 1*3600) {
-	           		unlink($file);
+	        	//echo "$path/$file was last modified: " . date ("F d Y H:i:s.", $filelastmodified) .
+	        	//	" [$filelastmodified], " . $filelastmodified - time() . " seconds ago<br>";
+	        	$ago = time() - $filelastmodified;
+	        	//echo "$path/$file was last modified: $filelastmodified , $ago ago<br>";
+	        	if (($ago) > 1*3600) {
+	        		echo "unlink<br>";
+	           		unlink($path/$file);
 	        	}
 	    	}
 	    }
