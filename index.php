@@ -16,16 +16,14 @@ include "./lib/php_process.php";
 include "./lib/php_write.php";
 include "./lib/html_info.php";
 
-
-
 $eb_path = "http://" . $config['ebhost'] . "/" . $config['eb_path'] . '/';
 $html_path = "http://" . $config['htmlhost'] . "/";
 if($config['html_path']) $html_path = $html_path . $config['html_path'] . '/';
 $share_path = "http://" . $config['ebhost'] . "/" . $config['share_path'] . '/';
 $_SESSION['tmp_path'] = $config['tmp_path'];
 $_SESSION['full_tmp_path'] = "http://" . $config['ebhost'] . '/' . $config['tmp_path'] . '/';
-# EB PATH FOR JS
-echo "$eb_path<br>";
+
+# EB PATH
 echo "<input type='hidden' id='eb_path' value='$eb_path' />";
 # ---------------------------------------------------------------------------------------------------
 #                                                _POST AND SESSION

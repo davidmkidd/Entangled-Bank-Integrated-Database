@@ -299,12 +299,23 @@ Tabular data such as Panthria or the GPDD may be exported as comma-delineated (*
 or 'tab-delineated (*.txt)' ascii files. All or a subset of fields may be output.
 </p>
 
+<center>
+<a name="fig10">
+<a href='./image/output-table.gif'><IMAGE src='./image/output-table.gif' width='600px'/></a>
+<p class='caption'>Figure 11. Pantheria Output</p>
+</center>
+
 <h4><a name="output_spatial">Geographic Output</a></h4>
 <p>
 Spatial data such as can be exported as a <a href=''>ESRI Shapefile</a>, <a href=''>MapInfo</a>, <a href=''>DGN</a>, 
  <a href=''>DXF</a>, <a href=''>Geographic Markup Language (GML)</a>
  and <a href=''>Keyhole Markup Language (KML)</a> formats. [Add non-spatial]
 </p>
+<center>
+<a name="fig_output-geography">
+<a href='./image/output-geography.gif'><IMAGE src='./image/output-geography.gif' width='600px'/></a>
+<p class='caption'>Figure 12. Pantheria Output</p>
+</center>
 
 <h4><a name="output_tree">Tree Output</a></h4>
 <p>
@@ -313,7 +324,25 @@ Trees may be exported in <a href=''>newick</a>, <a href=''>nhx</a>,
 Trees may be the subtree defined by the last common ancestor of the selected names or pruned to only the name set.
 Branch attributes (e.g. ages) may be be output in the tree file.
 </p>
+<center>
+<a name="fig_output-tree">
+<a href='./image/output-tree.gif'><IMAGE src='./image/output-tree.gif' width='600px'/></a>
+<p class='caption'>Figure 12. Mammal Phylogeny Output</p>
+</center>
 
+
+<h4><a name="output-gpdd">GPDD Output</a></h4>
+<p>
+Trees may be exported in <a href=''>newick</a>, <a href=''>nhx</a>, 
+<a href=''>tab-indented ascii</a> or <a href=''>lintree formats</a>.
+Trees may be the subtree defined by the last common ancestor of the selected names or pruned to only the name set.
+Branch attributes (e.g. ages) may be be output in the tree file.
+</p>
+<center>
+<a name="fig_output-gpdd">
+<a href='./image/output-gpdd.gif'><IMAGE src='./image/output-gpdd.gif' width='600px'/></a>
+<p class='caption'>Figure 12. GPDD Output</p>
+</center>
 
 <h4><a name="readme">Session metadata</a></h4>
 <p>

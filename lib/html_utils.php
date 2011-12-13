@@ -261,11 +261,11 @@ function html_output_biotree($db_handle, $output, $outputs, $source) {
 	echo "<td>";
 	echo "<select name='$subtree_formname' class='eb'>";
 	if (!$subtree or $subtree == 'subtree') {
-		echo "<OPTION SELECTED value='subtree'>LCA subtree</OPTION>";
-		echo "<OPTION value='pruned'>Pruned LCA subtree</OPTION>";
+		echo "<OPTION SELECTED value='subtree'>MRCA tree</OPTION>";
+		echo "<OPTION value='pruned'>Pruned MRCA tree</OPTION>";
 		} else {
-		echo "<OPTION value='subtree'>LCA subtree</OPTION>";
-		echo "<OPTION SELECTED value='pruned'>Pruned LCA subtree</OPTION>";
+		echo "<OPTION value='subtree'>MRCA tree</OPTION>";
+		echo "<OPTION SELECTED value='pruned'>Pruned MRCA tree</OPTION>";
 		}
 	echo "<select>";
 	echo "</td>";
@@ -2978,7 +2978,7 @@ function html_query_tree_operator($mode = 'subtree') {
 	
 	echo "<td class='eb'>";
 	$vals = array('subtree','lca','selected','all');			
-	$label = array('Most Recent Common Ancestor Subtree','Most Recent Common Ancestor','Selected','All');
+	$label = array('MRCA Subtree','Most Recent Common Ancestor','Selected','All');
 	echo "<SELECT id='subtree' name='subtree' class='eb' onChange='operatorChange()'>";
 	$i = 0;
 	foreach ($vals as $val) {
