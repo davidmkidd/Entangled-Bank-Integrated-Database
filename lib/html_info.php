@@ -304,32 +304,27 @@ function html_info_outputs() {
 			$first = false;
 		}
 			
-		# DATA CART
+		# CART
 		$title = 'Checkout Data';
 		echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' 
 			alt='package data' title='$title';></img></a>";
 		
-
+		#DATA PACKAGE;
+		if ($zip) {	
+			$t = "Package:  Right-click and &#145;save&#146; to download";
+			echo "&nbsp;<a href='", $tmp , $zip , "'";
+			echo "'><img width='45px' src='./image/parcel.gif' title='$t'/></a>";
+		}
+		
+		
 		# DELETE ALL
 		$t = "Delete all outputs";
-		echo "&nbsp;<a href='javascript: deleteAllOutputs()' >";
+		echo "&nbsp;<a href='javascript: deleteAllOutputs()'>";
 		echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";	
 			
 		echo "</td>";
 		echo "</tr>";
-		if ($zip) {
-			#DATA PACKAGE;
-			$t = "Package:  Right-click and &#145;save&#146; to download";
-			echo "<tr>";
-			echo "<td class='query_title'>Package</td>";
-			echo "<td>";
-			echo "<a href='", $tmp , $zip , "'";
-			echo "'><img width='45px' src='./image/parcel.gif' title='$t'/></a>";
-			//echo "&nbsp;<a href='javascript: deleteAllPackages()' >";
-			//echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
-			echo "</td>";
-			echo "</tr>";
-		}
+
 		
 		echo "</table>";
 		echo "</div>";

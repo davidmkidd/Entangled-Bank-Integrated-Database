@@ -43,8 +43,8 @@ OUTPUT
 
 	General
 		HIGH
-		 - Tree download error
-		 - Path to zip file [javascript find gets host path from config]
+		 - BRANCH LENGTHS
+		 - 
 		 FIXED
 		 - Delete created files/Create temporary files. Periodic chron function or on session end
 		 - Extract write from html_write

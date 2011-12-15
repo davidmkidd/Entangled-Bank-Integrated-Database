@@ -189,25 +189,17 @@ if ($stage == 'outputdelete') {
 if ($stage == 'outputdeleteall') {
 	unset ($outputs);
 	$_SESSION['outputs'] = $outputs;	
-	$stage = 'main';
-}
-	
-# DELETE ALL DATA PACKAGES
-if ($stage == 'outputdeleteallpackages') {
-	//echo "Deleting ", count($_SESSION['zips']), " package<br>";
-	if ($_SESSION['zips']) {
-		$zips = $_SESSION['zips'];
-		foreach($zips as $zip) {
-			$file = $config['out_path'] . "/$zip";
-			//echo "file: $file exists:", file_exists($file), " <br>";
-			if (file_exists($file)) {
-				unlink($file);
-			}
+	if ($_SESSION['zip']) {
+		$zip = $_SESSION['zip'];
+		$file = $config['out_path'] . "/$zip";
+		if (file_exists($file)) {
+			unlink($file);
 		}
 	}
 	unset ($_SESSION['zips']);	
 	$stage = 'main';
 }
+	
 
 # VERIFY OUTPUT POSTED DATA TO OUTPUT
 if ($stage == 'outputvalidate' && $output_id) {

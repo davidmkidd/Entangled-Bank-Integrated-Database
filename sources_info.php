@@ -156,7 +156,7 @@ echo '<html>';
 
 #HEAD
 echo '<head>';
-echo "<title>Info - Sources</title>";
+echo "<title>Info - Datasets</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 echo '<script src="./scripts/utils.js" type="text/javascript"></script>';

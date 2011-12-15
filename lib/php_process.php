@@ -199,19 +199,19 @@ function process_query ($db_handle, $qobjid, $qsources) {
 	# PROCESS QUERY BY TERM
 	switch ($term) {
 		case 'bionames':
-			process_bionames($db_handle, $qobject, $sources);
+			process_query_bionames($db_handle, $qobject, $sources);
 			break;
 		case 'biotable':
-			process_biotable($db_handle, $qobject, $sources, $names);
+			process_query_biotable($db_handle, $qobject, $sources, $names);
 			break;
 		case 'biotree':
-			process_biotree($db_handle, $qobject, $sources);
+			process_query_biotree($db_handle, $qobject, $sources);
 			break;
 		case 'biotemporal':
-			process_biotemporal($qobject, $sources);
+			process_query_biotemporal($qobject, $sources);
 			break;
 		case 'biogeographic':
-			process_biogeographic($qobject);
+			process_query_biogeographic($qobject);
 			break;	
 		default:
 			echo "validate_query: unrecognised query type $term";
@@ -273,7 +273,7 @@ function process_cleanup($config) {
 
 #=================================================================================================================
 
-function process_biogeographic(&$qobject) {
+function process_query_biogeographic(&$qobject) {
 	
 	$qobject['s_operator'] = $_SESSION['s_operator'];
 	$qobject['q_geometry'] = $_SESSION['q_geometry'];
@@ -283,7 +283,7 @@ function process_biogeographic(&$qobject) {
 #=================================================================================================================
 
 
-function process_bionames($db_handle, &$qobject, $sources) {	
+function process_query_bionames($db_handle, &$qobject, $sources) {	
 	
 	# Converts names input to array
 	# and validates against DB
@@ -315,7 +315,7 @@ function process_bionames($db_handle, &$qobject, $sources) {
 	
 #=================================================================================================================
 	
-function process_biotable($db_handle, &$qobject, $sources, $names)  {
+function process_query_biotable($db_handle, &$qobject, $sources, $names)  {
 
 	// ADD QUERY INPUT FROM html_table_query TO QOBJECT
 	
@@ -461,7 +461,7 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	
 # ===================================================================================================================
 	
-	function process_biotemporal(&$qobject, $sources) {
+	function process_query_biotemporal(&$qobject, $sources) {
 		
 		// GPDD HARDCODE
 		$day = $_SESSION['day'];
@@ -487,7 +487,7 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 
 # ===================================================================================================================
 
-function process_biotree ($db_handle, &$qobject, $sources) {
+function process_query_biotree ($db_handle, &$qobject, $sources) {
 			
 	$qobject['subtree'] = $_SESSION['subtree'];
 	$qobject['nodefilter'] = $_SESSION['nodefilter'];
@@ -619,6 +619,8 @@ function validate_names($db_handle, &$qobject, $sources) {
 				$output['tree_id'] = $source['tree_id'];
 				$format = $_SESSION['format'];
 				$brqual = $_SESSION['brqual'];
+				unset($_SESSION['brqual']);
+				
 				$outsubtree = $_SESSION['outsubtree'];
 				if ($format) {
 					$output['format'] = $format;

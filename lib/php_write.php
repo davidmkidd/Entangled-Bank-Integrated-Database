@@ -502,6 +502,9 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	$brqual = $output['brqual'];
 	$format = $output['format'];
 
+	print_r($output);
+	echo "<br>";
+	
 	switch ($format) {
 		case 'newick':
 			$filename = $outpath . $filename . '.tre';
@@ -561,7 +564,7 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 		$str = "SELECT biosql.pdb_as_newick_label($tree_id, $arr, $brqual, FALSE)";
 	}
 
-	//echo "str: $str<br>";
+	echo "str: $str<br>";
 	$res = pg_query($str);
 	$row = pg_fetch_row($res);
 	$tree = $row[0];
@@ -571,15 +574,11 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	if ($format !== 'newick') {
 		$_SESSION['newick'] = $tree;
 		session_write_close(); 
-		#echo "<br>***BEGIN PERL***<br>";
 		$str = "$perl_script_path\convert_tree.pl $sid $spath $format 2>&1";
-		//echo "$perl_script_path\convert_tree.pl $sid $spath $tree $format 2>&1";
 		$tree = shell_exec($str);
-		echo "$tree<br>";
-		#echo "<br>***END PERL***<br>";
+		//echo "$tree<br>";
 	} 
-	//echo "tree, $tree<br>";
-	//echo "Writing tree to $filename<BR>";
+
 	# WRITE TREE FILE
 	$fh = fopen($filename, 'w') or die ("failed to open tree file fo writing");
 	fwrite($fh, $tree);

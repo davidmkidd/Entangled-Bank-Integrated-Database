@@ -85,12 +85,13 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 	echo "<a href='$eb_path/doc/about.php' target='_blank'>about</a>";
 	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path/doc/examples.php' target='_blank'>examples</a>";
 	if ($restart == true) { 
-		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "/lib/restart.php'> restart</a>";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "/lib/restart.php'>restart</a>";
 	}
+	
+	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "/doc/$help' target='_blank'>help!</a>";	
 	if ($finish == true) {
-		//echo " | <a href='" , $eb_path , "finish.php'> exit</a>";
-	}	
-	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "/doc/$help' target='_blank'>help!</a>";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "finish.php'>exit</a>";
+	}
 	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v0.6 12.2011)';
 	echo "</div>";
 	echo "</div>";
