@@ -82,7 +82,6 @@ function showNumericField(entry) {
 			// VALUE
 			var val = getNumericField(sid, field, 'no');
 			var val_null = getNumericFieldNull(sid, field, 'no');
-			//var val_names = getNumericField(sid, field, 'yes');
 			
 			var value = document.createElement("input");
 			value.name = field + "_value";
@@ -115,17 +114,18 @@ function showNumericField(entry) {
 				cell[1].appendChild(nullvals);
 			}
 			
+			// ERR LABEL
+			var errlabel = document.createElement("label");
+			errlabel.id = field + "_errlabel";
+			errlabel.className = 'error';
+			errlabel.innerHTML = '';
+			//alert(errlabel);
+			cell[1].appendChild(errlabel);
+			
 			// LABEL
 			cell[2] = document.createElement("td");		
 			var label = document.createElement("label");
-			//if (Number(val[0]) !== Number(val_names[0])) {
-			//	str = str + "[" + val_names[0] + "]";
-			//}
-			//if (Number(val[1]) !== Number(val_names[1])) {
-			//	str = str + "[" + val_names[1] + "]";
-			//}
-			
-			var str = 'From ' + val[0] + "&nbsp;to&nbsp;" + val[1];
+			var str = 'from ' + val[0] + "&nbsp;to&nbsp;" + val[1];
 			label.innerHTML = str;
 			label.id = field + "_label";
 			cell[2].appendChild(label);

@@ -2,8 +2,7 @@
 
 session_start();
 
-include "./lib/config_setup.php";
-include $config['apt_to_ini_path'] . "/eb_connect_pg.php";
+include "./lib/config.php";
 include "./lib/html_utils.php";
 include "./lib/php_utils.php";
 include "./lib/php_query.php";
@@ -26,45 +25,29 @@ $sterm = $source['term'];
 $snamefield = $source['namefield'];
 $sdbloc = $source['dbloc'];
 $treeid = $source['tree_id'];
-#HTML 
-echo '<html>';
-
-#HEAD
-echo '<head>';
-echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
-
-echo "<title>Info - ", $source['name'] , "</title>";
-echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
-echo '</head>';
-#BODY
-echo "<div class='main'>";
-html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
-//echo "<br>";
-
-echo "<h4>Source Information</h4>";
-
-echo "<table>";
 
 # Names in query
 switch ($sterm) {
 	case 'biotree' :
 		if (!$arr) {
-			$str = "SELECT label FROM biosql.node WHERE tree_id = $treeid";
+			$str = "SELECT label FROM biosql.node WHERE tree_id = $treeid ORDER BY label";
 		} else {
-			$str = "SELECT biosql.pdb_labels_in_tree($treeid, $arr)";
+			$str = "SELECT biosql.pdb_labels_in_tree($treeid, $arr) AS bioname ORDER BY bioname";
 		}
 		break;
 	case 'biotable':
 	case 'biogeographic':
-		$str = "SELECT $snamefield FROM $sdbloc";
+		$str = "SELECT DISTINCT $snamefield FROM $sdbloc";
 		if ($arr) $str = $str . " WHERE $snamefield = ANY($arr)";
+		$str = $str . " ORDER BY $snamefield";
 		break;
 	case 'biorelational':
-		$str = "SELECT t.\"binomial\" 
+		$str = "SELECT DISTINCT t.\"binomial\" 
 			FROM gpdd.taxon t, gpdd.main m 
 			WHERE m.\"TaxonID\" = t.\"TaxonID\"
 			AND t.\"binomial\" IS NOT NULL";
 		if ($arr) $str = $str .  " AND \"binomial\" = ANY($arr)";
+		$str = $str . " ORDER BY t.\"binomial\"";
 		break;
 }
 $res = pg_query($db_handle, $str);
@@ -107,19 +90,19 @@ if ($sterm == 'biorelational') {
 	$mids = query_get_mids($qobjects);
 	if ($mids) {
 		$marr = array_to_postgresql($mids, 'numeric');
+		
 		$str = "SELECT COUNT(*) FROM gpdd.data d, gpdd.main m WHERE m.\"MainID\" = d.\"MainID\" AND m.\"MainID\" = ANY($marr)";
 	} else {
 		$str = "SELECT m.\"MainID\"
 			FROM gpdd.main m, gpdd.taxon t 
 			WHERE m.\"TaxonID\" = t.\"TaxonID\"
-			AND t.\"TaxonID\" IS NOT NULL";
+			ORDER BY m.\"MainID\"";
 		$res = pg_query($db_handle, $str);
 		$mids = pg_fetch_all_columns($res);
 		$str = "SELECT COUNT(*) 
 			FROM gpdd.data d, gpdd.main m, gpdd.taxon t 
 			WHERE m.\"MainID\" = d.\"MainID\" 
-			AND m.\"TaxonID\" = t.\"TaxonID\"
-			AND t.\"TaxonID\" IS NOT NULL";
+			AND m.\"TaxonID\" = t.\"TaxonID\"";
 	}
 	
 	$res = pg_query($db_handle, $str);
@@ -127,13 +110,33 @@ if ($sterm == 'biorelational') {
 	$datapoints = $row[0];
 }
 
-//echo "<tr><td class='query_title'>" . html_query_image($source['term'], 'non-active', null, 'source', false) . "</td></tr>";
+#HTML 
+echo '<html>';
 
+#HEAD
+echo '<head>';
+echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
+echo "<title>Info - ", $source['name'] , "</title>";
+echo '<link type="text/css" rel="stylesheet" href="./share/entangled_bank.css">';
+echo '</head>';
+
+#BODY
+echo "<body>";
+echo "<div id='page'>";
+html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
+
+# HEADER
+echo "<div id='info_header_div' class='header_div'>";
+echo "<table border='0'>";
 echo "<tr>";
-echo "<td class='query_title'>Source</td>";
-echo "<td>", html_query_image($source['term'], 'non-active', null, 'source', false), "&nbsp;&nbsp;", $source['name'], "</td>";
+echo "<td class='query_title'>", html_query_image($source['term'], 'non-active', null, 'source', false), "</td>";
+echo "<td id='info_header_title'>Info - ", $source['name'], "</td>";
 echo "</tr>";
+echo "</table>";
+echo "</div>";
 
+# INFO
+echo "<table border='0'>";
 echo "<tr>";
 echo "<td class='query_title'>Has</td>";
 echo "<td>", number_format($source['n']), " names </td>";
@@ -142,13 +145,14 @@ echo "</tr>";
 # NAMES IN QUERY
 if ($names) {
 	$n = count($names);
+	echo "<tr>";
+	echo "<td class='query_title'>Query</td>";
+	echo "<td>", number_format($n), " names</td>";
+	echo "</tr>";
 } else {
 	$n = $source['n'];
 }
-echo "<tr>";
-echo "<td class='query_title'>Query</td>";
-echo "<td>", number_format($n), " names</td>";
-echo "</tr>";
+
 
 echo "<tr>";
 echo "<td class='query_title'>Selected</td>";
@@ -221,6 +225,7 @@ if ($sterm == 'biorelational') {
 	
 	$i = 0;
 	$str = "";
+	sort($mids);
 	foreach($mids as $mid) {
 		if ($i == 0) {
 			$str = $mid;
@@ -249,11 +254,11 @@ if ($sterm == 'biorelational') {
 	echo "<td>";
 	echo "</tr>";
 }	
-
-
 echo "<table>";
-echo "<br>";
+
+//echo "<br>";
 html_entangled_bank_footer();
+
 echo "</div>";
 echo "</body>";
 echo '</html>';

@@ -16,6 +16,7 @@ function html_info($db_handle, $oldtoken, $newtoken) {
 		$info = $_SESSION['info'];
 		//echo "Info from session ...<BR>";
 	}
+	//print_r($info);
 	
 	# DIV
 	echo "<div id='info_div'>";
@@ -50,14 +51,15 @@ function html_info($db_handle, $oldtoken, $newtoken) {
 	$n = $info['sources'];
 	$t = "Sources";
 	echo "<td class='info_basic'>";
-	echo "<a href='./list_sources.php?" . SID . "' title='$t' target='_blank'>$n</a>";
+	echo "<a href='./sources_info.php?" . SID . "' title='$t' target='_blank'>$n</a>";
+	//echo "<a href='./sources_info.php' title='$t' target='_blank'>$n</a>";
 	echo "</td>";
 
 	# NAMES
 	$n = $info['names'];
 	$t = "Names";
 	echo "<td class='info_basic'>";
-	echo "<a href='list_names.php?" . SID . "' title='$t' target='_blank'>$n</a>";
+	echo "<a href='names_info.php?" . SID . "' title='$t' target='_blank'>$n</a>";
 	echo "</td>";
 		
 	# SOURCES
@@ -129,10 +131,10 @@ function info($db_handle, $sources, $qobjects, $names) {
 					WHERE m.\"TaxonID\"=t.\"TaxonID\"
 					AND m.\"DataSourceID\" = ds.\"DataSourceID\"
 					AND ds.\"Availability\" <> 'Restricted'";
-				if ($names) $str = $str . " AND t.binomial IS NOT NULL AND t.binomial = ANY($arr)";
-				
+				if ($names) $str = $str . " AND t.binomial = ANY($arr)";
 				break;
 		}
+		//echo "$str<br>";
 		$res = pg_query($db_handle, $str);
 		$info[$source['id']] = count(pg_fetch_all_columns($res));
 		$allnames = array_merge($allnames, pg_fetch_all_columns($res));
@@ -154,9 +156,7 @@ function info($db_handle, $sources, $qobjects, $names) {
 				break;
 		}
 	}
-	
 	return $info;
-	
 }
 
 
@@ -204,9 +204,7 @@ function info_gpdd($db_handle, $source, $qobjects, &$info) {
 			FROM gpdd.main m, gpdd.taxon t, gpdd.datasource ds
 			WHERE m.\"TaxonID\" = t.\"TaxonID\"
 			AND m.\"DataSourceID\" = ds.\"DataSourceID\"
-			AND ds.\"Availability\" <> 'Restricted'
-			AND t.binomial IS NOT NULL";
-		//echo "$str";
+			AND ds.\"Availability\" <> 'Restricted'";
 		$res = pg_query($db_handle, $str);
 		$row = pg_fetch_row($res);
 		$s = $row[0];
@@ -224,7 +222,7 @@ function info_gpdd($db_handle, $source, $qobjects, &$info) {
 		$sources = $_SESSION['sources'];
 		
 		if ($qobjects && !empty($qobjects)) {
-			echo "<div id='cart_queries'>";
+			echo "<div id='info_queries_div'>";
 			
 			echo "<table>";
 			echo "<tr>";
@@ -274,7 +272,7 @@ function html_info_outputs() {
 	$outputs = $_SESSION['outputs'];
 	$qobjects = $_SESSION['qobjects'];
 	$tmp = $_SESSION['full_tmp_path'];
-	$zips = $_SESSION['zips'];
+	$zip = $_SESSION['zip'];
 	
 	//print_r($zips);
 	//echo "<br>";
@@ -305,34 +303,32 @@ function html_info_outputs() {
 			echo "</a>";
 			$first = false;
 		}
+			
+		# DATA CART
+		$title = 'Checkout Data';
+		echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' 
+			alt='package data' title='$title';></img></a>";
 		
+
 		# DELETE ALL
 		$t = "Delete all outputs";
 		echo "&nbsp;<a href='javascript: deleteAllOutputs()' >";
-		echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
+		echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";	
 			
-		# DATA CART
-		$title = 'Return Data';
-		echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' alt='return data' title='$title';></img></a>";
 		echo "</td>";
 		echo "</tr>";
-		if ($zips) {
+		if ($zip) {
 			#DATA PACKAGE;
-			$t = "Data package:  Right-click and &#145;save&#146; to download";
+			$t = "Package:  Right-click and &#145;save&#146; to download";
 			echo "<tr>";
-			echo "<td class='query_title'>Data Packages</td>";
+			echo "<td class='query_title'>Package</td>";
 			echo "<td>";
-			$i = 0;
-			foreach ($zips as $zip) {
-				if ($i > 0) echo "&nbsp;";
-				echo "<a href='", $tmp , $zip , "'";
-				echo "'><img width='45px' src='./image/parcel.gif' title='$t'/></a>";
-				$i++;
-			}
-			echo "&nbsp;<a href='javascript: deleteAllPackages()' >";
-			echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
+			echo "<a href='", $tmp , $zip , "'";
+			echo "'><img width='45px' src='./image/parcel.gif' title='$t'/></a>";
+			//echo "&nbsp;<a href='javascript: deleteAllPackages()' >";
+			//echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
 			echo "</td>";
-			echo "<tr>";
+			echo "</tr>";
 		}
 		
 		echo "</table>";

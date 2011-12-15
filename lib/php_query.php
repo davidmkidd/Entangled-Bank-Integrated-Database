@@ -142,14 +142,14 @@
 		//if ($names_array) $str = "$str $queryop SELECT UNNEST($names_array) AS bioname";
 		if ($names_array) {
 			if ($qterm == 'biotable' && $sterm == 'biorelational') {
-				$str = "$str $queryop SELECT UNNEST($names_array) AS bioname, NULL AS n";
+				$str = "$str $queryop SELECT UNNEST($names_array) AS bioname";
 			} else {
 				$str = "$str $queryop SELECT UNNEST($names_array) AS bioname";
 			}
 		}
 			
 		# RUN NAMES QUERY
-		//echo "query: $qstr<br>";
+		//echo "query: $str<br>";
 		$res = pg_query($db_handle, $str);
 		$names = pg_fetch_all_columns($res, 0);
 		
@@ -539,7 +539,7 @@
 			$s = 'd';
 		}
 		$str = $str . " $s.\"$field\" $op $value";
-		if ($null) $str = $str . " OR $s.\"$field\" IS NULL)";
+		if ($null == 'on') $str = $str . " OR $s.\"$field\" IS NULL)";
 
 	}
 
@@ -964,7 +964,7 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		return ($str);
 	}
 	
-	# ====================================================================================================
+# ====================================================================================================
 	
 	function query_series ($db_handle, &$qobject, $qobjects, $names, $sources){
 	
@@ -1114,8 +1114,119 @@ function query_add_series_sql(&$qobject, $qobjects, $qstr) {
 		//query_add_sql($qobject, $qobjects, $sources);
 	
 	}
-
 	
+# ====================================================================================================
+	
+	function query_null ($db_handle, $sid, $field) {
+
+		# RETURNS TRUE IF NULLS IN FIELD, OTHERWISE FALSE
+		$sources = $_SESSION['sources'];
+		$source = get_obj($sources, $sid);
+		
+		switch ($source['term']) {
+			case 'biotable':
+			case 'biogeographic':
+				if ($ifield['ebtype'] == 'lookupfield') {
+					$str = "SELECT CASE (";
+					$str = $str . "SELECT COUNT(*) FROM source.source_fields f, source.source_fieldcodes c";
+					$str = $str . " WHERE c.field_id = f.field_id";
+					$str = $str . " AND f.source_id = $sid";
+					$str = $str . " AND f.field_name = '$field'";
+					$str = $str . " AND c.name IS NULL";
+					$str = $str . ") WHEN 0 THEN FALSE ELSE TRUE END";
+				} else {
+					$str = "SELECT CASE (SELECT COUNT(*) FROM " . $source['dbloc'] . " WHERE";
+					$str = $str . " \"$field\" IS NULL";
+					if ($arr)	$str = $str . " AND \"" . $source['namefield'] . "\" LIKE '%$query%'";
+					$str = $str . ") WHEN 0 THEN FALSE ELSE TRUE END";
+				}
+	
+				break;
+			case 'biorelational':
+					# GPDD HARDCODE
+					switch ($field) {
+						case 'Author':
+						case 'Year':
+						case 'Title':
+						case 'Reference':
+						case 'Availability':
+						case 'Notes':
+							$str = "SELECT CASE (SELECT COUNT(*)
+								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+								WHERE t.\"TaxonID\" = m.\"TaxonID\"
+								AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+								AND ds.\"Availability\" <> 'RESTRICTED'";
+							$str = $str . " AND ds.\"" . $field . "\" IS NULL";
+							if ($arr) $str = $str . " AND t.\"" . $source['namefield'] . "\" = ANY($arr)";
+							$str = $str . ") WHEN 0 THEN FALSE ELSE TRUE END";
+							break;
+							
+						case 'TaxonomicPhylum':
+						case 'TaxonomicClass':
+						case 'TaxonomicOrder':
+						case 'TaxonomicFamily':
+						case 'TaxonomicGenus':
+						case 'binomial':
+						case 'CommonName':
+						case 'TaxonName':
+							$str = "SELECT CASE (SELECT COUNT(*)
+								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+								WHERE t.binomial IS NOT NULL
+								AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+								AND ds.\"Availability\" <> 'RESTRICTED'";
+							$str = $str . " AND t.\"" . $field . "\" IS NULL";
+							if ($arr) $str = $str . " AND t.\"" . $source['namefield'] . "\" = ANY($arr)";
+							$str = $str . ") WHEN 0 THEN FALSE ELSE TRUE END";
+							break;
+							
+						case 'HabitatName':
+						case 'BiotopeType':
+							$str = "SELECT CASE (SELECT COUNT(*)
+								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds, gpdd.biotope b
+								WHERE t.binomial IS NOT NULL
+								AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+								AND ds.\"Availability\" <> 'RESTRICTED'";
+							$str = $str . " AND b.\"" . $field . "\" IS NULL";
+							if ($arr) $str = $str . " AND t.\"" . $source['namefield'] . "\" = ANY($arr)";
+							$str = $str . ") WHEN 0 THEN FALSE ELSE TRUE END";
+							break;
+							
+						case 'ExactName':
+						case 'TownName':
+						case 'CountyStateProvince':
+						case 'Country':
+						case 'Continent':
+						case 'Ocean':
+						case 'SpatialAccuracy':
+						case 'LocationExtent':
+							$str = "SELECT CASE (SELECT COUNT(*)
+								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds, gpdd.location l
+								WHERE t.binomial IS NOT NULL
+								AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+								AND ds.\"Availability\" <> 'RESTRICTED'";
+							$str = $str . " AND l.\"" . $field . "\" IS NULL";
+							if ($arr) $str = $str . " AND t.\"" . $source['namefield'] . "\" = ANY($arr)";
+							$str = $str . ") WHEN 0 THEN FALSE ELSE TRUE END";
+							break;
+							
+						default:
+							$str = "SELECT CASE (SELECT COUNT(*)
+								FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds
+								WHERE t.binomial IS NOT NULL
+								AND m.\"DataSourceID\" = ds.\"DataSourceID\"
+								AND ds.\"Availability\" <> 'RESTRICTED'";
+							$str = $str . " AND m.\"" . $field . "\" IS NULL";
+							if ($arr) $str = $str . " AND t.\"" . $source['namefield'] . "\" = ANY($arr)";
+							$str = $str . ") WHEN 0 THEN FALSE ELSE TRUE END";
+							break;
+					}
+				break;
+		}	
+		//echo "$str<br>";
+		$res = pg_query($db_handle, $str);
+		return pg_fetch_row($res);
+	
+	}
 	# ====================================================================================================
 	
 	function query_series_names($db_handle, $qobjects, $names, $sources) {

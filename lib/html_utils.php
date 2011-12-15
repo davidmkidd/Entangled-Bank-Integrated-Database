@@ -77,24 +77,22 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 	
 	if (!$help) $help = "help.php";
 	
-	echo "<div id='ebheader'>";
+	echo "<div id='eb_header'>";
 	echo "<img id='ebimage' src='$eb_path/share/Entangled-Bank_small.gif' alt='Banner'><br>";
-	# BACKGROUND
+	
+	# ITEMS
+	echo "<div id='eb_header_items'>";
 	echo "<a href='$eb_path/doc/about.php' target='_blank'>about</a>";
-	//echo " | ";
-
-	//echo " | ";
 	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path/doc/examples.php' target='_blank'>examples</a>";
 	if ($restart == true) { 
-		//echo " | ";
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "/lib/restart.php'> restart</a>";
 	}
 	if ($finish == true) {
 		//echo " | <a href='" , $eb_path , "finish.php'> exit</a>";
 	}	
 	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "/doc/$help' target='_blank'>help!</a>";
-
 	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v0.6 12.2011)';
+	echo "</div>";
 	echo "</div>";
 
 }
@@ -445,29 +443,24 @@ function html_output_biotree($db_handle, $output, $outputs, $source) {
 
 #=======================================================================================================================	
 
-function html_query_set($db_handle, $qobjid){
+function html_query($db_handle, $qobjid){
 	
 	$qobjects = $_SESSION['qobjects'];
 	$sources = $_SESSION['sources'];
 	$names = $_SESSION['names'];
-	//echo "nq: " . count($qobjects);
+
 	if ($qobjid) {
 		$qobject = get_obj($qobjects, $qobjid);
 	} else {
 		echo "No qobjid!!";
 	}
-	//echo "html_query_set: ";
-	//print_r($qobject);
-	//echo "<br/>";
-	
-	echo "<div id='ebquery'>";
 	$term = $qobject['term'];
-	//echo "term: $term";
-	//echo '<script src="./scripts/query_utils.js" type="text/javascript"></script>';
 
+	# QUERY HEADER
 	html_query_header($qobject, $qobjects, $sources);
 	
-	# TOOL
+	# QUERY TOOL
+	echo "<div id='query_tool' class='eb_tool'>";
 	switch ($term) {
 		case 'bionames' :
 			html_query_bionames($db_handle, $qobject, $qobjects, $sources);
@@ -489,6 +482,7 @@ function html_query_set($db_handle, $qobjid){
 		//	break;
 	}
 	
+	# QUERY SQL
 	html_query_sql($qobject);
 	
 	echo "</div>";
@@ -522,7 +516,7 @@ function html_query_set($db_handle, $qobjid){
 				echo "<input id='submit-button' type='submit' class='$class' value='Run >' onClick='submitTreeQuery(\"$id\"); return false;' />";
 				break;
 			case 'biotable':
-				echo "<input id='submit-button' type='submit' class='$class' value='Run >' onClick='submitTableQuery(\"$id\"); return false;' />";
+				echo "<input id='submit-button' type='button' class='$class' value='Run >' onClick='submitTableQuery(\"$id\"); return false;' />";
 				break;
 			case 'biogeographic':
 				echo "<input id='submit-button' type='submit' class='$class' value='Run >' onClick='submitGeogQuery(\"$id\"); return false;' />";
@@ -553,8 +547,8 @@ function html_query_sql($qobject) {
 		$str = $qobject['sql_names_query'];
 		echo "<input type='hidden' id='sql_names_query' value=\"$str\">";
 		echo "<input type='hidden' id='sql_names_queries' value = \"" . $qobject['sql_names_queries'] . "\">";
-		echo "<input type='hidden' id='sql_series_query' value = \"" . $qobject['sql_series_query'] . "\"'>";
-		echo "<input type='hidden' id='sql_series_queries' value = \"" . $qobject['sql_series_queries'] . "\">";
+		//echo "<input type='hidden' id='sql_series_query' value = \"" . $qobject['sql_series_query'] . "\"'>";
+		//echo "<input type='hidden' id='sql_series_queries' value = \"" . $qobject['sql_series_queries'] . "\">";
 		echo "<table><tr>";
 		echo "<td class='query_title'>SQL</td>";
 		echo "<td>";
@@ -566,8 +560,8 @@ function html_query_sql($qobject) {
 		echo "<td class='eb'><SELECT id='sql' class='eb' onChange='sqlDisplay()'>";
 		if ($qobject['sql_names_query']) echo "<OPTION value='sql_names_query'>Names Query SQL</OPTION>";
 		if ($qobject['sql_series_query']) echo "<OPTION value='sql_series_query'>GPDD Query SQL</OPTION>";
-		if ($qobject['sql_names_queries']) echo "<OPTION value='sql_names_queries'>Names Queries SQL</OPTION>";
-		if ($qobject['sql_series_queries']) echo "<OPTION value='sql_series_queries'>GPDD Queries SQL</OPTION>";
+		//if ($qobject['sql_names_queries']) echo "<OPTION value='sql_names_queries'>Names Queries SQL</OPTION>";
+		//if ($qobject['sql_series_queries']) echo "<OPTION value='sql_series_queries'>GPDD Queries SQL</OPTION>";
 		echo "</SELECT></td>";
 		echo "</tr></table>";
 		echo "</DIV>";
@@ -598,7 +592,7 @@ function html_queries_sql($qobjects) {
 		$str = "";
 		foreach ($qobjects as $qobject) {
 			if ($i !== 0) {
-				$str = $str . $qobject['interquery_operator']. "\n";
+				$str = $str . $qobject['queryoperator']. "\n";
 			}
 			$str = $str . $qobject['sql_names_query'] . "\n";
 			$i++;
@@ -608,7 +602,7 @@ function html_queries_sql($qobjects) {
 		echo "<tr>";
 		echo "<td class='query_title'>Names SQL</td>";
 		echo "<td>";
-		echo "<textarea readonly='readonly' rows='15' class='eb_sql'>$str</textarea>";
+		echo "<textarea readonly='readonly' rows='15' class='query_sql'>$str</textarea>";
 		echo "<td>";
 		echo "</tr>";
 	}
@@ -1160,10 +1154,13 @@ function html_query_operator($qobject) {
 		$row = pg_fetch_row($res);
 		
 		$queries = $qobject['queries'];
+		$sid = $qobject['sources'][0];
 	
 		$disabled = "disabled='true'";
 		if (!$queries) $queries = array();
+		
 		foreach ($queries as $query) {
+			//print_r($query);
 			if ($query['field'] == $fname) {
 				$val = $query['value'];
 				$null = $query['null'];
@@ -1174,23 +1171,18 @@ function html_query_operator($qobject) {
 		$fop = $fname . "_operator";
 		$fval = $fname . "_value";
 		$fnull = $fname . "_null";
+		$ferr = $fname . "_errlabel";
 	
 		echo "<tr>";
 		echo "<td>$fname</td>";
 		echo "<td class='query_field_values'>";
-		
-		# NULLS?
-		if ($null) {
-			echo "<INPUT type='checkbox' value'$null'";
-			if ($null == true) echo " checked=checked ";
-			echo " />";
-		}		
 		
 		# OPERATOR
 		$oparr = array(">",">=","=","<","<=");
 		echo "&nbsp;&nbsp;<SELECT id='$fop' name='$fop' $disabled>";
 		foreach ($oparr as $op) echo "<OPTION value='$op'>$op</OPTION>";
 		echo "</ SELECT>";
+		
 		# VALUE
 		if (!$val) $val = ($row[0] + $row[1]) / 2;
 		
@@ -1200,11 +1192,21 @@ function html_query_operator($qobject) {
 		# ELEMENTS
 		echo "&nbsp;&nbsp;<INPUT type='text' name='$fval' id='$fval' class='eb_range_input' $disabled size=8 value='$val' onchange='validateRangeField(\"$fval\")'>";
 		
-
+		# DOES FIELD HAVE NULLS
+		if (!$null) $null = query_null($db_handle, $sid, $fname);
+		if ($null) {
+			echo "<INPUT type='checkbox' id='$fnull' name='$fnull' value'$null'";
+			if ($null == 'on') echo " checked=checked ";
+			echo " />";
+		}			
+		
+		# ERR LABEL
+		echo "<label id=$err class='error'></label>";
 		
 		$t = 'Check to return with NULL values';
-		echo "</td><td>";
-		echo "<LABEL for='$fval' title='$t'>From &nbsp;$row[0] to $row[1]</ LABEL>";
+		echo "</td>";
+		echo "<td>";
+		echo "<LABEL for='$fval' title='$t'>from &nbsp;$row[0] to $row[1]</ LABEL>";
 		echo "</td>";
 		echo "</tr>";
 	}
@@ -1320,7 +1322,7 @@ function html_query_sources ($qobject, $sources) {
 	# SOURCES LIST
 	$first = true;
 	
-	if (!$qsources || count($qsources) == 1) $disabled = "disabled='disabled'";
+	if ($qsources && count($qsources) == 1) $disabled = "disabled='disabled'";
 	//echo "$disabled<br>";
 	foreach ($sources as $source) {
 	
@@ -1915,14 +1917,14 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 	
 	function html_output_header ($output, $source) {
 		
-		echo "<div id='output_header_div'>";
+		echo "<div id='output_header_div' class='header_div'>";
 		echo "<table border='0'>";
 		echo "<tr>";
 		echo "<td class='query_title'>";
 		html_query_image($source['term'], 'non-active', null, 'query', false);
 		echo "</td>";
 		echo "<td id='query_header_title'>",$source['name'], "</td>";
-		//echo "<td title='$t' class='query_operator'></td>";
+		echo "<td class='query_operator'>";
 		html_output_buttons($output);
 		echo "</tr>";
 		echo "</table>";
@@ -1937,6 +1939,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		
 		//html_query_image($qobject['term'], 'non-active', null, 'query', false);
 		//
+		echo "<div id='query_header_div' class='header_div'>";
 		echo "<table border='0'>";
 		echo "<tr>";
 		echo "<td class='query_title'>";
@@ -1966,7 +1969,9 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		html_query_buttons($qobject);
 		echo "</tr>";
 		echo "</table>";
-		echo "<div id='query_header_div'>";
+		
+		echo "<div class='hr'></div>";
+		
 		echo "<table id='header_outer' border='0'>";
 		echo "<tr>";
 		echo "<td >";
@@ -2682,7 +2687,7 @@ function html_output_source_name($source) {
 
 #================================================================================================================
 
-function html_output_set($db_handle, $output_id) {
+function html_output($db_handle, $output_id) {
 	
 	# SWITCH INTERFACE BY SOURCE TYPE
 	
@@ -2701,7 +2706,7 @@ function html_output_set($db_handle, $output_id) {
 	
 	html_output_header($output, $source);
 	
-	echo "<div id='output_tool'>";
+	echo "<div id='output_tool' class='eb_tool'>";
 	echo "<table border='0'>";
 	
 	# OUTPUT NAME

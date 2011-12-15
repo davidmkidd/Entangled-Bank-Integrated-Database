@@ -32,7 +32,7 @@ echo "<input type='hidden' id='eb_path' value='$eb_path' />";
 # POST TOKENS
 $oldtoken = $_SESSION['token'];
 $newtoken = $_POST['token'];
-#echo "oldtoken: $oldtoken, oldtoken: $newtoken<br>";
+
 
 # POST => SESSION
 foreach ($_POST as $key =>$value) {
@@ -43,12 +43,12 @@ foreach ($_POST as $key =>$value) {
 # STAGE
 $stage = $_SESSION['stage'];					// Form Stage
 if (!$stage) $stage = 'sources';
-//echo "stage: $stage<br>";
+
 
 # LAST ACTION - dealing with the back button
 if ($_SESSION['lastaction']) $lastaction = $_SESSION['lastaction'];
 $lastid = $_SESSION['lastid'];
-//echo "lastaction: $lastaction, lastid: $lastid<br>";
+
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
@@ -65,6 +65,11 @@ $output_sid = $_SESSION['output_sid'];        // OUTPUT SOURCE
 $output_id = $_SESSION['output_id'];          // OUTPUT ID
 if ($oldtoken != $newtoken) unset($_SESSION['output_sid']);
 if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
+
+#echo "oldtoken: $oldtoken, oldtoken: $newtoken<br>";
+//echo "stage: $stage<br>";
+//echo "lastaction: $lastaction, lastid: $lastid<br>";
+
 
 # ------------------------------------------------------------------------------------------------
 #                                         HTML HEADERS
@@ -88,7 +93,7 @@ echo "<body onload='loadScript()'>";
 #                                     DATABASE CONNECTION
 # --------------------------------------------------------------------------------------------------
 
-echo "<div class='main'>";
+echo "<div id='page'>";
 
 set_time_limit(1200);
 
@@ -220,6 +225,8 @@ if ($stage == 'write') {
 	$zip = null;
 }
 
+//print_r($_SESSION['qobjects']);
+
 # ----------------------------------------------------------------------------------
 #                                       FORM
 # ----------------------------------------------------------------------------------
@@ -240,11 +247,11 @@ if ($stage == 'main' || $stage == 'write')
 
 # QUERY SETUP
 if ($stage == 'qset')
-	html_query_set($db_handle, $qobjid);
+	html_query($db_handle, $qobjid);
 
 # OUTPUT DIALOGS
 if ($stage == 'setoutput') 
-	html_output_set($db_handle, $output_id);
+	html_output($db_handle, $output_id);
 
 # UNIQUE ID FOR FORM INSTANCE
 echo '<input type="hidden" name="token" value=' . md5(uniqid()) .'>';

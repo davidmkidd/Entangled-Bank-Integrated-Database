@@ -455,6 +455,7 @@ function submitTableQuery(id) {
 	// IF SELECT THEN AT LEAST ONE VALUES IN QUERY BOX
 	// SELECT ALL SELECT ENTRIES FOR POST
 	// Check if any _query check boxes checked
+	
 	//alert(id);
 	var control = document.getElementsByTagName("input");
 	
@@ -469,25 +470,21 @@ function submitTableQuery(id) {
 				// so get _query type
 				check_ok = true;
 				var fname = control[i].id.substring(0, control[i].id.length - 6); 
-				var range = document.getElementById(item + "_min");
+				var val = document.getElementById(fname + "_value");
 				
-				if (range) {
+				if (val) {
 					//RangeField
-					var min_item = document.getElementById(fname + "_min");
-					var max_item = document.getElementById(fname + "_max");
-					if (!isNumber(min_item.value) || !isNumber(max_item.value)) {
+					//alert(val.value);
+					var val = document.getElementById(fname + "_value");
+					if (!isNumber(val.value)) {
 						alert (fname + ": query values must be numeric.");
-						//check_ok == false;
-						return null;
-					}
-					
-					if (min_item.value > max_item.value) {
-						alert (fname + ":'From' value must be smaller than 'To' value.");
+						var err = document.getElementById(fname + "_errlabel");
+						err.innerHTML = "!";
 						//check_ok == false;
 						return null;
 					}
 				} else {
-					
+					// Catagory Field
 					var item = document.getElementById(fname + "_add");
 					if (item) {
 						// Lookup so check at least one entry selected

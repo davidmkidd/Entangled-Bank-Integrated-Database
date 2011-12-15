@@ -380,6 +380,7 @@ function get_source_fields($db_handle, &$source) {
 			case 'catagoryfield':
 				# FIELD IN TABLE
 				$str = "SELECT \"$fname\" FROM " . $source['dbloc'] . " LIMIT 1;";
+				//echo "$str<br>";
 				$res = pg_query($db_handle, $str);
 				$dbtype = pg_field_type($res, 0);
 				$ftype = get_ftype_from_dbtype($dbtype);

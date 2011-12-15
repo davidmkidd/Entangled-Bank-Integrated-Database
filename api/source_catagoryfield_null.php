@@ -44,7 +44,7 @@
 		case 'biotable':
 		case 'biogeographic':
 			if ($ifield['ebtype'] == 'lookupfield') {
-				$str = $str . "SELECT CASE (";
+				$str = "SELECT CASE (";
 				$str = $str . "SELECT COUNT(*) FROM source.source_fields f, source.source_fieldcodes c";
 				$str = $str . " WHERE c.field_id = f.field_id";
 				$str = $str . " AND f.source_id = $sid";

@@ -3,19 +3,15 @@
  Entangled Bank To Do List
 ---------------------------
 
-Configuration 
-	- Migrate INI into PHP 
+Configuration  
 	- Soft code all Windows and LINUX configuration.
-	- Hosting.
-	
+	- Hosting
 	
 Back Button
 	HIGH
 	- Sensible response
 	 	
 Validation
-	HIGH
-	- all validation as javascript, except names in names query
 	LOW
 	- Suggestions for invalid names	
 	
@@ -24,8 +20,6 @@ Cross-browser compatability (MEDIUM)
 	
 Query
 	General
-		HIGH
-		- htmlspecialchars on database text fields in select boxes (?)
 		MEDIUM
 		- If only one possible source for a query go direct, i.e. one tree or table available (med: would need hidden field)
 		- petty format SQL
@@ -39,11 +33,11 @@ Query
 		- Generalised range maps
 
 	Tree
-		HIGH
-		Tree query dialog not displayed when only one tree
 
 	Attribute
-
+		HIGH
+		- Start and End Years of GDPP - add null for sequental years?
+		
 
 OUTPUT
 
@@ -78,6 +72,8 @@ INPUT
 	- Data input interface
 
 DATA
+	HIGH
+	Check N GPDD SERIES
 	MEDIUM
 	- Spatial Accuracy Classes as text
 	- Galliformes

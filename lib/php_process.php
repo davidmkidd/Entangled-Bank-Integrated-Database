@@ -261,8 +261,8 @@ function process_cleanup($config) {
 	        	$ago = time() - $filelastmodified;
 	        	//echo "$path/$file was last modified: $filelastmodified , $ago ago<br>";
 	        	if (($ago) > 1*3600) {
-	        		echo "unlink<br>";
-	           		unlink($path/$file);
+	        		//echo "unlink<br>";
+	           		unlink("$path/$file");
 	        	}
 	    	}
 	    }
@@ -330,7 +330,7 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 	$qfields = array();            //fields in query
 	$fnames = array();
 
-	$qobject['querynull'] = $_SESSION['querynull'];
+	//$qobject['querynull'] = $_SESSION['querynull'];
 	
 	# GPDD NSERIES
 	if ($source['term'] == 'biorelational' && $_SESSION['nseries'] == 'on') {
@@ -372,13 +372,8 @@ function process_biotable($db_handle, &$qobject, $sources, $names)  {
 			case 'rangefield':
 				$op = $qfield . '_operator';
 				$val = $qfield . '_value';
-				$null = $_SESSION[$qfield . '_null'];
-				if ($null == 'on') {
-					$null = true;
-				} else {
-					$null = false;
-				}
-				$query = array('field'=>$qfield, 'operator'=>$_SESSION[$op], 'value'=>$_SESSION[$val], 'null'=>$null);
+				$null = $qfield . '_null';
+				$query = array('field'=>$qfield, 'operator'=>$_SESSION[$op], 'value'=>$_SESSION[$val], 'null'=>$_SESSION[$null]);
 				//print_r($query);
 				//echo "<br>";
 				unset($_SESSION[$op]);

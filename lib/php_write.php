@@ -10,7 +10,8 @@ function write_outputs($db_handle, $config) {
 	if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
 	if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 	if ($_SESSION['sources']) $sources = $_SESSION['sources'];
-	if ($_SESSION['zips']) $zips = $_SESSION['zips'];
+	if ($_SESSION['zip'] && file_exists($_SESSION['zip'])) unlink($_SESSION['zip']);
+	
 	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
 	$oid = substr(md5(uniqid()),0,4);
 	$_SESSION['oid'] = $oid;
@@ -21,23 +22,17 @@ function write_outputs($db_handle, $config) {
 		$filename = str_replace(" ","_",$output['name']) . "_$oid";
 		$output['filename'] = $filename;
 		unset ($output['outfiles']);
-		//$outputs = save_obj($outputs, $output);
-		//$_SESSION['outputs'] = $outputs;
 		write_output($db_handle, $config, $qobjects, $names, $output, $sources);
 		$outputs = save_obj($outputs, $output);
 		$_SESSION['outputs'] = $outputs;
 	}
-	
-	//print_r($outputs);
-	//echo "<br>";
-	
+
 	# ADD OUTPUTS TO README AND FILES_TO_ZIP
 	$files_to_zip = array();
 	foreach ($outputs as $output) {
 		$outfiles = $output['outfiles'];
 		$files_to_zip = array_merge($files_to_zip, $outfiles);
 	}
-	
 	
 	# WRITE README
 	$readme = write_readme($qobjects, $outputs);
@@ -62,12 +57,7 @@ function write_outputs($db_handle, $config) {
 		foreach ($files_to_zip as $file) {
 			if (file_exists($file)) unlink($file);
 		}
-		# ADD to zips
-		if (!$zips) $zips = array();
-		array_push($zips, $zn);
-		//echo "<br>$zn<br>";
-		//print_r($zips);
-		$_SESSION['zips'] = $zips;
+		$_SESSION['zip'] = $zn;
 	}
 }
 
@@ -563,9 +553,9 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	} else {
 		$arr = array_to_postgresql($names, 'text');
 	}
-		
+	echo $output['brqual'] . "<br>";
 	# PRUNED
-	if ($output['brqual'] == 'none') {
+	if (!$output['brqual'] || $output['brqual'] == 'none') {
 		$str = "SELECT biosql.pdb_as_newick_label($tree_id, $arr)";
 	} else {
 		$str = "SELECT biosql.pdb_as_newick_label($tree_id, $arr, $brqual, FALSE)";
