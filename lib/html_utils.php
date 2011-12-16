@@ -2791,7 +2791,7 @@ function html_entangled_bank_sources($db_handle) {
 		AND t.name like 'bio%'
 		AND obj.active = TRUE
 		ORDER BY t.name";
-	echo "$str<br>";
+	//echo "$str<br>";
 	$result = pg_query($db_handle,$str);
 	
 	$title = 'Select one or more sources to work with. Hover over names to see data type.';
