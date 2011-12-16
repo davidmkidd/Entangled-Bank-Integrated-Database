@@ -46,7 +46,7 @@ $config['out_path'] = '/ms4w/Apache/htdocs/entangled-bank/tmp';
 #
 # path to ogr2ogr
 #
-$config['ogr2ogr_path'] = "C:\\Program Files\\FWTools2.4.7\\bin\\";
+$config['ogr2ogr_path'] = "C:\\FWTools2.4.7\\bin\\";
 
 ##
 # to PERL

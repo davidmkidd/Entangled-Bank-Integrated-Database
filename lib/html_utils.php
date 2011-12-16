@@ -1316,56 +1316,47 @@ function html_query_sources ($qobject, $sources) {
 	
 	$qterm = $qobject['term'];
 	$qsources = $qobject['sources'];
+	if (!$qsources) {
+		$qsources = array();
+		foreach ($sources as $source) array_push($qsources, $source['id']);
+		if (in_array(23, $qsources)) {
+			array_push($qsources, 26);
+			array_push($qsources, 27);
+		}
+	}
+	
 	$form_id = 'qsources';
 	$formname = "qsources[]";
 	//print_r($qobject);
 	//echo "<br>";
 	# SOURCES LIST
-	$first = true;
+	//$first = true;
 	
 	if ($qsources && count($qsources) == 1) $disabled = "disabled='disabled'";
 	//echo "$disabled<br>";
 	foreach ($sources as $source) {
 	
 		$sterm = $source['term'];
+		$checked = null;
 
 		switch (true) {
 		
 			# MULTIPLE CHECKBOXES
 			case ($qterm == 'biogeographic' && $sterm == 'biogeographic'):
-				if (!$qsources) {
-					if ($first) {
-						echo "<input type=checkbox $disabled CHECKED name=$formname id=$form_id value='"
-							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
-							$first = false;
-						} else {
-						echo "<input type=checkbox $disabled CHECKED name=$formname id=$form_id value='"
-							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
-						}
-					} else {
-					if (in_array($source['id'], $qsources)) {
-						echo "<input type=checkbox $disabled CHECKED name=$formname id=$form_id value='"
-							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";	
-						} else {
-						echo "<input type=checkbox $disabled name=$formname id=$form_id value='"
-							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
-						}
-					}
+				if (in_array($source['id'], $qsources)) $checked = "checked='checked'";
+				echo "<input type=checkbox $disabled $checked name=$formname id=$form_id value='"
+					. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";	
 				break;
 				
 			case ($qterm == 'biogeographic' && $sterm == 'biorelational'):
 				// GPDD HARDCODE
 				if (!$qsources || ($source['id'] == 23 &&  in_array(26, $qsources))) {
-					$checked = 'CHECKED';
-				} else {
-					$checked = "";
+					$checked = "checked='checked'";
 				}
 				echo "<input type=checkbox $checked $disabled name=$formname id=$form_id
 					 value='26' onClick='checkCount()'> Global Population Dynamics Database (Point)<br>";
 				if (!$qsources || ($source['id'] == 23 && in_array(27, $qsources))) {
-					$checked = 'CHECKED';
-				} else {
-					$checked = "";
+					$checked = "checked='checked'";
 				}
 				echo "<input type=checkbox $checked $disabled name=$formname id=$form_id
 					 value='27' onClick='checkCount()'> Global Population Dynamics Database (Box)<br>";				
@@ -1373,18 +1364,9 @@ function html_query_sources ($qobject, $sources) {
 			
 			# ALL SOURCES CHECKBOX
 			case ($qterm == 'bionames'):
-				if (!$qsources) {
-					echo "<input type=checkbox CHECKED $disabled name=$formname id=$form_id value='"
-						. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
-					} else {
-					if (in_array($source['id'], $qsources)) {
-						echo "<input type=checkbox CHECKED $disabled name=$formname id=$form_id value='"
-							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";	
-						} else {
-						echo "<input type=checkbox $disabled name=$formname id=$form_id value='"
-							. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";
-						}
-					}
+				if (in_array($source['id'], $qsources)) $checked = "checked='checked'";
+				echo "<input type=checkbox $checked $disabled name=$formname id=$form_id value='"
+					. $source['id'] . "' onClick='checkCount()'> " . $source['name'] . "<br>";	
 				break;
 				
 			case ($qterm == 'biotemporal'):

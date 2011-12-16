@@ -3,6 +3,12 @@
  Entangled Bank To Do List
 ---------------------------
 
+Multi-source queries
+1 deg spatial query geometry columns
+Taxonomy output
+
+
+
 Configuration  
 	- Soft code all Windows and LINUX configuration.
 	- Hosting

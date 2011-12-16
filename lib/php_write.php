@@ -168,11 +168,13 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$db_connect = ' PG:"host=' . $config['host'] . ' user=' . $config['user'] .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
 		
 		#load php_ogr.so LINUX ONLY
-		$ua = $_SERVER["HTTP_USER_AGENT"];
-		if (strpos($ua, 'Linux')) dl('php_ogr.so');
+		if (strpos($_SERVER["HTTP_USER_AGENT"], 'Linux')) dl('php_ogr.so');
 		
 		# THIS WORKS
-		$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '" ';
+		$ogr = $config['ogr2ogr_path'];
+		//$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '" ';
+		$cmdstr = '""' . $ogr . '\ogr2ogr" -f "' . $driver . '" ';
+		//$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '" ';
 		$cmdstr = $cmdstr . " $write_file ";
 		$cmdstr = $cmdstr . $db_connect;
 		$cmdstr = $cmdstr . ' -sql "' . $str . '" 2>&1"';
@@ -503,8 +505,8 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	$brqual = $output['brqual'];
 	$format = $output['format'];
 
-	print_r($output);
-	echo "<br>";
+	//print_r($output);
+	//echo "<br>";
 	
 	switch ($format) {
 		case 'newick':
@@ -557,7 +559,7 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	} else {
 		$arr = array_to_postgresql($names, 'text');
 	}
-	echo $output['brqual'] . "<br>";
+	//echo $output['brqual'] . "<br>";
 	# PRUNED
 	if (!$output['brqual'] || $output['brqual'] == 'none') {
 		$str = "SELECT biosql.pdb_as_newick_label($tree_id, $arr)";
@@ -565,7 +567,7 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 		$str = "SELECT biosql.pdb_as_newick_label($tree_id, $arr, $brqual, FALSE)";
 	}
 
-	echo "str: $str<br>";
+	//echo "str: $str<br>";
 	$res = pg_query($str);
 	$row = pg_fetch_row($res);
 	$tree = $row[0];
