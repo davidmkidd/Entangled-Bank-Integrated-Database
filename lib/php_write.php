@@ -168,7 +168,8 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$db_connect = ' PG:"host=' . $config['host'] . ' user=' . $config['user'] .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
 		
 		#load php_ogr.so LINUX ONLY
-		#dl('php_ogr.so');
+		$ua = $_SERVER["HTTP_USER_AGENT"];
+		if (strpos($ua, 'Linux')) dl('php_ogr.so');
 		
 		# THIS WORKS
 		$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '" ';
