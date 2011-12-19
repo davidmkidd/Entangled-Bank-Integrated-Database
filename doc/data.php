@@ -10,10 +10,11 @@
 </head>
 
 <body>
-<div class='main'>
+<div id='page'>
+
 <?php 
 include("../lib/html_utils.php"); 
-$stage = html_entangled_bank_header(null, '../');
+$stage = html_entangled_bank_header(null);
 ?>
 
 <h3>Data supported</h3>

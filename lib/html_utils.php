@@ -2773,12 +2773,9 @@ function html_entangled_bank_sources($db_handle) {
 		AND t.name like 'bio%'
 		AND obj.active = TRUE
 		ORDER BY t.name";
-	//echo "$str<br>";
 	$result = pg_query($db_handle,$str);
 	
 	$title = 'Select one or more sources to work with. Hover over names to see data type.';
-	
-	//echo "<table>";
 	echo "<tr>";
 	//echo "<td id='select_sources_title' class='query_title' title='$title'>Sources</td>";
 	echo "<td class='blurb'>";
@@ -2797,10 +2794,21 @@ function html_entangled_bank_sources($db_handle) {
 	echo "</td>";
 	echo "</tr>";
 	echo "</table>";
-	echo "</div>";
+	
 	echo "<input type = 'hidden' name ='stage' value='getsources'>";
 	echo "<input type='hidden' id='qobjid' name='lastaction' value='selectsources'>";
 	
+	# CHROME
+	echo "<table>";
+	echo "<tr>";
+	echo "<td class='google_blurb'>";
+	echo "Configured for <img src='./image/google-chrome-beta-icon.png' alt='Google Chrome Icon'/> Google Chrome";
+	echo " (<a href='http://www.google.co.uk/chrome'>win</a>, <a href='https://www.google.com/chrome?platform=linux'>linux</a>).";
+	echo " Other browsers have not been tested.";
+	echo "</td>";
+	echo "</tr>";
+	echo "</table>";
+	echo "</div>";
 	}
 	
 #================================================================================================================

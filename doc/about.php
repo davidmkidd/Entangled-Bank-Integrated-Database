@@ -10,55 +10,55 @@
 </head>
 
 <body>
-<div class='main'>
+<div id='page'>
 
 <?php 
 include("../lib/html_utils.php"); 
 $stage = html_entangled_bank_header(null, '../');
 ?>
-
-<h4>Contents</h4>
-<OL>
-<LI><a href='#problem'>The Problem</a></LI>
-<LI><a href='#ebdb'>The Entangled Bank Database (EBDB)</a></LI>
-	<OL>
-	<LI><a href='what'>What is the EBDB?</a></LI>
-	<LI><a href='architecture'>Architecture</a></LI>
-	<LI><a href='imagery'>Imagery</a></LI>
-	</OL>
-<LI><a href='#discovery'>Entangled Bank Discovey</a></LI>
-</OL>
-
+<hr>
+<br>
 <a name='#problem'></a><h3>The Problem</h3>
 
-<p>Ecological data are highly heterogeneous and widely distributed among institutions
-and individual researchers. Difficulty in locating and accessing ecological data sources 
-prevents researchers from discovering available data, and once located, synthesis may be
-problematic due to syntactic and semantic ambiguity, restricted metadata, and the
-inherent heterogeneity of the data itself. These difficulties mean synthetic
-ecological science can be enormously labour intensive as data integration must be
-done by hand. Despite these obstacles, integration of these disparate data sources is vital for research that
+<p>
+The integration heterogeneous ecological information is vital for research that
 spans wide geographical areas or attempts to integrate across and study
 feedbacks between the multiple levels of biological organization from individual
-organisms to ecosystems; studies that are vital to developing the kind
+organisms to ecosystems. Science that is vital to developing the kind
 of understanding of the natural world necessary to deal with the pressures
-it faces in the 21<sup>st</sup> century.</p>
+it faces in the 21<sup>st</sup> Century. 
+</p>
+<table border='0'>
+<tr>
+<td><img alt="data cylce" src="./image/datacycle.png" width='300px'></td>
+<td>
+Integration is, however, problematic as:
+<UL>
+<LI>Data are widely distributed</LI>
+<LI>Digital archives basic and few</LI>
+<LI>Metadata is limited and vocabularies ambigious</LI>
+<LI>The data is inherently heterogenous</LI>
+<LI>Data and metadata poorly exposed</LI>
+<LI>Analytical tools are isolated by data format and discipline</LI>
+</UL>
+</td>
+</tr>
+</table>
 
 <p>
-The 'Entangled Bank' was a joint undertaking by the <a href="http://www3.imperial.ac.uk/cpb">NERC Centre for
+Systems are required to mobilise ecological data, including data archives and tools to aid
+ the discovery and integration of heterogenous data.
+The Entangled Bank project, a joint undertaking by the <a href="http://www3.imperial.ac.uk/cpb">NERC Centre for
 Population Biology</a>, Biology Division, Imperial College London, and
 the <a href="http://research.microsoft.com/en-us/groups/ecology/default.aspx">
- Computational Ecology and Environmental Science Group</a>, Microsoft Research, Cambridge to develop web-based 
- data management system and associated interactive tools to enhance the identification, management, integration, 
- processing, analysis and visualization of ecological data.
-The Imperial team are <a href="http://www3.imperial.ac.uk/people/t.coulson">Prof. Tim Coulson</a>,
- <a href="http://www3.imperial.ac.uk/people/g.mace">Prof. Georgina Mace FRS</a>,
- <a href="http://www3.imperial.ac.uk/people/a.purvis">Prof. Andy Purvis</a>,
- <a href="http://www3.imperial.ac.uk/people/d.orme">Dr. David Orme</a>, and
- <a href="http://entangled-bank.org/davidkidd/">Dr. David Kidd</a>.
-The project has two strands, The Entangled Bank Database and <a href='#discovery'>Entangled Bank Discovery</a></p>
+ Computational Ecology and Environmental Science Group</a>, Microsoft Research, Cambridge, 
+ has developed two such systems, the <a href='#ebdb'>Entangled Bank Database</a>
+ and <a href='#discovery'>Entangled Bank Discovery</a>
+ </p>
 
-<a name='#ebdb'></a><h3>1. The Entangled Bank Database (EBDB)</h3>
+<hr>
+<br>
+<a name='#ebdb'></a><h3>The Entangled Bank Database (EBDB)</h3>
 
 <h4><a name="what">What is the EBDB?</a></h4>
 <p>The Entangled Bank  Database (EBDB) provides integrated access to a number of mammal datasets 
@@ -156,7 +156,9 @@ Imagery is used to represent different aspects of biological data.
 <p class='legend'>Entangled Bank Imagery</p>
 </center>
 
-<a name='discovery'></a><h3>2. Entangled Bank Discovey</h3>
+<hr>
+<br>
+<a name='discovery'></a><h3>Entangled Bank Discovey</h3>
 
 <p>
 Entangled Bank Discovery (EBDD): a web-based tool for discovering and preserving data. 
@@ -168,7 +170,15 @@ For further information on the EBD contact Microsoft Research <a href = "mailto:
 <p class="legend">Entangled Bank Data Discovery Tool</p>
 </center>
 
-<br />
+<hr>
+<p>
+The team at Imperial  were <a href="http://www3.imperial.ac.uk/people/t.coulson">Prof. Tim Coulson</a>,
+ <a href="http://www3.imperial.ac.uk/people/g.mace">Prof. Georgina Mace FRS</a>,
+ <a href="http://www3.imperial.ac.uk/people/a.purvis">Prof. Andy Purvis</a>,
+ <a href="http://www3.imperial.ac.uk/people/d.orme">Dr. David Orme</a>, and
+ <a href="http://entangled-bank.org/davidkidd/">Dr. David Kidd</a>.
+</p>
+
 <?php html_entangled_bank_footer(); ?>
 </div>
 </body>
