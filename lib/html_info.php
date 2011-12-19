@@ -144,7 +144,7 @@ function info($db_handle, $sources, $qobjects, $names) {
 	$allnames = array_unique($allnames);
 	$info['names'] = count($allnames);
 	$info['sources'] = count($sources);
-
+	$info['sql'] = $sql;
 	foreach ($sources as $source) {
 		switch ($source['term']) {
 			case 'biotable':

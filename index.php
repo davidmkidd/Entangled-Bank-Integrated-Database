@@ -195,8 +195,8 @@ if ($stage == 'outputdeleteall') {
 		if (file_exists($file)) {
 			unlink($file);
 		}
+	unset ($_SESSION['zip']);
 	}
-	unset ($_SESSION['zips']);	
 	$stage = 'main';
 }
 	

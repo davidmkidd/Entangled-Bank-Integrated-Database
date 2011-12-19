@@ -72,10 +72,10 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 	
 	switch ($term) {
 		case 'biotable':
-			$outfiles = write_biotable($db_handle, $config, $output, $sources, $names);
+			write_biotable($db_handle, $config, $output, $sources, $names);
 			break;
 		case 'biogeographic':
-			$outfiles = write_biogeographic($db_handle, $config, $qobjects, $output, $sources, $names);
+			write_biogeographic($db_handle, $config, $qobjects, $output, $sources, $names);
 			break;	
 		case 'biotree':
 			write_biotree($db_handle, $config, $output, $sources, $names);
@@ -100,7 +100,7 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		$namefield = $source['namefield'];
 		$format= $output['sp_format'];
 		$filename = $output['filename'];
-		$outfilename = $filename;
+		//$outfilename = $filename;
 		$outpath = $config['out_path']. "/";;
 
 		$str = "SELECT * FROM $dbloc";
@@ -109,18 +109,25 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 			$str = $str . " WHERE $namefield = ANY($names_arr)";
 		}
 		
-		#$outpath = substr($config['tmp_path'], strpos($config['tmp_path'],'/') + 1) . '/';
-		//$outpath = "/ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/";
-		
 		switch ($format) {
 			case 'shapefile' :
+				$pfile = $outpath . $filename. '.prj';
 				$outfiles = array(
 					$outpath . $filename . '.shp',
 					$outpath . $filename . '.shx',
-					$outpath . $filename . '.dbf');
+					$outpath . $filename . '.dbf',
+					$pfile
+					);
+				
 				$filename = $filename . '.shp';
 				$driver = 'ESRI Shapefile';
 				$ext = '.shp';
+				# PROJECTION FILE
+				echo "$pfile<br>";
+				$fh = fopen($pfile, "w+") or die ("write_geographic projection: failed to open $pfile: $php_errormsg");
+				$pstr = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]';
+				fwrite($fh, $pstr);
+				fclose($fh);
 				break;
 			case 'mapinfo':
 				$outfiles = array(
@@ -172,9 +179,7 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		
 		# THIS WORKS
 		$ogr = $config['ogr2ogr_path'];
-		//$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '" ';
 		$cmdstr = '""' . $ogr . '\ogr2ogr" -f "' . $driver . '" ';
-		//$cmdstr = '""C:\FWTools2.4.7\bin\ogr2ogr" -f "' . $driver . '" ';
 		$cmdstr = $cmdstr . " $write_file ";
 		$cmdstr = $cmdstr . $db_connect;
 		$cmdstr = $cmdstr . ' -sql "' . $str . '" 2>&1"';

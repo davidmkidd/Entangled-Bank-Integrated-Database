@@ -60,6 +60,7 @@ html_entangled_bank_header($stage, $eb_path, $html_path, $share_path);
 
 # HEADER
 echo "<div id='info_header_div' class='header_div'>";
+
 echo "<table border='0'>";
 echo "<tr>";
 echo "<td class='query_title'>", html_query_image('bionames', 'non-active', null, 'source', false), "</td>";
@@ -94,7 +95,20 @@ echo "<textarea id='names_list' class='names_list'>$str</textarea>";
 echo "</td>";
 echo "</tr>";
 
-html_queries_sql($_SESSION['qobjects']);
+echo "<tr>";
+$t = "Names list format";
+echo "<td class='query_title' title='$t'>Names Format</td>";
+echo "<td>";
+echo "<SELECT id='names_format' class='eb_info' onChange='textareaFormat(\"names_list\")'>";
+echo "<OPTION value='0'>Not Delineated with New Line Separator</OPTION>";
+echo "<OPTION value='1'>Delineated with New Line Separator</OPTION>";
+echo "<OPTION value='2'>Not Delineated with Comma Separator</OPTION>";
+echo "<OPTION value='3'>Delineated with Comma Separator</OPTION>";
+echo "</SELECT>";
+echo "<td>";
+echo "</tr>";
+
+html_queries_sql();
 echo "</table>";
 echo "<br>";
 html_entangled_bank_footer();

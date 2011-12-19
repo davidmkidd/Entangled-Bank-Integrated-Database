@@ -251,9 +251,9 @@ function create_zip($files = array(),$destination = '',$overwrite = false) {
 		}
 	}
 	
-//	echo "validfiles: ";
-//	print_r($valid_files);
-//	echo "<br>";
+/*	echo "validfiles: ";
+	print_r($valid_files);
+	echo "<br>";*/
 	
 	//if we have good files...
 	if(count($valid_files)) {
@@ -265,7 +265,7 @@ function create_zip($files = array(),$destination = '',$overwrite = false) {
 		//add the files
 		foreach($valid_files as $file) {
 			$zipname = explode("/", $file);
-			#$zipname[count($zipname)] - 1
+			echo $zipname[count($zipname)- 1], "<br>";
 			$zip->addFile($file,$zipname[count($zipname)- 1] );
 		}
 		//debug

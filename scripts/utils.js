@@ -203,7 +203,7 @@ function textareaFormat(id) {
 	//	Adds/removes double quotes from textbox
 	var item = document.getElementById(id);
 	var str = item.value;
-	//alert(id);
+	//alert(item);
 	
 	switch (id) {
 		case 'names_list':

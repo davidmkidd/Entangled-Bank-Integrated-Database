@@ -542,7 +542,6 @@ function html_query_sql($qobject) {
 	# WRITES QUERY SQL TO TEXTAREA
 	//print_r($qobject);
 	
-	
 	if ($qobject['status'] !== 'new') {
 		echo "<DIV class='query_sql_div'>";
 		$str = $qobject['sql_names_query'];
@@ -571,26 +570,12 @@ function html_query_sql($qobject) {
 	
 #================================================================================================================
 	
-function html_queries_sql($qobjects) {
+function html_queries_sql() {
 	
-	//print_r($qobjects);
+	$qobjects = $_SESSION['qobjects'];
+	$str = "";
 	if ($qobjects) {
-		
-		echo "<tr>";
-		$t = "Names list format";
-		echo "<td class='query_title' title='$t'>Format</td>";
-		echo "<td>";
-		echo "<SELECT id='names_format' class='eb_info' onChange='textareaFormat(\"names_list\")'>";
-		echo "<OPTION value='0'>Not Delineated with New Line Separator</OPTION>";
-		echo "<OPTION value='1'>Delineated with New Line Separator</OPTION>";
-		echo "<OPTION value='2'>Not Delineated with Comma Separator</OPTION>";
-		echo "<OPTION value='3'>Delineated with Comma Separator</OPTION>";
-		echo "</SELECT>";
-		echo "<td>";
-		echo "</tr>";
-		
 		$i = 0;
-		$str = "";
 		foreach ($qobjects as $qobject) {
 			if ($i !== 0) {
 				$str = $str . $qobject['queryoperator']. "\n";
@@ -598,15 +583,40 @@ function html_queries_sql($qobjects) {
 			$str = $str . $qobject['sql_names_query'] . "\n";
 			$i++;
 		}
-		# WRITES ALL QUERY SQL TO TEXTAREA
-		# NAMES SQL
-		echo "<tr>";
-		echo "<td class='query_title'>Names SQL</td>";
-		echo "<td>";
-		echo "<textarea readonly='readonly' rows='15' class='query_sql'>$str</textarea>";
-		echo "<td>";
-		echo "</tr>";
+	} else {
+		$sources = $_SESSION['sources'];
+		$i = 0;
+		foreach ($sources as $source) {
+			if ($i > 0) $str = $str . " UNION ";
+			switch ($source['term']) {
+				case 'biotable':
+				case 'biogeographic':
+					$str = $str . "SELECT DISTINCT " . $source['namefield'] . " AS name FROM " . $source['dbloc'];
+					break;
+				case 'biotree':
+					$str = $str . "SELECT DISTINCT label AS name FROM biosql.node WHERE tree_id=" . $source['tree_id'];
+					break;
+				case 'biorelational':
+					$str = $str . "SELECT DISTINCT t.binomial AS name";
+					$str . " FROM gpdd.taxon t, gpdd.main m, gpdd.datasource ds";
+					$str . " WHERE m.\"TaxonID\"=t.\"TaxonID\"";
+					$str . " AND m.\"DataSourceID\" = ds.\"DataSourceID\"";
+					$str . " AND ds.\"Availability\" <> 'Restricted'";
+					break;
+			}
+			$i++;
+		}
 	}
+		
+		
+	# WRITES ALL QUERY SQL TO TEXTAREA
+	# NAMES SQL
+	echo "<tr>";
+	echo "<td class='query_title'>Names SQL</td>";
+	echo "<td>";
+	echo "<textarea readonly='readonly' rows='15' class='query_sql'>$str</textarea>";
+	echo "<td>";
+	echo "</tr>";
 }
 	
 #================================================================================================================
