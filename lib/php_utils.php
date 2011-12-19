@@ -265,7 +265,7 @@ function create_zip($files = array(),$destination = '',$overwrite = false) {
 		//add the files
 		foreach($valid_files as $file) {
 			$zipname = explode("/", $file);
-			echo $zipname[count($zipname)- 1], "<br>";
+			//echo $zipname[count($zipname)- 1], "<br>";
 			$zip->addFile($file,$zipname[count($zipname)- 1] );
 		}
 		//debug

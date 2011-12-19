@@ -6,7 +6,7 @@
 Multi-source queries
 1 deg spatial query geometry columns
 Taxonomy output
-
+Restart and other multiple // links
 
 
 Configuration  

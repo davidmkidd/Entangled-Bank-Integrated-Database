@@ -123,7 +123,7 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 				$driver = 'ESRI Shapefile';
 				$ext = '.shp';
 				# PROJECTION FILE
-				echo "$pfile<br>";
+				//echo "$pfile<br>";
 				$fh = fopen($pfile, "w+") or die ("write_geographic projection: failed to open $pfile: $php_errormsg");
 				$pstr = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]';
 				fwrite($fh, $pstr);
@@ -174,22 +174,23 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 		if (file_exists($write_file)) unlink($write_file);
 		$db_connect = ' PG:"host=' . $config['host'] . ' user=' . $config['user'] .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
 		
-		#load php_ogr.so LINUX ONLY
-		if (strpos($_SERVER["HTTP_USER_AGENT"], 'Linux')) dl('php_ogr.so');
-		
-		# THIS WORKS
 		$ogr = $config['ogr2ogr_path'];
+		$os = php_uname('s');
+		if ($os == 'Linux') {
+			$cmdstr = $ogr . 'ogr2ogr" -f "' . $driver . '" ';
+			$cmdstr = $cmdstr . " $write_file ";
+			$cmdstr = $cmdstr . $db_connect;
+			$cmdstr = $cmdstr . ' -sql "' . $str . '"';
+		} else {
+		# WORKS IN WIN
 		$cmdstr = '""' . $ogr . '\ogr2ogr" -f "' . $driver . '" ';
 		$cmdstr = $cmdstr . " $write_file ";
 		$cmdstr = $cmdstr . $db_connect;
 		$cmdstr = $cmdstr . ' -sql "' . $str . '" 2>&1"';
-
+		}
 		//echo "<BR>$cmdstr<br>";
 		$out = shell_exec($cmdstr);
-		#$out = shell_exec($cmdstr . " 2> output");
-		#echo $out ? $out : join("", file("output"));
-		//echo "out: $out<br>";
-		#$outfiles = array('/ms4w/Apache/htdocs/eclipse/entangled_bank_db_dev/tmp/' . $outfilename);
+
 		if (!$output['outfiles']) {
 			$output['outfiles'] = $outfiles;
 		} else {
