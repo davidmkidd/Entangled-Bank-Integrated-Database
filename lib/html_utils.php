@@ -61,37 +61,46 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 		case 'sources':
 			$restart = false;
 			$finish = true;
+			$examples = true;
+			$help = "help.php";
 			break;
 		case 'finish':
 		case 'dbfail':
 			$restart = true;
-			$finish = false;			
+			$finish = false;		
+			break;
+		case 'doc':
+			$restart = false;
+			$finish = false;
+			$examples = true;
+			$help = "help.php";
+			$db = true;
 			break;
 		case '':
-			break;
 		default:
 			$restart = true;
 			$finish = true;
+			$examples = true;
+			$help = "help.php";
 			break;
 	}
 	
-	if (!$help) $help = "help.php";
-	
 	echo "<div id='eb_header'>";
-	echo "<img id='ebimage' src='$eb_path/share/Entangled-Bank_small.gif' alt='Banner'><br>";
+	echo "<img id='ebimage' src='$eb_path" . "/share/Entangled-Bank_small.gif' alt='Banner'><br>";
 	
 	# ITEMS
 	echo "<div id='eb_header_items'>";
-	echo "<a href='$eb_path/doc/about.php' target='_blank'>about</a>";
-	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path/doc/examples.php' target='_blank'>examples</a>";
-	if ($restart == true) { 
-		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "/lib/restart.php'>restart</a>";
-	}
 	
-	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "/doc/$help' target='_blank'>help!</a>";	
+	
+	echo "<a href='$eb_path" . "doc/about.php'>about</a>";
+	if ($db) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "index.php'>database</a>";
+	if ($restart == true) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "lib/restart.php'>restart</a>";
+	if ($examples) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "doc/examples.php'>examples</a>";
+	if ($help) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "doc/$help'>help!</a>";	
 	if ($finish == true) {
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "finish.php'>exit</a>";
 	}
+	
 	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v0.6 12.2011)';
 	echo "</div>";
 	echo "</div>";

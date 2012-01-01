@@ -3,7 +3,7 @@
 <head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
-  <title>About The Entangled Bank</title>
+  <title>About the Entangled Bank</title>
   <meta content="webmaster@entangled-bank.org" name="author">
   <meta content="Index page" name="description">
   <link type="text/css" rel="stylesheet" href="../share/entangled_bank.css">
@@ -14,164 +14,57 @@
 
 <?php 
 include("../lib/html_utils.php"); 
-$stage = html_entangled_bank_header(null, '../');
+$stage = html_entangled_bank_header('doc', '../');
 ?>
 <hr>
-<br>
-<a name='#problem'></a><h3>The Problem</h3>
 
+<div id='content'>
+
+<a name='#problem'></a><h3>The Entangled Bank Project</h3>
+<img alt="data cylce" src="./image/datacycle.png" width='275px' style="border:1px solid grey; float: right;">
+<!--<p class='legend'>Figure 1. The 'data cycle'</p>-->
 <p>
-The integration heterogeneous ecological information is vital for research that
-spans wide geographical areas or attempts to integrate across and study
+Science that spans wide geographical areas or attempts to integrate across and study
 feedbacks between the multiple levels of biological organization from individual
-organisms to ecosystems. Science that is vital to developing the kind
+organisms to ecosystems is vital to developing the kind
 of understanding of the natural world necessary to deal with the pressures
-it faces in the 21<sup>st</sup> Century. 
+it faces in the 21<sup>st</sup> Century.</p>
+<p>Such 'synthetic' studies that 
+re-purpose exist information are particularly problematic in ecology as:
 </p>
-<table border='0'>
-<tr>
-<td><img alt="data cylce" src="./image/datacycle.png" width='300px'></td>
-<td>
-Integration is, however, problematic as:
+
+
+
+
+
+
+
 <UL>
-<LI>Data are widely distributed</LI>
-<LI>Digital archives basic and few</LI>
-<LI>Metadata is limited and vocabularies ambigious</LI>
-<LI>The data is inherently heterogenous</LI>
+<LI>Data is widely distributed</LI>
+<LI>Archives are basic and few</LI>
+<LI>Metadata is limited non-standardised and with ambigious vocabularies</LI>
+<LI>Data structures inherently heterogenous</LI>
 <LI>Data and metadata poorly exposed</LI>
-<LI>Analytical tools are isolated by data format and discipline</LI>
+<LI>Analytical tools isolated by data format and discipline</LI>
 </UL>
-</td>
-</tr>
-</table>
+
+
 
 <p>
-Systems are required to mobilise ecological data, including data archives and tools to aid
- the discovery and integration of heterogenous data.
+Systems and tools are required that mobilise ecological data by removing friction
+ in the data cycle (fig 1). These will include data archives and tools to aid
+ data discovery and integration.
 The Entangled Bank project, a joint undertaking by the <a href="http://www3.imperial.ac.uk/cpb">NERC Centre for
 Population Biology</a>, Biology Division, Imperial College London, and
 the <a href="http://research.microsoft.com/en-us/groups/ecology/default.aspx">
  Computational Ecology and Environmental Science Group</a>, Microsoft Research, Cambridge, 
- has developed two such systems, the <a href='#ebdb'>Entangled Bank Database</a>
- and <a href='#discovery'>Entangled Bank Discovery</a>
+ has developed two such systems:
  </p>
-
-<hr>
-<br>
-<a name='#ebdb'></a><h3>The Entangled Bank Database (EBDB)</h3>
-
-<h4><a name="what">What is the EBDB?</a></h4>
-<p>The Entangled Bank  Database (EBDB) provides integrated access to a number of mammal datasets 
- (a taxonomy, phylogeny, trait database and range maps) and the 
-<a href="http://www3.imperial.ac.uk/cpb/research/patternsandprocesses/gpdd">Global Population Dynamics Database</a> of long-term abundance records.
-These data may be queried by biological name, tree topology, data set attributes, geography and time
- to answer questions that span multiple data sets. Examples of such linked queries include,</p>
-<ul>
-<LI>Which taxa are present in these datasets?</LI>
-<LI>Which taxa found here have abundance records for this period?</LI>
-<LI>What are the ranges of Cervidae with body mass greater than 20kg.</LI>
-<LI>Which South American taxa are descended from the last common ancestor of these genera?</LI>
-</ul>
-
-<h4><a name="work">How does it work?</a></h4>
-<p>
-The EBDB finds taxon names in data sets that meet the selection criteria...
-</p>
-
-<h4><a name="architecture">Architecture</a></h4>
-<p>The EBDB is a <a href="http://www.postgresql.org/">PostgreSQL</a> database which implements a variety of schemas that support various data types.
- Tabular data are stored as relational tables
-, spatial data in the <a href="http://postgis.refractions.net/"> PostGIS</a> schema, and trees in the  
- <a href="http://biosql.org/wiki/Extensions">PhyloDB</a> extension to BioSQL . Controlled vocabularies are managed with the BioSQL ontology schema. 
-The <a href="http://www3.imperial.ac.uk/cpb/research/patternsandprocesses/gpdd">Global Population Dynamics Database<a> schema stores population abundance time series.
-The EB Data Model is the 'glue' that connects data within in these schema. 
-It stores two types of information: (1) semantic metadata describing datasets, and (2) structural metadata the defines dataset structure, 
-including the location of biological names and spatial and temporal information.
- The interface is written in PHP, JavaScript and Perl. 
-<a href="http://openlayers.org/"> OpenLayers</a> is used for maps and
- <a href="http://doc.bioperl.org/releases/bioperl-1.4/Bio/TreeIO.html">BioPERL Tree::I/O</a> and 
-<a href="http://search.cpan.org/dist/Bio-Phylo/">Bio::Phylo</a> for tree I/O. 
-Geographic I/O is through <a href="http://www.gdal.org/ogr2ogr.html">GDAL/OGR2OGR</a>.
-</p>
-<p>
-The EBDB is open-source and code can be downlaoded from 
-<a href="https://github.com/davidmkidd/Entangled-Bank-Integrated-Database">Github</a>. 
-Instructions are limited so contact with the development team is stongly encouraged.
-</p>
-
-<center>
-<img src="./image/eb_architecture.png">
-<p class='legend'>Entangled Bank Architecture</p>
-</center>
-
-<h4><a name="imagery">Metaphor and Imagery</a></h4>
-<p>
-The 'entangled bank' is the endearing metaphor with which Charles
-Darwin's <a href="http://darwin-online.org.uk/content/frameset?viewtype=image&itemID=F373&pageseq=1">
-<span style="font-style: italic;">Origin of Species</span></a>
-(1859) ends. By the 5th edition published in 1869 the
-'entangled bank' had been truncated to simply 'a tangled bank'. As the
-prefix en- means 'becoming' the image was subtly changed from organic
-growth and evolution to static observation.
-</p>
-
-<center>
-<table border="0">
-  <tbody>
-    <tr>
-      <th rowspan='2'>
- 		<img style="width: 345px;"  alt="Darwin1859_EntangledBank.gif"
- 		src="./image/Darwin1859_EntangledBank.gif">
-	 </th>
-     	<td>
-      	<img style="width: 180px;" alt="1839_Zoology_F8.9_050.gif"
- 			src="./image/1839_Zoology_F8.9_050.gif">
- 		</td>
-    </tr>
-    <tr>
-      <td>
-      	<img style="width: 180px;" alt="DarwinPortrait.gif"
- 			src="./image/DarwinPortrait.gif">
- 		</td>
-    </tr>
-  </tbody>
-</table>
-<p class='legend'>Origin of Species Chapter 14, Conclusion, p489-490<br>
-<a href='http://darwin-online.org.uk'>(Source: Darwin Online)</a>.</p>
-</center>
-
-<p>
-Imagery is used to represent different aspects of biological data.
- An extract of the title of <a href='http://en.wikipedia.org/wiki/File:Linnaeus1758-title-page.jpg'>
- Linnaeus' <i>Systema Naturae</i> 1758</a> (center) represents biological names.
- Trees are represented by Darwin's sketch of an evolutionary tree (top) from his <a href='http://en.wikipedia.org/wiki/File:Darwin_tree.png'>First Notebook on Transmutation of Species (1837)</a>. 
- <a href='http://oceanmotion.org/html/background/climate.htm'>NASA's 'Blue Marble'</a> represents geography (left), while an extract of <a href='http://en.wikipedia.org/wiki/File:Haeckel_Arachnida.jpg'>
- Ernst Haekel's plate 66: Arachnida, Kunstformen der Natur (1904)</a> denotes 'attributes'.
- Finally, an <a href='http://farm4.static.flickr.com/3605/3639291429_f19524c475.jpg'>'old' clock face</a> represents time.
- The background and banner is an English Hedgerow on the <a href='http://www3.imperial.ac.uk/silwoodparkcampus'>
- Silwood Park Campus</a> of Imperial College with a path leading to new horizons.
-</p>
-<center>
-<img src='../image/logo.png'/><br>
-<p class='legend'>Entangled Bank Imagery</p>
-</center>
-
-<hr>
-<br>
-<a name='discovery'></a><h3>Entangled Bank Discovey</h3>
-
-<p>
-Entangled Bank Discovery (EBDD): a web-based tool for discovering and preserving data. 
-Search for datasets by taxonomy, space, time and type. Enter metadata and upload data to the Microsoft Azurus cloud.
-For further information on the EBD contact Microsoft Research <a href = "mailto:ricw@microsoft.com">??email??</a>.
-</p>
-<center>
-<a href="./image/ebdd.gif"><img src="./image/ebdd.gif" height=350px/></a><br>
-<p class="legend">Entangled Bank Data Discovery Tool</p>
-</center>
-
-<hr>
-<p>
+ <UL>
+ <li><a href='eb_database.php'>The Entangled Bank Integrated Database</a></li>
+ <li><a href='eb_discovery.php'>Entangled Bank Discovery</a></li>
+ </UL>
+ <p>
 The team at Imperial  were <a href="http://www3.imperial.ac.uk/people/t.coulson">Prof. Tim Coulson</a>,
  <a href="http://www3.imperial.ac.uk/people/g.mace">Prof. Georgina Mace FRS</a>,
  <a href="http://www3.imperial.ac.uk/people/a.purvis">Prof. Andy Purvis</a>,
@@ -179,6 +72,12 @@ The team at Imperial  were <a href="http://www3.imperial.ac.uk/people/t.coulson"
  <a href="http://entangled-bank.org/davidkidd/">Dr. David Kidd</a>.
 </p>
 
+ <center>
+<img src='./image/funding-logo.gif' alt='funding logo'/>
+<p >Funding by the Natural Environment Research Council, Imperial College and Microsoft.</p>
+</center>
+
+</div>
 <?php html_entangled_bank_footer(); ?>
 </div>
 </body>

@@ -607,3 +607,17 @@ function cursor_clear() {
 	document.body.style.cursor = 'default';
 	
 }
+
+//-----------------------------------------------------------------------------------
+
+function winControl(URL, title) {
+	alert('!');
+/*	var targetWin = window.open('', title);
+	if (targetWin.location == "about:blank") {
+		targetWin.location.href = URL;
+		targetWin.focus();
+	} else {
+		targetWin.focus();
+	}*/
+	
+}

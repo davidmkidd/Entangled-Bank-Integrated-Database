@@ -16,8 +16,7 @@ include("../lib/html_utils.php");
 $stage = html_entangled_bank_header(null, '../');
 ?>
 <h4>Contents</h4>
-<OL>
-<LI><a href="#what">What does the EBDB do?</a></LI>
+<OL id='contents'>
 <LI><a href="#start">Select data to query</a></LI>
 <LI><a href="#main">The EBDB main screen</a></LI>
 <LI><a href="#query">How to query</a></LI>
@@ -32,15 +31,6 @@ $stage = html_entangled_bank_header(null, '../');
 <LI><a href="#examples" alt='Entangled Bank Examples'>Examples</a></LI>
 <LI><a href="#browser">Browser compatability</a></LI>
 </OL>
-
-<h3><a name="what">What does the EBDB do?</a></h3>
-<p>
-The Entangled Bank Database (EBDB) supports the querying, subsetting and extraction of data sets by biological name, tree topology,
-attribute values, geography and time through a Web-based interface.
-It is currenlty populated with a number of <a href="./doc/data.php#mammal">datasets for all mammals</a> 
-and the <a href="./doc/data.php#gpdd">Global Population Dynamics Database</a> of long-term abundance records.
-</p>
-
 
 <h3><a name="start">Select Data</a></h3>
 <p>
@@ -349,11 +339,6 @@ Branch attributes (e.g. ages) may be be output in the tree file.
 Readme.txt contains information on the queries undertaken and returned data.
 </p>
 
-<h3><a name="browser">Browser Compatability</a></h3>
-<p> 
-The interface was developed for the Chrome Browser (v15) [??link??]. 
- Compatability with other Internet browsers has not been tested.
-</p>
 
 <br />
 <?php html_entangled_bank_footer(); ?>

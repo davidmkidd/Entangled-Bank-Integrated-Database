@@ -27,6 +27,10 @@
 		padding-bottom: 3px;
 	}
 	
+	h3 {
+		text-align: center;
+	}
+	
 	div#table_fields_div {
 /*		border: 3px groove;*/
 		padding-top: 12px;
@@ -40,7 +44,6 @@
 
 	div#eb_header {
 		padding: 5px;
-		padding-bottom: 9px
 	}
 	
 	div#eb_header_items {
@@ -48,6 +51,10 @@
 		padding-top: 3px;
 	}
 	
+	div#content {
+		padding-left: 50px;
+		padding-right: 50px;
+	}
 	
 	#ebmenu {
 		margin: 0px;
@@ -66,6 +73,23 @@
 		padding-top: 6px;
 		padding-left: 3px;
 		padding-bottom: 6px;
+	}
+	 
+	p#ebdb_from_doc {
+		font-size: larger;
+		font-weight: bold;
+		text-align: center;
+		margin-bottom: 0px;
+		padding-bottom: 0px;
+	}
+	
+	p#ebdb_from_doc2 {
+		margin-top: 0px;
+		text-align: center;
+	}
+	
+	ol#contents {
+		font-size: small;
 	}
 	
 	.blurb {

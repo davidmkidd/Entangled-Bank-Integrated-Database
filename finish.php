@@ -26,7 +26,7 @@ echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
 echo "<div id='page'>";
 html_entangled_bank_header('finish',$eb_path, $html_path, $share_path);
 echo "<br>";
-echo "<p id='exit_blurb'>Thank you for using The Entangled Bank</p>";
+echo "<p id='exit_blurb'>Thank you for visiting The Entangled Bank</p>";
 echo "<br>";
 html_entangled_bank_footer();
 echo "</div>";
