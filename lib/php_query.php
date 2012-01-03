@@ -139,7 +139,6 @@
 		$qstr = $str;
 		
 		# ADD INTERQUERY OPERATOR
-		//if ($names_array) $str = "$str $queryop SELECT UNNEST($names_array) AS bioname";
 		if ($names_array) {
 			if ($qterm == 'biotable' && $sterm == 'biorelational') {
 				$str = "$str $queryop SELECT UNNEST($names_array) AS bioname";
@@ -149,38 +148,24 @@
 		}
 			
 		# RUN NAMES QUERY
-		//echo "query: $str<br>";
 		$res = pg_query($db_handle, $str);
 		$names = pg_fetch_all_columns($res, 0);
 		
 		# ADD SQL TO QOBJECT
-		//echo "query: $qstr<br>";
 		query_add_names_sql($qobject, $qobjects, $qstr);
 		$qobjects = save_obj($qobjects, $qobject);
 		
-		//print_r($qobjects);
-		//echo " after save_obj<br>";
-		
 		# GPDD SERIES QUERY
-		# =================
-		//echo "names " . count($names) . "<br>";
 		if (!empty($names)) {
 			# RUN GPDD SERIES QUERY
 			query_series($db_handle, $qobject, $qobjects, $names, $sources);
-			//print_r($qobject);
-			//echo " after query_series<br>";
 			$qobjects = save_obj($qobjects, $qobject);
 			$names = query_series_names($db_handle, $qobjects, $names, $sources);
 		} else {
 			# No Names
 			$qobject['series'] = null;
 			$qobjects = save_obj($qobjects, $qobject);
-			//print_r($qobject);
-			//echo " after names<br>";
 		}
-
-		//print_r($qobjects);
-		//echo "final !<br>";
 		
 		$_SESSION['names'] = $names;
 		$_SESSION['qobjects'] = $qobjects;

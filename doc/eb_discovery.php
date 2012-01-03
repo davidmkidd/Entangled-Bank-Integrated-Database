@@ -1,3 +1,8 @@
+<?php
+session_start();
+$_SESSION['lastaction'] = 'doc';
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -15,12 +20,12 @@
 <?php 
 include("../lib/html_utils.php"); 
 $stage = html_entangled_bank_header('doc', '../');
+include("./contents.html");
 ?>
-<hr>
 
 <div id='content'>
 
-<a name='discovery'></a><h3>Entangled Bank Discovey</h3>
+<a name='discovery'></a><h3>Entangled Bank Discovery</h3>
 
 <p>
 Entangled Bank Discovery (EBDD): a web-based tool for discovering and preserving data. 

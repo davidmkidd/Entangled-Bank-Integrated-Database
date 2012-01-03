@@ -1,3 +1,8 @@
+<?php 
+session_start();
+$_SESSION['lastaction'] = 'doc';
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -11,15 +16,22 @@
 
 <body>
 <div id='page'>
+
 <?php 
 include("../lib/html_utils.php"); 
 $stage = html_entangled_bank_header(null, '../');
 ?>
+
+<hr>
 <h4>Contents</h4>
 <OL id='contents'>
-<LI><a href="#start">Select data to query</a></LI>
-<LI><a href="#main">The EBDB main screen</a></LI>
-<LI><a href="#query">How to query</a></LI>
+<LI><a href="#ebdb">What does the EBDB do?</a></LI>
+<LI><a href="#start">Select Datasets</a></LI>
+<LI><a href="#main">The Main Screen</a></LI>
+<OL>
+<LI><a href="#find">Find</a></LI>
+</OL>
+<LI><a href="#query">Query</a></LI>
 <ol>
 <LI><a href="#name">Biological Name</a></LI>
 <LI><a href="#tree">Tree (taxonomy or phylogeny)</a></LI>
@@ -27,10 +39,27 @@ $stage = html_entangled_bank_header(null, '../');
 <LI><a href="#geography">Geography</a></LI>
 <LI><a href="#time">Time</a></LI>
 </ol>
-<LI><a href="#output">How to return data</a></LI>
-<LI><a href="#examples" alt='Entangled Bank Examples'>Examples</a></LI>
-<LI><a href="#browser">Browser compatability</a></LI>
+<LI><a href="#output">Return Data</a></LI>
+<ol>
+<LI><a href="#output-table">Tabular Output</a></LI>
+<LI><a href="#output-geography">Geographic Output</a></LI>
+<LI><a href="#output-tree">Tree Output</a></LI>
+<LI><a href="#output-gpdd">GPDD Output</a></LI>
+<LI><a href="#output-meta">Output Metadata</a></LI>
+</ol>
 </OL>
+<hr>
+
+<div id='content'>
+
+<h3><a name="ebdb">What does the EBDB do?</a></h3>
+<p>
+<a href='eb_database.php'>The EBDB</a> supports the querying of datasets by <a href="#names">biological name</a>, <a href="#tree">tree topology</a>,
+ <a href="#attribute">attributes</a>, <a href="#geography">geography</a> or <a href='#time'>time</a>.
+Queries return taxon names that match the query criteria. 
+Data subsets and query metabadata are returned various formats within a single zip archive.
+</p>
+<hr>
 
 <h3><a name="start">Select Data</a></h3>
 <p>
@@ -39,8 +68,9 @@ Only selecting the data of interest increases speed and reduces interface comple
 </p>
 <Center>
 <a href='./image/start.gif'><IMAGE src='./image/start.gif' width='600px'/></a>
-<p class='caption'>Figure 1. Start Screen</p>
+<p class='legend'>Select Sources</p>
 </Center>
+<hr>
 
 
 <h3><a name="main">The Main Screen</a></h3>
@@ -60,27 +90,29 @@ TOOL TIPS provide tool-specific information. Reveal by hovering over page elemen
 </p>
 <Center>
 <a href='./image/main.gif'><IMAGE src='./image/main.gif' width='600px'/></a>
-<a name="fig2"><p class='caption'>Figure 2. Main Screen</p></a>
+<a name="fig2"><p class='legend'>Main Screen</p></a>
 </Center>
 
-<a name='find'></a><h3 >Find</h3>
+
+<a name='find'></a><h4>Find</h3>
 <p>
-'Find' simply shows presence or absence of names in data sets and does not effect queries.
+'Find' is a quick way of discovering which names are present in which data sets. 
 Type a comma-seperated list into the input, then press 'find' to discover which names are in which data sets.
 Find searches are case-sensitive and do not support wildcards.
+Find does not effect queries.
 </p>
 <Center>
 <a href='./image/find.gif'><IMAGE src='./image/find.gif' width='600px'/></a>
-<p class='caption'>Figure 3. Find</p>
+<p class='legend'>Find</p>
 </Center>
 <p>
 Find results are displayed on the main screen as a table with one line for each taxon and columns for each data set.
 A green dot is displayed where the taxon is found in a data set, otherwise a red dot is displayed. 
 A tool tip gives column data set name.
 </p>
+<hr>
+<h3><a name="query">Query</a></h3>
 
-
-<h3><a name="query">How to query</a></h3>
 <p>
 Data may be queried by <a href="#names">biological name</a>, <a href="#tree">tree topology</a>,
  <a href="#attribute">attributes</a>, <a href="#geography">geography</a> or <a href='#time'>time</a>.
@@ -96,9 +128,9 @@ Queries are intiated by selecting one of the query types.
 </p>
 <Center>
 <a href='./image/single-source.gif'><IMAGE src='./image/single-source.gif' width='500px'/></a>
-<p class='caption'>Figure 4. Single source prompt</p>
+<p class='legend'>Single source prompt</p>
 </Center>
- 
+
 <p>
 In multi-source queries (names, geography and time) data set selection is part of the query dialog.
 Queries must be applied to at least one dataset. 
@@ -115,7 +147,7 @@ This can be changed to SQL that returns GPDD series identifiers or,
 </p>
 <Center>
 <a href='./image/multi-source.gif'><IMAGE src='./image/multi-source.gif' width='600px'/></a>
-<p class='caption'>Figure 5. Multi-source prompt for a names query</p>
+<p class='legend'>Multi-source prompt for a names query</p>
 </Center>
 
 <p>
@@ -125,10 +157,11 @@ i.e. the first bionames will be 'bionames1' and the second 'bionames2' irrespect
 Query names do not have to be unique as they have a unique internal reference; however using the same name is not recommended.
 </p>
 <p>
-<a name='query_buttons'></a>Unsurprisinly, 'Run >' runs a query. 'Delete' deletes the query. 
+<a name='query_buttons'></a>'Run >' runs a query. 'Delete' deletes the query. 
 'Cancel' returns to the main screen from an existing query edit. No changes are saved following a cancel. 
 To implement changes to a query run the query.
 </p>
+
 
 <h4><a name="names">Biological Name</a></h4>
 <p>
@@ -142,12 +175,13 @@ Alternatively, checking 'All names' will return all names that match the name-da
 <center>
 <a name="fig6">
 <a href='./image/names.gif'><IMAGE src='./image/names.gif' width='600px'/></a>
-<p class='caption'>Figure 6. Names query</p>
+<p class='legend'>Names query</p>
 </center>
 </a>
 <p>
 Run names queries include a taxon name REPORT and the QUERY SQL.
 </p>
+<hr>
 
 
 <h4><a name="tree">Tree</a></h4>
@@ -189,8 +223,9 @@ FIND performs an 'case-sensitive double-wild card' search on input text given th
 <center>
 <a name="fig7">
 <a href='./image/taxonomy.gif'><IMAGE src='./image/taxonomy.gif' width='600px'/></a>
-<p class='caption'>Figure 7. Taxonomy query</p>
+<p class='legend'>Taxonomy query</p>
 </center>
+
 
 <h4><a name="attribute">Attribute</a></h4>
 <p>
@@ -199,7 +234,7 @@ Attribute queries select names from the values of variables in a normal and spat
 <center>
 <a name="fig8">
 <a href='./image/table.gif'><IMAGE src='./image/table.gif' width='600px'/></a>
-<p class='caption'>Figure 8. Querying the attributes of the GPDD</p>
+<p class='legend'>Figure 8. Querying the attributes of the GPDD</p>
 </center>
 <p>
 Attribute fields are grouped into general classes of
@@ -229,7 +264,7 @@ Features can not cross the anti-meidian (-180/+180 longitude).
 <center>
 <a name="fig9">
 <a href='./image/geography.gif'><IMAGE src='./image/geography.gif' width='600px'/></a>
-<p class='caption'>Figure 9. Geographic query</p>
+<p class='legend'>Geographic query</p>
 </center>
 
 <p>
@@ -261,7 +296,6 @@ Four SPATIAL OPERATORS are suppoted:
 (ST_Within PostGIS function).</td>
 </tr>
 </table>
-<br>
 
 <h4><a name="time">Time</a></h4>
 <p>
@@ -270,11 +304,12 @@ Temporal queries select names and data that exists BEFORE, DURING or AFTER a par
 <center>
 <a name="fig9">
 <a href='./image/time.gif'><IMAGE src='./image/time.gif' width='600px'/></a>
-<p class='caption'>Figure 10. Temporal query</p>
+<p class='legend'>Temporal query</p>
 </center>
-<br>
+<hr>
 
-<h3><a name="output">Returning data</a></h3>
+
+<h3><a name="output">Return Data</a></h3>
 <p>
 Data is returned by adding dataset OUTPUTS.
 Output dialogs reflect the composition of data types that compose each dataset, so, for example,
@@ -283,31 +318,28 @@ Output dialogs reflect the composition of data types that compose each dataset, 
   SESSION METADATA file (readme.txt) that describes the queries undertaken and data returns.
 </p>
 
-<h4><a name="output_table">Tabular Output</a></h4>
+<h4><a name="output-table">Tabular Output</a></h4>
 <p>
 Tabular data such as Panthria or the GPDD may be exported as comma-delineated (*.csv)' 
 or 'tab-delineated (*.txt)' ascii files. All or a subset of fields may be output.
 </p>
-
 <center>
-<a name="fig10">
 <a href='./image/output-table.gif'><IMAGE src='./image/output-table.gif' width='600px'/></a>
-<p class='caption'>Figure 11. Pantheria Output</p>
+<p class='legend'>Pantheria Output</p>
 </center>
 
-<h4><a name="output_spatial">Geographic Output</a></h4>
+<h4><a name="output-geography">Geographic Output</a></h4>
 <p>
 Spatial data such as can be exported as a <a href=''>ESRI Shapefile</a>, <a href=''>MapInfo</a>, <a href=''>DGN</a>, 
  <a href=''>DXF</a>, <a href=''>Geographic Markup Language (GML)</a>
  and <a href=''>Keyhole Markup Language (KML)</a> formats. [Add non-spatial]
 </p>
 <center>
-<a name="fig_output-geography">
 <a href='./image/output-geography.gif'><IMAGE src='./image/output-geography.gif' width='600px'/></a>
-<p class='caption'>Figure 12. Pantheria Output</p>
+<p class='legend'>Pantheria Output</p>
 </center>
 
-<h4><a name="output_tree">Tree Output</a></h4>
+<h4><a name="output-tree">Tree Output</a></h4>
 <p>
 Trees may be exported in <a href=''>newick</a>, <a href=''>nhx</a>, 
 <a href=''>tab-indented ascii</a> or <a href=''>lintree formats</a>.
@@ -315,9 +347,8 @@ Trees may be the subtree defined by the last common ancestor of the selected nam
 Branch attributes (e.g. ages) may be be output in the tree file.
 </p>
 <center>
-<a name="fig_output-tree">
 <a href='./image/output-tree.gif'><IMAGE src='./image/output-tree.gif' width='600px'/></a>
-<p class='caption'>Figure 12. Mammal Phylogeny Output</p>
+<p class='legend'>Mammal Phylogeny Output</p>
 </center>
 
 
@@ -329,9 +360,8 @@ Trees may be the subtree defined by the last common ancestor of the selected nam
 Branch attributes (e.g. ages) may be be output in the tree file.
 </p>
 <center>
-<a name="fig_output-gpdd">
 <a href='./image/output-gpdd.gif'><IMAGE src='./image/output-gpdd.gif' width='600px'/></a>
-<p class='caption'>Figure 12. GPDD Output</p>
+<p class='legend'>GPDD Output</p>
 </center>
 
 <h4><a name="readme">Session metadata</a></h4>
@@ -339,7 +369,7 @@ Branch attributes (e.g. ages) may be be output in the tree file.
 Readme.txt contains information on the queries undertaken and returned data.
 </p>
 
-
+</div>
 <br />
 <?php html_entangled_bank_footer(); ?>
 </div>

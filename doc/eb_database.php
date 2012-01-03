@@ -1,3 +1,9 @@
+<?php
+session_start();
+$_SESSION['lastaction'] = 'doc';
+session_write_close();
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -15,18 +21,18 @@
 <?php 
 include("../lib/html_utils.php"); 
 $stage = html_entangled_bank_header('doc', '../');
+include("./contents.html");
 ?>
-<hr>
 
 <div id='content'>
+<a name='ebdb'></a><h3>The Entangled Bank Database</h3>
 
-<a name='#ebdb'></a><h3>The Entangled Bank Database</h3>
-
-<p>The Entangled Bank  Database (EBDB) provides integrated access to a number of mammal datasets 
- (a <a href='data.php#mammal_taxonomy'>taxonomy</a>, 
+<p>The Entangled Bank Database (EBDB) provides integrated access to a number 
+of ecological and evolutionary <a href='data.php'>datasets</a>;
+a mammal <a href='data.php#mammal_taxonomy'>taxonomy</a>, 
  <a href='data.php#mammal_supertree'>phylogeny</a>, 
  <a href='data.php#mammal_pantheria'>trait database</a> 
- and <a href='data.php#mammal_geographic'>range maps</a>) and the 
+ and <a href='data.php#mammal_geographic'>range maps</a> and the 
 <a href="data.php#gpdd">Global Population Dynamics Database</a> of long-term abundance records.
 These data may be queried by <a href='help#name'>biological name</a>,
  <a href='help#tree'>tree topology</a>, 
@@ -41,8 +47,25 @@ These data may be queried by <a href='help#name'>biological name</a>,
 <LI>What are the ranges of Cervidae with body mass greater than 20kg.</LI>
 <LI>Which South American taxa are descended from the last common ancestor of these genera?</LI>
 </ul>
+<p id='ebdb_from_doc'><a href='../index.php'>Access the EBDB</a></p>
 
-<p id='ebdb_from_doc'><a href='../index.php'>Query the Database</a></p>
+<h4><a name="status">Status</a></h4>
+<p>
+The EBDB is a prototype system designed to demonstrate the utility of linking diverse ecological data 
+ by biological name (WHO), subject (WHAT), geography (WHERE) and time (WHEN).
+The inteface is configured for <img src='../image/google-chrome-beta-icon.png' alt='Google Chrome Icon'/> Google Chrome
+(<a href='http://www.google.co.uk/chrome'>win</a>, <a href='https://www.google.com/chrome?platform=linux'>linux</a>).
+Using another browser may result in unexpected and undesired effects. 
+Please report any bugs you encounter.
+</p>
+<p>
+The Entangled Bank currently provides generic support for 'flat' data and geographic tables with a designated taxon name fields, 
+phylogenies and taxonomy trees. The <a href="data.php#gpdd">Global Population Dynamics Database</a> of long-term abundance records is 'hard-coded'.
+Flat files may be imported using normal PostgreSQL tools, geographic tables with <a href='http://postgis.refractions.net/documentation/manual-1.3/ch04.html#id2571860'>PostGIS import tools</a>.
+The eb_import_tree.pl PERL scirpt imports trees . 
+No tools are provided to import additional time-series into the GPDD, but import can be undertaken with the PostgreSQL and PostGIS tools.
+</p>
+
 
 <h4><a name="architecture">Architecture</a></h4>
 <p>The EBDB is a <a href="http://www.postgresql.org/">PostgreSQL</a> database which implements a variety of schemas that support various data types.
@@ -59,16 +82,22 @@ including the location of biological names and spatial and temporal information.
 <a href="http://search.cpan.org/dist/Bio-Phylo/">Bio::Phylo</a> for tree I/O. 
 Geographic I/O is through <a href="http://www.gdal.org/ogr2ogr.html">GDAL/OGR2OGR</a>.
 </p>
-<p>
-The EBDB is open-source and code can be downlaoded from 
-<a href="https://github.com/davidmkidd/Entangled-Bank-Integrated-Database">Github</a>. 
-Instructions are limited so contact with the development team is stongly encouraged.
-</p>
-
 <center>
 <img src="./image/eb_architecture.png">
 <p class='legend'>Entangled Bank Architecture</p>
 </center>
+<hr>
+
+
+<h4><a name="install">Installation</a></h4>
+<p>
+The EBDB is open-source and code can be downlaoded from 
+<a href="https://github.com/davidmkidd/Entangled-Bank-Integrated-Database">Github</a>.</p>
+<p>
+Instructions are limited, so contact with the development team is stongly encouraged.
+</p>
+<hr>
+
 
 <h4><a name="imagery">Metaphor and Imagery</a></h4>
 <p>

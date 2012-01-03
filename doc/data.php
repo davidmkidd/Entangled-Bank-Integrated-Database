@@ -1,9 +1,15 @@
+<?php
+session_start();
+$_SESSION['lastaction'] = 'doc';
+session_write_close();
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
-  <title>EBDB Data</title>
+  <title>Entangled Bank Data</title>
   <meta content="webmaster@entangled-bank.org" name="author">
   <meta content="Index page" name="description">
   <link type="text/css" rel="stylesheet" href="../share/entangled_bank.css">
@@ -14,21 +20,14 @@
 
 <?php 
 include("../lib/html_utils.php"); 
-$stage = html_entangled_bank_header(null);
+$stage = html_entangled_bank_header('doc', '../');
+include("./contents.html");
 ?>
+<div id='content'>
 
-<h3>Data supported</h3>
+<h3 name='data'>Data</h3>
 <p>
-The Entangled Bank supports 'flat' data and geographic tables with a designated taxon name fields, 
-phylogenies and taxonomy trees and the <a href="#gpdd">Global Population Dynamics Database</a> of long-term abundance records.
-Flat files may be imported using normal PostgreSQL tools, geographic tables with <a href='http://postgis.refractions.net/documentation/manual-1.3/ch04.html#id2571860'>PostGIS import tools</a>.
-Trees and taxonomy can be imported with the eb_import_tree.pl PERL Scirpt. 
-No tools are provided to import additional time-series into the GPDD, but import can be undertaken with the PostgreSQL and PostGIS tools.
-</p>
-
-<h3>Entangled Bank Data</h3>
-<p>
-The EBDB contains the following data;
+The EBDB contains the following data sets;
 </p>
 
 <OL>
@@ -40,13 +39,13 @@ The EBDB contains the following data;
 </OL>
 
 <p>Data sets with the '(MSW3)' suffix are based on the <a href="#mammal_taxonomy">Wilson & Reeder, Mammal Species of the World 2005 taxonomy</a></p>
-
+<br>
 
 <h4><a name="mammal_taxonomy">1. Wilson and Reeder MSW3 Mammal Taxonomy</a></h4>
 <p>
 <a href="http://www.bucknell.edu/msw3/">The Wilson and Reeder (2005) MSW3 taxonomy.</a> 
 </p>
-<p class='citation'>Citation: Don E. Wilson & DeeAnn M. Reeder (editors). 2005. Mammal Species of the World. 
+<p class='citation'>Don E. Wilson & DeeAnn M. Reeder (editors). 2005. Mammal Species of the World. 
 A Taxonomic and Geographic Reference (3rd ed), Johns Hopkins University Press, 2,142 pp.
 </p>
 
@@ -54,7 +53,7 @@ A Taxonomic and Geographic Reference (3rd ed), Johns Hopkins University Press, 2
 <p>
 A species-level database of life history, ecology, and geography of extant and recently extinct mammals.
 </p>
-<p class='citation'>Citation: Jones, Kate E., Jon Bielby, Marcel Cardillo, Susanne A. Fritz, Justin O'Dell, C. David L. Orme, Kamran Safi, Wes Sechrest, Elizabeth H. Boakes, Chris Carbone, Christina Connolly, Michael J. Cutts, Janine K. Foster, Richard Grenyer, Michael Habib, Christopher A. Plaster, Samantha A. Price, Elizabeth A. Rigby, Janna Rist, Amber Teacher, Olaf R. P. Bininda-Emonds, John L. Gittleman, Georgina M. Mace, and Andy Purvis. 2009.
+<p class='citation'>Jones, Kate E., Jon Bielby, Marcel Cardillo, Susanne A. Fritz, Justin O'Dell, C. David L. Orme, Kamran Safi, Wes Sechrest, Elizabeth H. Boakes, Chris Carbone, Christina Connolly, Michael J. Cutts, Janine K. Foster, Richard Grenyer, Michael Habib, Christopher A. Plaster, Samantha A. Price, Elizabeth A. Rigby, Janna Rist, Amber Teacher, Olaf R. P. Bininda-Emonds, John L. Gittleman, Georgina M. Mace, and Andy Purvis. 2009.
 PanTHERIA: a species-level database of life history, ecology, and geography of extant and recently extinct mammals.
 Ecology 90:2648. Ecological Archives E090-184.
 </p>
@@ -68,7 +67,7 @@ between the University of Virginia, Imperial College London and the Zoological S
  so data geographical-based data could be calculated for the <a href="#mammal_pantheria">Pantheria Trait Database</a>.
  The range maps are s the WGS84 projection. The 'Range Area Km' field was calculated on the Behrmann projection.
 </p>
-<p class='citation'>Citation: Jones, Kate E., Jon Bielby, Marcel Cardillo, Susanne A. Fritz, Justin O'Dell, C. David L. Orme, Kamran Safi, Wes Sechrest, Elizabeth H. Boakes, Chris Carbone, Christina Connolly, Michael J. Cutts, Janine K. Foster, Richard Grenyer, Michael Habib, Christopher A. Plaster, Samantha A. Price, Elizabeth A. Rigby, Janna Rist, Amber Teacher, Olaf R. P. Bininda-Emonds, John L. Gittleman, Georgina M. Mace, and Andy Purvis. 2009.
+<p class='citation'>Jones, Kate E., Jon Bielby, Marcel Cardillo, Susanne A. Fritz, Justin O'Dell, C. David L. Orme, Kamran Safi, Wes Sechrest, Elizabeth H. Boakes, Chris Carbone, Christina Connolly, Michael J. Cutts, Janine K. Foster, Richard Grenyer, Michael Habib, Christopher A. Plaster, Samantha A. Price, Elizabeth A. Rigby, Janna Rist, Amber Teacher, Olaf R. P. Bininda-Emonds, John L. Gittleman, Georgina M. Mace, and Andy Purvis. 2009.
 PanTHERIA: a species-level database of life history, ecology, and geography of extant and recently extinct mammals.
 Ecology 90:2648. Ecological Archives E090-184.
 </p>
@@ -77,7 +76,7 @@ Ecology 90:2648. Ecological Archives E090-184.
 <p>
 A dated supertree of mammals based on the <a href="#mammal_taxonomy">MSW3 taxonomy</a>
 </p>
-<p class='citation'>Citation: Bininda-Emonds, O. R. P., Cardillo, M., Jones, K. E., MacPhee, R. D. E., Beck, R. M. D., Grenyer, R., Price, S. A., Vos, R. A., Gittleman, J. L. & Purvis, A. (2007) 
+<p class='citation'>Bininda-Emonds, O. R. P., Cardillo, M., Jones, K. E., MacPhee, R. D. E., Beck, R. M. D., Grenyer, R., Price, S. A., Vos, R. A., Gittleman, J. L. & Purvis, A. (2007) 
 The delayed rise of present-day mammals. Nature, 446, 507-512.
 </p>
 
@@ -89,10 +88,11 @@ otherwise it is the full 'TaxonName' which varies in format. Note that mammal na
 Metadata on restricted GPDD series can be accessed through the 
 <a href='https://www.imperial.ac.uk/cpb/gpdd2/secure/login.aspx?ReturnUrl=/cpb/gpdd2/gpdd.aspx'></a>GPDD Web Interface</a>.
 </p>
-<p class='citation'>Citation: NERC Centre for Population Biology, Imperial College (2010) The Global Population Dynamics Database Version 2. http://www3.imperial.ac.uk/cpb/research/patternsandprocesses/gpdd. 
+<p class='citation'>NERC Centre for Population Biology, Imperial College (2010) The Global Population Dynamics Database Version 2. http://www3.imperial.ac.uk/cpb/research/patternsandprocesses/gpdd. 
 </p>
 
 <?php html_entangled_bank_footer(); ?>
+</div>
 </div>
 </body>
 </html>

@@ -44,11 +44,10 @@ foreach ($_POST as $key =>$value) {
 $stage = $_SESSION['stage'];					// Form Stage
 if (!$stage) $stage = 'sources';
 
-
 # LAST ACTION - dealing with the back button
 if ($_SESSION['lastaction']) $lastaction = $_SESSION['lastaction'];
+if ($lastaction == 'doc') $stage = 'main';
 $lastid = $_SESSION['lastid'];
-
 
 # SOURCES
 $sourceids = $_SESSION['sourceids'];			//ids of the sources
@@ -69,7 +68,7 @@ if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 #echo "oldtoken: $oldtoken, oldtoken: $newtoken<br>";
 //echo "stage: $stage<br>";
 //echo "lastaction: $lastaction, lastid: $lastid<br>";
-
+//echo $_SESSION['zip'], "<br>";
 
 # ------------------------------------------------------------------------------------------------
 #                                         HTML HEADERS
@@ -213,11 +212,9 @@ if ($stage == 'write') {
 	write_outputs($db_handle, $config);
 	# DELETE OLD FILES - COULD BE BETTER MANAGED
 	process_cleanup($config);
-} else {
-	$zip = null;
+	$stage = 'main';
 }
 
-//print_r($_SESSION['qobjects']);
 
 # ----------------------------------------------------------------------------------
 #                                       FORM
@@ -235,7 +232,7 @@ if ($stage == 'sources')
 
 # MAIN INTERFACE
 if ($stage == 'main' || $stage == 'write') 
-	html_entangled_bank_main($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id);
+	html_entangled_bank_main($db_handle, $oldtoken, $newtoken, $name_search, $output_id);
 
 # QUERY SETUP
 if ($stage == 'qset')
@@ -254,6 +251,7 @@ echo '</form>';
 # ----------------------------------------------------------------------------------
 #                                     FOOOTER
 # ----------------------------------------------------------------------------------
+
 
 html_entangled_bank_footer();
 pg_close($db_handle);

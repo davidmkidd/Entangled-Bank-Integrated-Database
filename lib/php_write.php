@@ -10,7 +10,11 @@ function write_outputs($db_handle, $config) {
 	if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
 	if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 	if ($_SESSION['sources']) $sources = $_SESSION['sources'];
-	if ($_SESSION['zip'] && file_exists($_SESSION['zip'])) unlink($_SESSION['zip']);
+	$zip = $config['out_path'] . "/" . $_SESSION['zip'];
+	if ($_SESSION['zip'] && file_exists($zip)) {
+		//echo "Deleting zip<br>";
+		unlink($zip);
+	}
 	
 	#UNIQE ID FOR OUTPUT TO PREVENT FILE NAME CONFLICTS
 	$oid = substr(md5(uniqid()),0,4);
@@ -35,7 +39,7 @@ function write_outputs($db_handle, $config) {
 	}
 	
 	# WRITE README
-	$readme = write_readme($qobjects, $outputs);
+	$readme = write_readme($db_handle, $sources, $qobjects, $outputs);
 	$out_path = $config['out_path'];
 	$fn = $out_path . "/readme_$oid.txt";
 	$fh = fopen($fn, 'w') or die("can't open file $fn: $php_errormsg");
@@ -84,10 +88,6 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 			write_biorelational($db_handle, $config, $qobjects, $output, $sources, $names);
 			break;
 		}
-	#echo "n: $n";
-	#$output['outfiles'] = $outfiles;
-	#$output['nout'] = $n;
-	#echo "After write<br>";
 	}
 
 #=================================================================================================================
@@ -775,17 +775,38 @@ if (!dbase_create($file, $def)) {
 
 #=================================================================================================================
 	
-	function write_readme($qobjects, $outputs) {
+function write_readme($db_handle, $sources, $qobjects, $outputs) {
 		
-	# Writes readme file
+	# WRITE README
 	
 	$dul = "================================================================\r\n";
 	$sul = "----------------------------------------------------------------\r\n";
-	#BEGIN README
-	$readme = "Entangled Bank Output " . strftime('%c') . "\r\n$dul\r\n";
-
 	
-	# ADD QUERIES TO README
+	# HEADER
+	$readme = $readme . $dul . "\r\n";
+	$readme = $readme . "Entangled Bank Download (accessed " . strftime('%c') . ")\r\n\r\n$dul";
+	
+	$str = 'www.entangled-bank.org\r\n';
+	
+	#DATA SOURCES
+	$readme = $readme . "\r\n";
+	$srm = '';
+	$readme = $readme  . count($sources) . " data sets\r\n\r\n" . $sul . "\r\n";
+	foreach ($sources as $source) {
+		$srm = $srm . $source['id'] . "\r\n" . $source['name'] . "\r\n";
+		$str = "SELECT ref FROM source.source WHERE source_id =" . $source['id'];
+		$res = pg_query($db_handle, $str);
+		$row = pg_fetch_row($res);
+		$srm = $srm . $row[0] . "\r\n";
+		if ($source['www']) $srm = $srm . $source['www'] . "\r\n";
+	}
+	
+	$readme = $readme . $srm;
+	$readme = $readme . $sul;
+	
+	# QUERIES
+	$readme = $readme . "\r\n";
+	
 	if ($qobjects) {
 		$c = count($qobjects);
 	} else {
@@ -794,97 +815,67 @@ if (!dbase_create($file, $def)) {
 	
 	switch ($c) {
 		case 0 :
-			$readme =  "$readme 0 queries, all data in outputs returned";
+			$readme = $readme . "0 queries, all data in outputs returned";
 			break;
 		case 1:
-			$readme = "$readme 1 query";
+			$readme = $readme . "1 query";
 		default:
-			$readme = "$readme $c queries";
+			$readme = $readme . "$c queries";
 			break;
 	}
 		
-	$readme = "$readme\r\n\r\n";
-	#$readme = $readme . "Query: ";
+	$readme = "$readme\r\n\r\n$sul\r\n";
 
-	$qstack = array();
 	$i = 0;
+	$str = 'Query Chain:\r\n';
 	if ($qobjects) {
 		foreach ($qobjects as $qobj) {
-			$str = '';
-			if ($i > 0) $str = "$str ";
+			if ($i > 0) $str = "$str " . $qobj['queryoperator'] . " ";
 			$str = $str . $qobj['name'];
-			if ($i > 0) $str = "$str " . $qobj['queryoperator'];
-			array_unshift($qstack,$str);
 			$i++;
-			$readme = $readme. " $str";
 		}
+	}
+	$readme = $readme . $str;
+	
+	# SQL
+	$str = "\r\n\r\nNames SQL:";
+	if ($qobjects) {
+		$i = 0;
+		foreach ($qobjects as $qobj) {
+			if ($i > 0) $str = $str. "\r\n" . $qobj['queryoperator'];
+			$str = $str . "\r\n" . $qobj['sql_names_query'];
+			$i++;
+		}
+		$readme = $readme . htmlspecialchars_decode($str);
+		
+		$str = "\r\n\r\nSeries SQL: ";
+		foreach ($qobjects as $qobj) {
+			if ($qobj['sql_series_query']) {
+				$str = $str . $qobj['name'] . "\r\n";
+				$str = $str . $qobj['sql_series_query'];
+			}
+			$i++;
+			$str = $str . "\r\n\r\n";
+		}
+		$readme = $readme . htmlspecialchars_decode($str) . "\r\n";
 	}
 	
 	# OUTPUTS
-	$readme =  "$readme\r\n\r\n";
-	$readme = $readme . count($outputs) . " outputs\r\n\r\n";
-	$i = 0;
+	$str = "$sul\r\n" . count($outputs) . " outputs\r\n\r\n$sul";
 	foreach ($outputs as $output) {
-		$i++;
-		$readme = $readme . $output['name'] . ": ";
-
-		$readme = $readme . $output['as_string'] . "\r\n";			
-		$readme = $readme . "files: \r\n";
-		$j = 0;
+		$str = $str . "\r\n" . $output['name'];
 		$outfiles = $output['outfiles'];
 		foreach ($outfiles as $outfile) {
-			#if ($j > 0) $readme = $readme . "\r\n";
-			$str = substr($outfile, strrpos($outfile,"/"));
-			#echo "$outfile ".strrpos("/",$outfile)." $str<br>";
-			$readme = "$readme $str\r\n";
-			$j++;
+			$str2 = substr($outfile, strrpos($outfile,"/") + 1);
+			$str = $str. "\r\n" . $str2;
 		}
-		#echo "outfiles: " . print_r($outfiles) . '<br><br>';
+		$str = $str. "\r\n";
 	}
-	$readme = "$readme\r\n\r\n";	
-	
-	# SQL
-	$readme = $readme . "SQL\r\n$dul\r\n";
-	$i = 0;
-	if ($qobjects) {
-		foreach (array_reverse($qobjects) as $qobj) {
-			$readme = $readme . $qobj['name'] . " ";
-			#$readme = $readme . $qstack[$i] . $sul;
-			$readme = $readme . "Names SQL:\r\n" . $qobj['sql_names'] . "\r\n\r\n";
-			if ($qobj['sql_series']) {
-				$readme = $readme . $qobj['name'] . "Series SQL:\r\n" . $qobj['sql_series'] . "\r\n\r\n";
-			}
-			$i++;
-			$readme = "$readme \r\n$sul\r\n";
-		}
-	}
+	$readme = $readme . "\r\n" . $str . "\r\n\r\n$dul";	
+
 	return $readme;
 		
 }
-	
-#=================================================================================================================
-/*
-function write($db_handle, $config, $qobjects, $names, $outputs, $sources, $oid) {
 
-	#Writes all data output 
-	#echo "begin write_outputs<br>";
-	
-	foreach ($outputs as $output) {
-		# add output file name to outputs
-		$filename = str_replace(" ","_",$output['name']) . "_$oid";
-		#echo 'write: ' . $output['name']. " to " . $filename;
-		$output['filename'] = $filename;
-		$outputs = save_obj($outputs, $output);
-		$_SESSION['outputs'] = $outputs;
-		#echo "writing output " . $output['name'];
-		$output = write_output($db_handle, $config, $qobjects, $names, $output, $sources);
-		#echo ", " . $output['name'] . " written<br>";
-		$outputs = save_obj($outputs, $output);
-		#echo ', written ' . $filename . "<br>";
-		}
-	#echo "finish write_outputs<br>";
-	$_SESSION['outputs'] = $outputs;
-	return $outputs;
-	}*/
 #=================================================================================================================
 ?>

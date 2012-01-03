@@ -42,7 +42,6 @@ if (!$names) {
 sort($names);
 $c = count($names);
 
-
 #HTML 
 echo '<html>';
 

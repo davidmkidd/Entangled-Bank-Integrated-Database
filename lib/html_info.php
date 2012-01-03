@@ -3,6 +3,7 @@
 function html_info($db_handle, $oldtoken, $newtoken) {
 	
 	$sources = $_SESSION['sources'];
+	
 	if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
 	if ($_SESSION['names']) $names = $_SESSION['names'];
 	
@@ -10,13 +11,10 @@ function html_info($db_handle, $oldtoken, $newtoken) {
 	# SAVE TO USE AGAIN IF NEEDED: FIND
 	if (!$_SESSION['info']) {
 		$info = info($db_handle, $sources, $qobjects, $names);
-		//echo "Generating Info ...<BR>";
 		$_SESSION['info'] = $info;
 	} else {
 		$info = $_SESSION['info'];
-		//echo "Info from session ...<BR>";
 	}
-	//print_r($info);
 	
 	# DIV
 	echo "<div id='info_div'>";
@@ -43,10 +41,10 @@ function html_info($db_handle, $oldtoken, $newtoken) {
 		echo "<th class='info' title='$t'>$c</th>";
 	}
 	echo "</tr>";
-
 	
 	# INFO
 	echo "<tr>";
+	
 	# N SOURCES
 	$n = $info['sources'];
 	$t = "Sources";
@@ -252,7 +250,7 @@ function info_gpdd($db_handle, $source, $qobjects, &$info) {
 				echo "</a>&nbsp;";
 				$c++;
 			}
-			$t = "Delete all queries";
+			$t = "Delete queries";
 			echo "&nbsp;<a href='javascript: deleteAllQueries()' >";
 			echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";
 			
@@ -275,7 +273,7 @@ function html_info_outputs() {
 	$zip = $_SESSION['zip'];
 	
 	//print_r($zips);
-	//echo "<br>";
+	//echo "$zip<br>";
 	
 	if ($outputs) {
 		
@@ -287,7 +285,8 @@ function html_info_outputs() {
 		echo "<div id='output_cart'>";
 		echo "<table border='0'>";
 		echo "<tr>";
-		echo "<td class='query_title'>Outputs</td>";
+		$t = "Your outputs - click to edit or delete";
+		echo "<td class='query_title' title='$t'>Outputs</td>";
 		echo "<td>";
 		$first = true;
 
@@ -307,25 +306,23 @@ function html_info_outputs() {
 		# CART
 		$title = 'Checkout Data';
 		echo "&nbsp;<a href='javascript: returnOutput($q);'><img src='./image/returndata.gif' width='45px' 
-			alt='package data' title='$title';></img></a>";
+			alt='generate data package' title='$title';></img></a>";
 		
 		#DATA PACKAGE;
 		if ($zip) {	
-			$t = "Package:  Right-click and &#145;save&#146; to download";
+			$t = "Data Package:  right-click and &#145;save&#146; to download";
 			echo "&nbsp;<a href='", $tmp , $zip , "'";
-			echo "'><img width='45px' src='./image/parcel.gif' title='$t'/></a>";
+			echo "'><img alt='download data package' width='45px' src='./image/parcel.gif' title='$t'/></a>";
 		}
 		
 		
 		# DELETE ALL
-		$t = "Delete all outputs";
+		$t = "Delete outputs";
 		echo "&nbsp;<a href='javascript: deleteAllOutputs()'>";
 		echo "<img src='./image/red-cross.gif' class='query_type_button_non_active' title='$t'/></a>";	
 			
 		echo "</td>";
 		echo "</tr>";
-
-		
 		echo "</table>";
 		echo "</div>";
 		}

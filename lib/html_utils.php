@@ -72,13 +72,13 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 		case 'doc':
 			$restart = false;
 			$finish = false;
-			$examples = true;
-			$help = "help.php";
+			$examples = false;
+			//$help = "help.php";
 			$db = true;
 			break;
 		case '':
 		default:
-			$restart = true;
+			//$restart = true;
 			$finish = true;
 			$examples = true;
 			$help = "help.php";
@@ -91,9 +91,8 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 	# ITEMS
 	echo "<div id='eb_header_items'>";
 	
-	
 	echo "<a href='$eb_path" . "doc/about.php'>about</a>";
-	if ($db) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "index.php'>database</a>";
+	if ($db) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "index.php'>ebdb</a>";
 	if ($restart == true) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "lib/restart.php'>restart</a>";
 	if ($examples) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "doc/examples.php'>examples</a>";
 	if ($help) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "doc/$help'>help!</a>";	
@@ -101,7 +100,7 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "finish.php'>exit</a>";
 	}
 	
-	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v0.6 12.2011)';
+	//echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(1.0)';
 	echo "</div>";
 	echo "</div>";
 
@@ -2238,11 +2237,9 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 
 #=======================================================================================================================
 	
-function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $stage, $name_search, $output_id) {
+function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $name_search, $output_id) {
 	
 		$sources = $_SESSION['sources'];
-		//if ($_SESSION['qobjects']) $qobjects = $_SESSION['qobjects'];
-		//if ($_SESSION['names']) $names = $_SESSION['names'];
 		$outputs = $_SESSION['$outputs'];
 		$bioname = $_SESSION['bioname'];
 		$biotree = $_SESSION['biotree'];
@@ -2275,11 +2272,7 @@ function html_entangled_bank_main ($db_handle, $oldtoken, $newtoken, $stage, $na
 		echo "<td><input type='button' class='button-standard' value='Go' onClick='submitForm(\"find\")'></td>";
 		echo "</tr>";
 		echo "</table>";
-		
-		# DISPLAY FIND
 		if (is_array($name_search)) html_entangled_bank_find($db_handle, $name_search, $sources);
-		
-		# END FIND
 		echo "</div>";
 
 		# INFO

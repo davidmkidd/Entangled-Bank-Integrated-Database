@@ -1,3 +1,8 @@
+<?php 
+session_start();
+$_SESSION['lastaction'] = 'doc';
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -17,19 +22,20 @@ include("../lib/html_utils.php");
 $stage = html_entangled_bank_header('doc', '../');
 ?>
 <hr>
-
-<div id='content'>
 <h4>Contents</h4>
 <OL id='contents'>
-<LI><a href="#ex1"> Which names are in all sources?</a>
-<LI><a href="#ex2"> Get the spatial ranges of all Cervidae 
+<LI><a href="#ex1">Which names are in all sources?</a>
+<LI><a href="#ex2">Get the spatial ranges of all Cervidae 
 	with a mean weaning body mass greater than 20kg
-<LI><a href="#ex3"> Which species in the taxonomy are not in the phylogeny?</a>
-<LI><a href="#ex4"> Which species are restricted to the southern hemisphere between 90°E and 90°W and have ranges of less than 10,000km2?</a>
-<LI><a href="#ex5"> Get a phylogeny pruned to species in Cervidae or Monotremata</a>
+<LI><a href="#ex3">Which species in the taxonomy are not in the phylogeny?</a>
+<LI><a href="#ex4">Which species are restricted to the southern hemisphere between 90°E and 90°W and have ranges of less than 10,000km2?</a>
+<LI><a href="#ex5">Get a phylogeny pruned to species in Cervidae or Monotremata</a>
+<LI><a href="#ex6">Which nocturnal South American mammals are descended from the last common ancestor of these species?</a></LI>
+<LI><a href="#ex7">What are the ranges of Rodentia species that have a body mass less than than 250g and for which there are population abundance records between 1980-90?</a></LI>
 </OL>
+<hr>
 
-
+<div id='content'>
 <h3><a name="ex1">Which names are in all sources?</a></h3>
 <p>
 <OL type=i>

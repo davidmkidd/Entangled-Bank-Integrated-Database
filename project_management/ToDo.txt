@@ -50,7 +50,7 @@ OUTPUT
 	General
 		HIGH
 		 - BRANCH LENGTHS
-		 - 
+		 - Prevent running output again if one exists and returning from doc.
 		 FIXED
 		 - Delete created files/Create temporary files. Periodic chron function or on session end
 		 - Extract write from html_write

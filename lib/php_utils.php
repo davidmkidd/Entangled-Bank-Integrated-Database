@@ -572,9 +572,11 @@ function get_sources($db_handle, $ids, $type) {
 		$ids = pg_fetch_all_columns($res, 0);
 	}
 	
-	//print_r($ids);
+	
 
 	foreach($ids as $id) $sources[$id] = get_source($db_handle, $id);
+	
+	//print_r($sources);
 	
 	if (empty($sources)) {
 		return(false);	
@@ -611,7 +613,7 @@ function get_sources($db_handle, $ids, $type) {
 			'dbloc'=>$dbloc,
 			'n'=>$row[5],
 			'code'=>$row[8],
-			'term'=>$row[10],
+			'term'=>$row[11],
 			);
 		
 		if (!empty($row[6])==1) $source['www'] = $row[6];
