@@ -59,29 +59,29 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 	
 	switch ($stage) {
 		case 'sources':
-			$restart = false;
+			$about = true;
 			$finish = true;
-			$examples = true;
-			$help = "help.php";
+			$help = true;
 			break;
 		case 'finish':
 		case 'dbfail':
-			$restart = true;
-			$finish = false;		
+			$restart = true;	
 			break;
 		case 'doc':
-			$restart = false;
-			$finish = false;
-			$examples = false;
-			//$help = "help.php";
 			$db = true;
+			$doc = true;
+			break;
+		case 'ebdb':
+			$about = true;
+			$db = true;
+			$doc = true;
+			$help = true;		
 			break;
 		case '':
 		default:
-			//$restart = true;
+			$restart = true;
 			$finish = true;
-			$examples = true;
-			$help = "help.php";
+			$help = true;
 			break;
 	}
 	
@@ -91,19 +91,26 @@ function html_entangled_bank_header($stage = 'default', $eb_path) {
 	# ITEMS
 	echo "<div id='eb_header_items'>";
 	
-	echo "<a href='$eb_path" . "doc/about.php'>about</a>";
-	if ($db) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "index.php'>ebdb</a>";
-	if ($restart == true) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "lib/restart.php'>restart</a>";
-	if ($examples) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "doc/examples.php'>examples</a>";
-	if ($help) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "doc/$help'>help!</a>";	
-	if ($finish == true) {
+	echo "<a href='$eb_path" . "doc/about.php'>home</a>";
+	if ($doc) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "doc/eb_database.php'>about ebdb</a>";
+	if ($db) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "index.php'>access ebdb</a>";
+	
+	if ($restart) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "lib/restart.php'>restart</a>";
+	
+	if ($help) {
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path, "doc/help.php'>ebdb help</a>";
+		//echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "doc/examples.php'>examples</a>";
+	}
+	if ($finish) {
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='" , $eb_path , "finish.php'>exit</a>";
 	}
-	
+	if ($doc) echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='$eb_path" . "doc/eb_database.php'>about discovery</a>";
 	//echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(1.0)';
 	echo "</div>";
+	echo "<div class='hr'></div>";
 	echo "</div>";
-
+	
+	
 }
 
 #=======================================================================================================================
@@ -554,8 +561,8 @@ function html_query_sql($qobject) {
 		echo "<DIV class='query_sql_div'>";
 		$str = $qobject['sql_names_query'];
 		echo "<input type='hidden' id='sql_names_query' value=\"$str\">";
-		echo "<input type='hidden' id='sql_names_queries' value = \"" . $qobject['sql_names_queries'] . "\">";
-		//echo "<input type='hidden' id='sql_series_query' value = \"" . $qobject['sql_series_query'] . "\"'>";
+		//echo "<input type='hidden' id='sql_names_queries' value = \"" . $qobject['sql_names_queries'] . "\">";
+		echo "<input type='hidden' id='sql_series_query' value = \"" . $qobject['sql_series_query'] . "\"'>";
 		//echo "<input type='hidden' id='sql_series_queries' value = \"" . $qobject['sql_series_queries'] . "\">";
 		echo "<table><tr>";
 		echo "<td class='query_title'>SQL</td>";
@@ -567,9 +574,7 @@ function html_query_sql($qobject) {
 		echo "<tr><td class='query_title'></td>";
 		echo "<td class='eb'><SELECT id='sql' class='eb' onChange='sqlDisplay()'>";
 		if ($qobject['sql_names_query']) echo "<OPTION value='sql_names_query'>Names Query SQL</OPTION>";
-		if ($qobject['sql_series_query']) echo "<OPTION value='sql_series_query'>GPDD Query SQL</OPTION>";
-		//if ($qobject['sql_names_queries']) echo "<OPTION value='sql_names_queries'>Names Queries SQL</OPTION>";
-		//if ($qobject['sql_series_queries']) echo "<OPTION value='sql_series_queries'>GPDD Queries SQL</OPTION>";
+		if ($qobject['sql_series_query']) echo "<OPTION value='sql_series_query'>GPDD Query SQL</OPTION>";;
 		echo "</SELECT></td>";
 		echo "</tr></table>";
 		echo "</DIV>";
@@ -849,14 +854,6 @@ function html_query_join($formname, $qobj) {
 #=================================================================================================================
 
 function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
-
-	//print_r($qobject['sql_series_query']);
-	//echo "<br>";
-	
-	//echo '<script src="./scripts/names_utils.js" type="text/javascript"></script>';
-	
-	//html_query_header($qobject, $sources);
-	//html_query_name($qobject);
 	
 	# ALL NAMES AND FIND
 	echo "<table border = '0'>";
@@ -899,8 +896,6 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 	$title = "One name on each line or select all names.";
 	
 	# Get valid names and errors
-	//if ($qobject['taxa']) $taxa = $qobject['taxa'];
-	//if ($qobject['invalid_taxa']) $invalid = $qobject['invalid_taxa'];
 	if ($qobject['ntaxa']) $ntaxa = $qobject['ntaxa'];
 	
 	# Taxa text area
@@ -947,8 +942,6 @@ function html_query_bionames($db_handle, $qobject, $qobjects, $sources) {
 		echo "</table>";
 	}	
 
-	//unset($qobject['taxa']);
-	//unset($qobject['invalid_taxa']);
 }
 	
 
@@ -1940,7 +1933,7 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		
 		//html_query_image($qobject['term'], 'non-active', null, 'query', false);
 		//
-		echo "<div id='query_header_div' class='header_div'>";
+		echo "<div id='query_header_div'>";
 		echo "<table border='0'>";
 		echo "<tr>";
 		echo "<td class='query_title'>";
@@ -1978,9 +1971,6 @@ function html_query_biotable($db_handle, $qobject, $qobjects, $sources, $names) 
 		echo "<td >";
 		html_query_header1($qobject, $qobjects, $sources);
 		echo "</td>";
-		//echo "<td style='vertical-align: top;'>";
-		//html_query_header2($qobject, $qobjects);
-		//echo "</td>";
 		echo "</tr>";
 		echo "</table>";
 		echo "</div>";
@@ -2177,7 +2167,6 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 	echo "<table border='0'>";
 	echo "<tr>";
 	echo "<td class='query_title'>Found</td>";
-	
 	echo "<td class='find'>";
 	
 	# RESULTS TABLE
@@ -2211,9 +2200,9 @@ function html_entangled_bank_find($db_handle, $name_search, $sources) {
 		foreach ($sid_arr as $sid) {
 			$title = $sid_title[$i];
 			if (in_array($sid, $value)) {
-				echo "<TD class='find_source' title='$title'><img src='./image/green-dot.gif' /></TD>";
+				echo "<TD class='find_source' title='$title'><img src='./image/filled-dot.gif' /></TD>";
 			} else {
-				echo "<TD class='find_source' title='$title'><img src='./image/red-dot.gif' /></TD>";
+				echo "<TD class='find_source' title='$title'><img src='./image/open-dot.gif' /></TD>";
 			}
 			$i++;
 		}

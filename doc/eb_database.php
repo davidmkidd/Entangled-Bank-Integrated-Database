@@ -20,26 +20,37 @@ session_write_close();
 
 <?php 
 include("../lib/html_utils.php"); 
-$stage = html_entangled_bank_header('doc', '../');
-include("./contents.html");
+$stage = html_entangled_bank_header('ebdb', '../');
+#include("./contents.html");
 ?>
 
 <div id='content'>
 <a name='ebdb'></a><h3>The Entangled Bank Database</h3>
 
-<p>The Entangled Bank Database (EBDB) provides integrated access to a number 
-of ecological and evolutionary <a href='data.php'>datasets</a>;
+<OL id='contents'>
+<LI><a href="eb_database.php#intro">Introduction</a></LI>
+<LI><a href="eb_database.php#data">Data</a></LI>
+<LI><a href="eb_database.php#status">Status</a></LI>
+<LI><a href="eb_database.php#architecture">Architecture</a></LI>
+<LI><a href="eb_database.php#install">Installation</a></LI>
+<LI><a href="eb_database.php#imagery">Metaphor and Imagery</a></LI>
+</OL>
+
+<h4><a name="intro">Introduction</a></h4>
+
+<p>The Entangled Bank Database (EBDB) provides integrated access to ecological and evolutionary <a href='data.php'>datasets</a>;
 a mammal <a href='data.php#mammal_taxonomy'>taxonomy</a>, 
  <a href='data.php#mammal_supertree'>phylogeny</a>, 
  <a href='data.php#mammal_pantheria'>trait database</a> 
  and <a href='data.php#mammal_geographic'>range maps</a> and the 
 <a href="data.php#gpdd">Global Population Dynamics Database</a> of long-term abundance records.
-These data may be queried by <a href='help#name'>biological name</a>,
- <a href='help#tree'>tree topology</a>, 
- <a href='help#attribute'>attributes, 
- <a href='help#geography'>geography</a>
+Data may be queried by <a href='help.php#name'>biological name</a>,
+ <a href='help.php#tree'>tree topology</a>, 
+ <a href='help.php#attribute'>attributes, 
+ <a href='help.php#geography'>geography</a>
   and <a href='help#name'>time</a>
  to answer questions that span information sources. 
+ Data subsets may be download in a variety of formats.
  Examples of such linked queries are:</p>
 <ul>
 <LI>Which taxa are present in these datasets?</LI>
@@ -47,7 +58,20 @@ These data may be queried by <a href='help#name'>biological name</a>,
 <LI>What are the ranges of Cervidae with body mass greater than 20kg.</LI>
 <LI>Which South American taxa are descended from the last common ancestor of these genera?</LI>
 </ul>
-<p id='ebdb_from_doc'><a href='../index.php'>Access the EBDB</a></p>
+
+<center>
+<table border='0'>
+<tr>
+<td align='center' class='eb_projects'>
+<a href='../index.php'>Access Database<br><img src='../image/logo.png' width='200px'/></a>
+</td>
+</tr>
+</table>
+</center>
+
+<h4><a name="data">Data</a></h4>
+
+<a href="data.php">List of datasets</a>
 
 <h4><a name="status">Status</a></h4>
 <p>
@@ -55,7 +79,8 @@ The EBDB is a prototype system designed to demonstrate the utility of linking di
  by biological name (WHO), subject (WHAT), geography (WHERE) and time (WHEN).
 The inteface is configured for <img src='../image/google-chrome-beta-icon.png' alt='Google Chrome Icon'/> Google Chrome
 (<a href='http://www.google.co.uk/chrome'>win</a>, <a href='https://www.google.com/chrome?platform=linux'>linux</a>).
-Using another browser may result in unexpected and undesired effects. 
+Using another browser may result in unexpected and undesired effects.
+Be patient, querying and returning large amounts of data may be slow.
 Please report any bugs you encounter.
 </p>
 <p>
@@ -65,7 +90,6 @@ Flat files may be imported using normal PostgreSQL tools, geographic tables with
 The eb_import_tree.pl PERL scirpt imports trees . 
 No tools are provided to import additional time-series into the GPDD, but import can be undertaken with the PostgreSQL and PostGIS tools.
 </p>
-
 
 <h4><a name="architecture">Architecture</a></h4>
 <p>The EBDB is a <a href="http://www.postgresql.org/">PostgreSQL</a> database which implements a variety of schemas that support various data types.
@@ -86,8 +110,6 @@ Geographic I/O is through <a href="http://www.gdal.org/ogr2ogr.html">GDAL/OGR2OG
 <img src="./image/eb_architecture.png">
 <p class='legend'>Entangled Bank Architecture</p>
 </center>
-<hr>
-
 
 <h4><a name="install">Installation</a></h4>
 <p>
@@ -96,8 +118,6 @@ The EBDB is open-source and code can be downlaoded from
 <p>
 Instructions are limited, so contact with the development team is stongly encouraged.
 </p>
-<hr>
-
 
 <h4><a name="imagery">Metaphor and Imagery</a></h4>
 <p>

@@ -531,6 +531,7 @@ function sqlDisplay() {
 	// CHANGES SQL QUERY DISPLAYED 
 	var idx = document.getElementById('sql').selectedIndex;
 	var val = document.getElementById('sql').options[idx].value;
+	//alert(val);
 	document.getElementById('sqltext').value = document.getElementById(val).value;
 
 }

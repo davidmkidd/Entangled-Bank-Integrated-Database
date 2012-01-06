@@ -116,7 +116,7 @@ echo '<html>';
 #HEAD
 echo '<head>';
 echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
-echo "<title>Info - ", $source['name'] , "</title>";
+echo "<title>", $source['name'] , " Info</title>";
 echo '<link type="text/css" rel="stylesheet" href="./share/entangled_bank.css">';
 echo '</head>';
 
@@ -130,7 +130,7 @@ echo "<div id='info_header_div' class='header_div'>";
 echo "<table border='0'>";
 echo "<tr>";
 echo "<td class='query_title'>", html_query_image($source['term'], 'non-active', null, 'source', false), "</td>";
-echo "<td id='info_header_title'>Info - ", $source['name'], "</td>";
+echo "<td id='info_header_title'>", $source['name'], "</td>";
 echo "</tr>";
 echo "</table>";
 echo "</div>";

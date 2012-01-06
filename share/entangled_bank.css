@@ -43,7 +43,7 @@
 	}
 
 	div#eb_header {
-		padding: 5px;
+/*		padding: 5px;*/
 	}
 	
 	div#eb_header_items {
@@ -102,6 +102,13 @@
 		background-color: Gainsboro;
 	}
 	
+	.eb_projects {
+		font-weight: bold;
+		border: 3px ridge;
+		padding: 5px;
+		background-color: Gainsboro;
+	}
+	
 	.google_blurb {
 		font-size: small;
 		border: 3px ridge;
@@ -140,7 +147,7 @@
 	div#find_main_div {
 		clear: both;
 		border-bottom: 3px groove;
-		border-top: 3px groove;
+/*		border-top: 3px groove;*/
 		padding: 12px;
 		padding-left: 3px;
 	}
@@ -150,7 +157,7 @@
 		border-bottom: 3px groove;
 		margin-bottom: 6px;
 		padding-top: 5px;
-		border-top: 3px groove;
+/*		border-top: 3px groove;*/
 		margin-top: 6px;
 	}
 	
@@ -516,6 +523,10 @@
 		width: 145px;
 		vertical-align: middle;
 		align: right;
+	}
+	
+	td.find {
+		width: 555px;
 	}
 	
 	textarea.query_sql {

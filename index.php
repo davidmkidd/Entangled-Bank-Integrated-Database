@@ -43,10 +43,11 @@ foreach ($_POST as $key =>$value) {
 # STAGE
 $stage = $_SESSION['stage'];					// Form Stage
 if (!$stage) $stage = 'sources';
-
 # LAST ACTION - dealing with the back button
 if ($_SESSION['lastaction']) $lastaction = $_SESSION['lastaction'];
 if ($lastaction == 'doc') $stage = 'main';
+$sources = $_SESSION['sources'];
+if ((!$sources || empty($sources)) && $stage == 'main') $stage = 'sources';
 $lastid = $_SESSION['lastid'];
 
 # SOURCES
@@ -67,6 +68,7 @@ if ($_SESSION['outputs']) $outputs = $_SESSION['outputs'];
 
 #echo "oldtoken: $oldtoken, oldtoken: $newtoken<br>";
 //echo "stage: $stage<br>";
+//print_r($sources);
 //echo "lastaction: $lastaction, lastid: $lastid<br>";
 //echo $_SESSION['zip'], "<br>";
 

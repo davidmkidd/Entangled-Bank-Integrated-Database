@@ -156,7 +156,7 @@ echo '<html>';
 
 #HEAD
 echo '<head>';
-echo "<title>Info - Datasets</title>";
+echo "<title>Dataset Info</title>";
 echo '<link type="text/css" rel="stylesheet" href="' . $share_path . 'entangled_bank.css">';
 echo '</head>';
 echo '<script src="./scripts/utils.js" type="text/javascript"></script>';
@@ -173,7 +173,7 @@ echo "<tr>";
 echo "<td class='query_title'>";
 echo "<image src='./image/logo-small.gif' alt='small logo' width='45px' />";
 echo "</td>";
-echo "<td id='info_header_title'>Info: Datasets</td>";
+echo "<td id='info_header_title'>Datasets</td>";
 echo "</tr>";
 echo "</table>";
 echo "</div>";

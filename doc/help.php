@@ -19,182 +19,231 @@ $_SESSION['lastaction'] = 'doc';
 
 <?php 
 include("../lib/html_utils.php"); 
-$stage = html_entangled_bank_header(null, '../');
+$stage = html_entangled_bank_header('ebdb', '../');
 ?>
+<div id='content'>
+<!--<h4><a name="help">Help Contents</a></h3>-->
 
-<hr>
-<h4>Contents</h4>
 <OL id='contents'>
-<LI><a href="#ebdb">What does the EBDB do?</a></LI>
 <LI><a href="#start">Select Datasets</a></LI>
 <LI><a href="#main">The Main Screen</a></LI>
 <OL>
 <LI><a href="#find">Find</a></LI>
+<LI><a href="#session">Session Bar</a></LI>
 </OL>
 <LI><a href="#query">Query</a></LI>
 <ol>
-<LI><a href="#name">Biological Name</a></LI>
-<LI><a href="#tree">Tree (taxonomy or phylogeny)</a></LI>
-<LI><a href="#attribute">Attribute Value</a></LI>
-<LI><a href="#geography">Geography</a></LI>
-<LI><a href="#time">Time</a></LI>
+<LI><a href="#name">Names Query</a></LI>
+<LI><a href="#tree">Tree Query (taxonomy or phylogeny)</a></LI>
+<LI><a href="#attribute">Attribute Query</a></LI>
+<LI><a href="#geography">Geographic Query</a></LI>
+<LI><a href="#time">Temporal Query</a></LI>
 </ol>
-<LI><a href="#output">Return Data</a></LI>
+<LI><a href="#output">Data Download</a></LI>
 <ol>
-<LI><a href="#output-table">Tabular Output</a></LI>
-<LI><a href="#output-geography">Geographic Output</a></LI>
-<LI><a href="#output-tree">Tree Output</a></LI>
-<LI><a href="#output-gpdd">GPDD Output</a></LI>
-<LI><a href="#output-meta">Output Metadata</a></LI>
+<LI><a href="#output-table">Attribute Tables</a></LI>
+<LI><a href="#output-geography">Geographic Tables</a></LI>
+<LI><a href="#output-tree">Trees</a></LI>
+<LI><a href="#output-gpdd">GPDD</a></LI>
+<LI><a href="#output-meta">Metadata</a></LI>
 </ol>
 </OL>
-<hr>
 
-<div id='content'>
-
-<h3><a name="ebdb">What does the EBDB do?</a></h3>
-<p>
-<a href='eb_database.php'>The EBDB</a> supports the querying of datasets by <a href="#names">biological name</a>, <a href="#tree">tree topology</a>,
- <a href="#attribute">attributes</a>, <a href="#geography">geography</a> or <a href='#time'>time</a>.
-Queries return taxon names that match the query criteria. 
-Data subsets and query metabadata are returned various formats within a single zip archive.
-</p>
-<hr>
 
 <h3><a name="start">Select Data</a></h3>
 <p>
-The first step in using the EBDB is select the data sets <a href='data.php'>data sets</a> you wish to query and return data from. 
-Only selecting the data of interest increases speed and reduces interface complexity.
+The first step in using the EBDB is select the <a href='data.php'>data sets</a> you wish to query and return data from. 
+Maximise performance by only selecting relevant data.
 </p>
 <Center>
 <a href='./image/start.gif'><IMAGE src='./image/start.gif' width='600px'/></a>
 <p class='legend'>Select Sources</p>
 </Center>
-<hr>
-
+<BR>
 
 <h3><a name="main">The Main Screen</a></h3>
 <p>
-You control your session from the EBDB main screen. 
-The <a href='#find'>FIND</a> tool provides a quick way of discovering which data sets a taxon is in. 
-The <a href='#session'>SESSION</a> bar provides information on your current selection,
- initially all names and GPDD time series in the EBDB.
- The <a href='#query'>QUERIES</a> bar is present once a query has been run; it shows your query chain. 
- Click to edit queries.
- The <a href='#query'>ADD QUERY</a> buttons open query dialogs.
- The <a href='#output'>OUTPUTS<a> bar is visible once an output has been added. Click to edit outputs.
- The <a href='#output'>ADD OUTPUT<a> tool creates a new data set output. 
-</p>
-<p>
-TOOL TIPS provide tool-specific information. Reveal by hovering over page elements.
+Control your database session from the EBDB Main Screen.
 </p>
 <Center>
 <a href='./image/main.gif'><IMAGE src='./image/main.gif' width='600px'/></a>
-<a name="fig2"><p class='legend'>Main Screen</p></a>
+<a name="fig2"><p class='legend'>EBDB Main Screen</p></a>
 </Center>
-
-
-<a name='find'></a><h4>Find</h3>
 <p>
-'Find' is a quick way of discovering which names are present in which data sets. 
-Type a comma-seperated list into the input, then press 'find' to discover which names are in which data sets.
-Find searches are case-sensitive and do not support wildcards.
-Find does not effect queries.
+<a href='#find'>FIND NAMES</a> is a quick way of discovering which data sets contain data on a taxon. 
+<a href='#session'>SESSION</a> bar provides information on your current selection, i.e.
+  names and GPDD time series. All names are selected on starting an EBDB session.
+ The <a href='#query'>QUERIES BAR</a> is visible once a query has been run; it shows your query chain. 
+ Click query to edit or delete queries. 
+ <img alt='red cross' src='../image/red-cross.gif' width='15px' /> deletes the query chain.
+ The <a href='#query'>ADD QUERY</a> buttons open a new query dialog.
+ <a href='#output'>ADD OUTPUT<a> creates a new data set output.
+ When an output has been added the <a href='#output'>OUTPUTS BAR<a> becomes visible. 
+ Click icons to edit or delete outputs. 
+CHECK OUT <img alt='shopping cart' src='../image/returndata.gif' width='20px' /> returns 
+ subsetted data as a single DATA PACKAGE 
+ <img alt='shopping cart' src='../image/parcel.gif' width='20px' /> zip archive.
+Hover over page elements to reveal TOOL TIPS.
+</p>
+
+<a name='find'></a><h4>Find Names</h4>
+<p>
+FIND is a quick way to discover which names are present in which data sets. 
+Add a comma-seperated list of names, then press GO.
+Find searches are case-sensitive and does not support wildcards.
 </p>
 <Center>
-<a href='./image/find.gif'><IMAGE src='./image/find.gif' width='600px'/></a>
+<a href='./image/find.gif'><IMAGE src='./image/find.gif' width='800px'/></a>
 <p class='legend'>Find</p>
 </Center>
 <p>
-Find results are displayed on the main screen as a table with one line for each taxon and columns for each data set.
-A green dot is displayed where the taxon is found in a data set, otherwise a red dot is displayed. 
-A tool tip gives column data set name.
+Find returns a find box, without altering the current selection.
+The box has one line for each taxon and columns for each data set.
+Dataset names are available as tool tips.
+A filled-dot is displayed where a taxon is present in a data set. 
+An open-dot when the name is absent. 
 </p>
-<hr>
-<h3><a name="query">Query</a></h3>
+
+<a name='session'></a><h4>Session Bar</h4>
+<p>
+The SESSION BAR provides information on your EBDB session.</p>
+<p>
+SOURCES shows the number of datasets being queried. 
+Click to open the DATASETS SUMMARY PAGE that summaries the current selection by datatset.
+</p>
+<Center>
+<a href='./image/page-sources.gif'><IMAGE src='./image/page-sources.gif' width='500px'/></a>
+<p class='legend'>Datasets Summary</p>
+</Center>
+<p>
+NAMES shows the number of names selected.
+Click to open the NAMES PAGE that lists names in the selection selected and the underlying SQL.
+</p>
+<Center>
+<a href='./image/page-names.gif'><IMAGE src='./image/page-names.gif' width='500px'/></a>
+<p class='legend'>Names Page</p>
+</Center>
+<p>
+There follows one box for each dataset that shows the number of names selected in that dataset 
+and the number of any supplementary data elements, currenlty just GPDD series.
+Boxes are colour-coded by dataset type; trees green, attribute tables brown, geographic tables blue and relational datsets pink.
+Click a box to open the associated DATASET SUMMARY PAGE that provides information on data selected.
+Information on pages vary by dataset type.
+</p>
+<Center>
+<a href='./image/page-dataset.gif'><IMAGE src='./image/page-dataset.gif' width='500px'/></a>
+<p class='legend'>GPDD Dataset Summary Page</p>
+</Center>
+<BR>
+
+
+<h3><a name="query">Querying</a></h3>
+<p>
+Data may be queried by <a href="#name">biological name</a>, <a href="#tree">tree topology</a>,
+ <a href="#attribute">attributes</a>, <a href="#geography">geography</a> or <a href='#time'>time</a>.
+ Name, geography and time queries may be applied to one or more data sets; 
+ attribute and tree queries operate on single data sets.
+ </p>
+ <p>
+ Queries are connected by AND, OR and MINUS interquery operators to form the query chain displyed in the QUERY BAR. 
+ Queries are displayed with the same symbols as the add query buttons. 
+ Interquery operators are displayed as Venn diagrams diagram and tool tips.
+</p>
+<Center>
+<a href='./image/sets.gif'><IMAGE src='./image/sets.gif'/></a>
+<p class='legend'>Interquery Venn Diagrams</p>
+</Center>
 
 <p>
-Data may be queried by <a href="#names">biological name</a>, <a href="#tree">tree topology</a>,
- <a href="#attribute">attributes</a>, <a href="#geography">geography</a> or <a href='#time'>time</a>.
- Name, geography and time queries may be applied to one or more data sets, 
- attribute and tree queries operate on single data sets.
- Queries connected by AND, OR and MINUS interquery operators form the 'query chain' that is displyed as the query bar. 
- Queries are displayed with the same symbols as the add query buttons. 
- Interquery operators are displayed as Venn diagrams diagram and tool tips (<a href='#fig2'>Fig 2</a>).
+ADD QUERIES by selecting a query type.
 </p>
-<p>
-Queries are intiated by selecting one of the query types.
- Tree and attribute queries present a dialog to select a data set to query.
+<p> 
+SINGLE-SOURCE QUERIES (tree and attribute queries) prompt for a dataset to query.
 </p>
 <Center>
 <a href='./image/single-source.gif'><IMAGE src='./image/single-source.gif' width='500px'/></a>
-<p class='legend'>Single source prompt</p>
+<p class='legend'>Single-Source Query</p>
 </Center>
 
 <p>
-In multi-source queries (names, geography and time) data set selection is part of the query dialog.
+In MULTI-SOURCE QUERIES (names, geography and time) dataset selection is part of the query dialog.
 Queries must be applied to at least one dataset. 
-N SOURCES set a criteria for how many datasets each names must be in. 
-In the below figure only names present in all three selected datasets are returned.
-This figure also shows <a href='#query_name'>QUERY NAME</a>, interquery operator dialog (which must be set for all but the first query in the chain) and the
- <a href='#query_buttons'>CANCEL</a>, <a href='#query_buttons'>DELETE</a> and <a href='#query_buttons'>RUN ></a> buttons.
-</p>
-<p>
-Once a query has been run QUERY SQL is added to the query dialog. 
-By default the SQL that returns names for the selected query is displayed.
-This can be changed to SQL that returns GPDD series identifiers or, 
- if more than one query exists, the SQL for the entire query chain <a href='fig6'>(fig 6)</a>.
+<a name='nsource'></a>N SOURCES sets the number of datasets a names must be in to be returned. 
+In the example below, only names present in all three selected datasets are returned.
+The figure also shows the INTERQUERY OPERATOR that must be set for all but the first query in the chain, 
+as well as the <a href='#query_buttons'>CANCEL</a>, <a href='#query_buttons'>DELETE</a> and <a href='#query_buttons'>RUN ></a> buttons.
 </p>
 <Center>
 <a href='./image/multi-source.gif'><IMAGE src='./image/multi-source.gif' width='600px'/></a>
-<p class='legend'>Multi-source prompt for a names query</p>
+<p class='legend'>Multi-Source Query</p>
 </Center>
 
 <p>
-<a name='query_name'></a>All queries have a name. Names must not include white space.
+Once a query has been run the SQL is displayed in the query edit dialog. 
+By default the SQL that returns names for the selected query is displayed.
+This can be changed to SQL that returns GPDD series identifiers.
+</p>
+
+<p>
+<a name='query_name'></a>All queries have a QUERY NAME. 
 The default is a numerical increment on the query type, 
 i.e. the first bionames will be 'bionames1' and the second 'bionames2' irrespective of whether the first name was changed.
-Query names do not have to be unique as they have a unique internal reference; however using the same name is not recommended.
+Query names do not have to be unique as they have a unique internal reference; however, using the same name is not recommended.
 </p>
+
 <p>
-<a name='query_buttons'></a>'Run >' runs a query. 'Delete' deletes the query. 
-'Cancel' returns to the main screen from an existing query edit. No changes are saved following a cancel. 
+<a name='query_buttons'></a>'RUN >' runs a query. 
+DELETE deletes the query from the chain. 
+CANCEL returns to the main screen from an existing query edit.
+No changes are saved following a cancel. 
 To implement changes to a query run the query.
 </p>
 
 
-<h4><a name="names">Biological Name</a></h4>
+<h4><a name="name">Names Query</a></h4>
 <p>
-Names queries search for names across one or more data sets. 
-Names may be found with the FILTER tool or may be entered as one per line to the text box.
-FIND performs an 'case-sensitive double-wild card' search on input text given the N SERIES criterion, 
-thus in Fig 6. the find on 'Mus' returns all names containing 'Mus' found in all five datasets.
-Alternatively, checking 'All names' will return all names that match the name-dataset criteria.
-'All names' overrides any entered names.
+A NAMES QUERY selects names across one or more datasets.
+Names may be entered one per line to the NAMES BOX or using FIND.
+FIND performs an case-sensitive 'double' wildcard search (*text*)on input text given the N SERIES criterion, 
+In the example below the search *Mus* returns all names containing 'Mus' found in all five datasets.
+ALL NAMES returns all names that match the <a href='#nsource'>N SOURCES</a> criterion.
+All names overrides any names in the names box.
+</p>
+
+<p>
+Run names queries also have a names REPORT and QUERY SQL.
 </p>
 <center>
 <a name="fig6">
 <a href='./image/names.gif'><IMAGE src='./image/names.gif' width='600px'/></a>
-<p class='legend'>Names query</p>
+<p class='legend'>A Names Query</p>
 </center>
 </a>
-<p>
-Run names queries include a taxon name REPORT and the QUERY SQL.
-</p>
-<hr>
 
 
-<h4><a name="tree">Tree</a></h4>
+<h4><a name="tree">Tree Query</a></h4>
 <p>
-Tree queries select names from a single phylogeny or taxonomy dataset. 
-Phylogeny and taxonmy queries only differ in their FILTER options.
+A TREE QUERY selects names from a single tree (phylogeny or taxonomy). 
+Phylogeny and taxonmy queries differ only in their FILTER options.
+</p>
+
+<center>
+<a href='./image/taxonomy.gif'><IMAGE src='./image/taxonomy.gif' width='600px'/></a>
+<p class='legend'>Taxonomy query</p>
+</center>
+<p>
+FILTER SCOPE controls whether selected FILTER CLASSES are applied to both FIND and QUERY, or just to FIND.
+Depending on tree type FILTER CLASSES may be taxonomic level or simply internal and tip nodes.
+Checked classes are returned.
+FIND runs a case-sensitive double wildcard search on input text given the FILTER criteria.
 </p>
 <p>
-Four TREE OPERATORS are supported:
+The TREE OPERATOR determines what component of the tree is returned given the query names. 
+Four are supported.
 </p>
-<table border='1'>
+<table border='0'>
 <tr>
-<th>Operator</th>
+<th>Tree Operator</th>
 <th>Description</th>
 </tr>
 <tr>
@@ -214,63 +263,56 @@ Four TREE OPERATORS are supported:
 <td>Returns all names in the tree. Ignores any selected names.</td>
 </tr>
 </table>
-<p>
-FILTER SCOPE controls whether FILTER classes are applied to both Find and Query results, or just to Find.
-FILTER classes control the taxonomic level of names returned by Find and Query. Checked classes are returned.
-Phylogeny classes are 'internal' and 'tip' nodes.
-FIND performs an 'case-sensitive double-wild card' search on input text given the FILTER criteria.
-</p>
-<center>
-<a name="fig7">
-<a href='./image/taxonomy.gif'><IMAGE src='./image/taxonomy.gif' width='600px'/></a>
-<p class='legend'>Taxonomy query</p>
-</center>
+<center><p class='legend'>Tree Operators</p></center>
 
 
-<h4><a name="attribute">Attribute</a></h4>
+<h4><a name="attribute">Attribute Query</a></h4>
 <p>
-Attribute queries select names from the values of variables in a normal and spatial table.
+An ATTRIBUTE QUERY selects names from a single dataset given a set of CONSTRAINTS on
+attributes of the dataset. 
+Constraints are may be on a field in a table or a group statistic. 
+In the example below, 'Latin Bionmial or other name' constrains time-series by field value, whereas
+ 'Count', constrains on the number of time-series that also match other constraints.
+This is an example of the rule that constraints  are 'ANDed' within a query.
 </p>
 <center>
-<a name="fig8">
 <a href='./image/table.gif'><IMAGE src='./image/table.gif' width='600px'/></a>
-<p class='legend'>Figure 8. Querying the attributes of the GPDD</p>
+<p class='legend'>Querying the attributes of the GPDD</p>
 </center>
 <p>
-Attribute fields are grouped into general classes of
+CONSTRAINTS are grouped into general classes of
  Count, Identifier, Taxonomy, Time, Geography, Place, Sampling,Referece and notes.
- Hover over field names for descriptions. Check field name to open QUERY DIALOG. Query dialogs are of two types, numerical and catagorical. 
+ Hover over field names for descriptions.
+ Check field name to open FIELD DIALOG. 
+ Field dialogs are of two types, numeric and catagoric.
+ If a field includes NULLS a check box is provided that, if checked, will nulls in the selection.
 </p>
 <p>
-The numerical dialog ('GR Min Lat dd' in fig. 8) has an OPERATOR and VALUE. 
-When a field includes null values a check box is provided to include names with NULLs for that field in the query result.
+Numeric constraints ('Count' above) have an OPERATOR and VALUE. 
 </p>
 <p>
-Use the case sensitive double-wildcard FIND to discover catagory VALUES ('Activity Cycle' in fig. 8).
-Copy values from the lefthand find return box to the righthand query box.
-The check box controls whether find returns NULL or not.
+Catagoric constraints have case-sensitive double-wildcard FINDs to discover catagory VALUES 
+(Latin Binomial above, which also shows a NULL checkbox).
 </p>
 
 
-<h4><a name="geography">Geography</a></h4>
+<h4><a name="geography">Geographic Query</a></h4>
 <p>
-Geographic queries select names from spatial datasets.
-Polygon, line and point QUERY FEATRUES can be drawn on the map using the drawing tools in the upper right of the map.
-BOUNDING BOX features are added numerically. CLEAR MAP to erase all query features.
-Use <IMAGE src='./image/openlayers_layerswitcher.gif'/> to change background map.
-Features can not cross the anti-meidian (-180/+180 longitude).
+A GEOGRAPHIC QUERY selects names based on spatial location.
+Use the tools <img src='./image/openlayers_tools.gif' height='20px'/> to add QUERY FEATRUES to the map.
+Add BOUNDING BOX FEATURES numerically. 
+CLEAR MAP to erase all query features.
+Use <IMAGE src='./image/openlayers_layerswitcher.gif'/> to select background map.
+Features cannot cross the anti-meidian (-180/+180 longitude).
 </p>
-
 <center>
-<a name="fig9">
 <a href='./image/geography.gif'><IMAGE src='./image/geography.gif' width='600px'/></a>
-<p class='legend'>Geographic query</p>
+<p class='legend'>Geographic Query</p>
 </center>
-
 <p>
-Four SPATIAL OPERATORS are suppoted:
+Four SPATIAL OPERATORS are suppoted,
 </p>
-<table border='1'>
+<table border='0'>
 <tr>
 <th>Operator</th>
 <th>Description</th>
@@ -297,30 +339,27 @@ Four SPATIAL OPERATORS are suppoted:
 </tr>
 </table>
 
-<h4><a name="time">Time</a></h4>
+<h4><a name="time">Temporal Query</a></h4>
 <p>
-Temporal queries select names and data that exists BEFORE, DURING or AFTER a particular day.
+A TEMPORAL QUERY selects names and data that exists BEFORE, DURING or AFTER a particular day.
 </p>
 <center>
-<a name="fig9">
 <a href='./image/time.gif'><IMAGE src='./image/time.gif' width='600px'/></a>
 <p class='legend'>Temporal query</p>
 </center>
-<hr>
+<br>
 
-
-<h3><a name="output">Return Data</a></h3>
+<h3><a name="output">Download Data</a></h3>
 <p>
-Data is returned by adding dataset OUTPUTS.
-Output dialogs reflect the composition of data types that compose each dataset, so, for example,
- mammal ranges may be exported as either spatial or tabular formats, whereas the GPDD is comprised of
- tabular and spatial data. Data extracts are returned compressed within a zip file with a
-  SESSION METADATA file (readme.txt) that describes the queries undertaken and data returns.
+Data is returned by adding OUTPUTS.
+OUTPUT dialogs reflect the composition of data types that compose each dataset. 
+Data extracts are returned as a single DATA PACKAGE compressed within a ZIP FILE.
+Data packages also contain a METADATA file (readme.txt)which details information on queries and data returned.
 </p>
 
-<h4><a name="output-table">Tabular Output</a></h4>
+<h4><a name="output-table">Attribute Tables</a></h4>
 <p>
-Tabular data such as Panthria or the GPDD may be exported as comma-delineated (*.csv)' 
+ATTRIBUTE TABLES such as Panthria may be exported as comma-delineated (*.csv)' 
 or 'tab-delineated (*.txt)' ascii files. All or a subset of fields may be output.
 </p>
 <center>
@@ -328,22 +367,22 @@ or 'tab-delineated (*.txt)' ascii files. All or a subset of fields may be output
 <p class='legend'>Pantheria Output</p>
 </center>
 
-<h4><a name="output-geography">Geographic Output</a></h4>
+<h4><a name="output-geography">Geographic Tables</a></h4>
 <p>
-Spatial data such as can be exported as a <a href=''>ESRI Shapefile</a>, <a href=''>MapInfo</a>, <a href=''>DGN</a>, 
+GEOGRAPHIC TABLES can be exported as a <a href=''>ESRI Shapefile</a>, <a href=''>MapInfo</a>, <a href=''>DGN</a>, 
  <a href=''>DXF</a>, <a href=''>Geographic Markup Language (GML)</a>
- and <a href=''>Keyhole Markup Language (KML)</a> formats. [Add non-spatial]
+ and <a href=''>Keyhole Markup Language (KML)</a> formats.
 </p>
 <center>
 <a href='./image/output-geography.gif'><IMAGE src='./image/output-geography.gif' width='600px'/></a>
-<p class='legend'>Pantheria Output</p>
+<p class='legend'>Geographic Output</p>
 </center>
 
-<h4><a name="output-tree">Tree Output</a></h4>
+<h4><a name="output-tree">Trees</a></h4>
 <p>
-Trees may be exported in <a href=''>newick</a>, <a href=''>nhx</a>, 
+TREES may be exported in <a href=''>newick</a>, <a href=''>nhx</a>, 
 <a href=''>tab-indented ascii</a> or <a href=''>lintree formats</a>.
-Trees may be the subtree defined by the last common ancestor of the selected names or pruned to only the name set.
+They may be the subtree defined by the last common ancestor of the selected names or pruned to only the name set.
 Branch attributes (e.g. ages) may be be output in the tree file.
 </p>
 <center>
@@ -351,27 +390,24 @@ Branch attributes (e.g. ages) may be be output in the tree file.
 <p class='legend'>Mammal Phylogeny Output</p>
 </center>
 
-
-<h4><a name="output-gpdd">GPDD Output</a></h4>
+<h4><a name="output-gpdd">GPDD</a></h4>
 <p>
-Trees may be exported in <a href=''>newick</a>, <a href=''>nhx</a>, 
-<a href=''>tab-indented ascii</a> or <a href=''>lintree formats</a>.
-Trees may be the subtree defined by the last common ancestor of the selected names or pruned to only the name set.
-Branch attributes (e.g. ages) may be be output in the tree file.
+The GPDD is a relational dataset with geographic data. 
+Both ATTRIBUTE and GEOGRAPHIC OUTPUT dialogs are presented. 
 </p>
 <center>
 <a href='./image/output-gpdd.gif'><IMAGE src='./image/output-gpdd.gif' width='600px'/></a>
 <p class='legend'>GPDD Output</p>
 </center>
 
-<h4><a name="readme">Session metadata</a></h4>
+<h4><a name="readme">Metadata</a></h4>
 <p>
-Readme.txt contains information on the queries undertaken and returned data.
+Readme.txt contains METADATA on the queries undertaken and returned data.
 </p>
-
 </div>
-<br />
 <?php html_entangled_bank_footer(); ?>
+</div>
+
 </div>
 </body>
 </html>
