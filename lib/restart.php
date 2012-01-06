@@ -4,7 +4,7 @@ session_unset();
 session_destroy();
 include 'config.php';
 $path = "http://" . $config['ebhost'];
-if (!empty($config['eb_path'])) $path = $path . "/" . $config['eb_path'];
+if ($config['eb_path']) $path = $path . "/" . $config['eb_path'];
 $path = $path . '/index.php';
 echo $path;
 echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">';
