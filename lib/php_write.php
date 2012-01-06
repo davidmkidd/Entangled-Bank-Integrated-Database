@@ -210,244 +210,242 @@ function write_output($db_handle, $config, $qobjects, $names, &$output, $sources
 			if (!empty($mids)) {
 				$midsarr = array_to_postgresql($mids, 'numeric');
 			} else {
-				$midsarr = array();
+				$midsarr = null;
 			}
 		}
-		//$outpath = $config['outpath'];
-		$outfiles = array();
 		
-		# 1 MAIN
-		$str = "SELECT * FROM gpdd.main";
-		if ($midsarr) $str = $str . " WHERE \"MainID\" = ANY($midsarr)";
-		//echo "$str<br>";
-		$res = pg_query($db_handle, $str);
-		$cols = get_column_names ($db_handle, 'gpdd.main');
-		$output['filename'] = str_replace(" ","_", $output['name']) . "_gpdd_main_$oid";
-		write_delineated_gpdd($config, $cols, $res, $output);
-		
-		# 2 TAXON
 		if ($midsarr) {
-			$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
-			WHERE m.\"TaxonID\" = t.\"TaxonID\"
-			AND m.\"MainID\" = ANY($midsarr)";
-		} else {
-			$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
-			WHERE m.\"TaxonID\" = t.\"TaxonID\"
-			AND t.\"TaxonID\" IS NOT NULL";
-		}
 		
-		$res = pg_query($db_handle, $str);
-		$cols = get_column_names ($db_handle, 'gpdd.taxon');
-		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_taxon_$oid";
-		write_delineated_gpdd($config, $cols, $res, $output);
+			$outfiles = array();
 		
-		# 3 DATASOURCE
-		if ($midsarr) {
-			$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d
-				WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
+			# 1 MAIN
+			$str = "SELECT * FROM gpdd.main";
+			if ($midsarr) $str = $str . " WHERE \"MainID\" = ANY($midsarr)";
+			//echo "$str<br>";
+			$res = pg_query($db_handle, $str);
+			$cols = get_column_names ($db_handle, 'gpdd.main');
+			$output['filename'] = str_replace(" ","_", $output['name']) . "_gpdd_main_$oid";
+			write_delineated_gpdd($config, $cols, $res, $output);
+			
+			# 2 TAXON
+			if ($midsarr) {
+				$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
+				WHERE m.\"TaxonID\" = t.\"TaxonID\"
 				AND m.\"MainID\" = ANY($midsarr)";
-		} else {
-			$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d, gpdd.taxon t
-				WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
-				AND m.\"TaxonID\" = t.\"TaxonID\"
-				AND t.binomial IS NOT NULL";
-		}
-		$res = pg_query($db_handle, $str);
-		$cols = get_column_names ($db_handle, 'gpdd.datasource');
-		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_datasource_$oid";
-		write_delineated_gpdd($config, $cols, $res, $output);
-		
-		# 4 LOCATION
-		if ($midsarr) {
-			$str = "SELECT l.* FROM gpdd.main m, gpdd.location l
-			WHERE m.\"LocationID\" = l.\"LocationID\"
-			AND m.\"MainID\" = ANY($midsarr)";
-		} else {
-			$str = "SELECT l.* FROM gpdd.main m, gpdd.location l, gpdd.taxon t
-			WHERE m.\"LocationID\" = l.\"LocationID\"
-			AND m.\"TaxonID\" = t.\"TaxonID\"
-			AND t.binomial IS NOT NULL";
-		}
-
-		$res = pg_query($db_handle, $str);
-		$cols = get_column_names ($db_handle, 'gpdd.location');
-		$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_location_$oid";
-		write_delineated_gpdd($config, $cols, $res, $output);
-		
-		# 5 DATA
-		
-		# Temporal limits
-		if ($midsarr) {
-			$str = "SELECT d.\"DataID\",
-				d.\"MainID\",
-				d.\"Population\",
-				d.\"PopulationUntransformed\",
-				d.\"SampleYear\",
-				t.\"TimePeriod\",
-				d.\"Generation\",
-				d.\"SeriesStep\",
-				d.\"DecimalYearBegin\",
-				d.\"DecimalYearEnd\"
-				FROM gpdd.data d, gpdd.timeperiod t
-				WHERE d.\"TimePeriodID\" = t.\"TimePeriodID\"
-				AND d.\"MainID\" = ANY($midsarr)";
-		} else {
-			$str = "SELECT d.\"DataID\",
-				d.\"MainID\",
-				d.\"Population\",
-				d.\"PopulationUntransformed\",
-				d.\"SampleYear\",
-				tp.\"TimePeriod\",
-				d.\"Generation\",
-				d.\"SeriesStep\",
-				d.\"DecimalYearBegin\",
-				d.\"DecimalYearEnd\"
-				FROM gpdd.data d, gpdd.timeperiod tp, gpdd.main m, gpdd.taxon t
-				WHERE d.\"TimePeriodID\" = tp.\"TimePeriodID\"
-				AND d.\"MainID\" = m.\"MainID\"
-				AND m.\"TaxonID\" = t.\"TaxonID\"
-				AND t.binomial IS NOT NULL";
-		}
-		//echo "$str<br>";
-		$res = pg_query($db_handle, $str);
-		$cols = array('DataID',"MainID", "Population","PopulationUntransformed","SampleYear","TimePeriod",
-			"Generation","SeriesStep","DecimalYearBegin","DecimalYearEnd");
-		$output['filename'] =  str_replace(" ","_",$output['name']) . "_gpdd_data_$oid";
-		write_delineated_gpdd($config, $cols, $res, $output);
-		
-		# LOCATION GEOGRAPHIC
-		$filename_pt = str_replace(" ","_",$output['name']) . "_gpdd_location_pt$oid";
-		$filename_bbox = str_replace(" ","_",$output['name']). "_gpdd_location_bbox$oid";
-		#$outfilename_pt = $filename_pt ;
-		#$outfilename_bbox = $filename_bbox ;
-		
-		$sp_format = $output['sp_format'];
-		//print_r($output);
-		//echo "<br>spformat: $sp_format<br>";
-		
-		switch ($sp_format) {
-			case 'shapefile' :
-				
-				$sp_outfiles = array(
-					$config['out_path'] . "/" . $filename_pt . '.shp',
-					$config['out_path'] . "/" . $filename_pt . '.shx',
-					$config['out_path'] . "/" . $filename_pt . '.dbf',
-					$config['out_path'] . "/" . $filename_bbox . '.shp',
-					$config['out_path'] . "/" . $filename_bbox . '.shx',
-					$config['out_path'] . "/" . $filename_bbox . '.dbf'
-					);
-				$filename_pt = $filename_pt . '.shp';
-				$filename_bbox = $filename_bbox . '.shp';
-				$driver = 'ESRI Shapefile';
-				$ext = '.shp';
-				break;
-			case 'mapinfo':
-				$sp_outfiles = array(
-					$config['out_path'] . "/" . $filename_pt . '.dat',
-					$config['out_path'] . "/" . $filename_pt . '.id',
-					$config['out_path'] . "/" . $filename_pt . '.map',
-					$config['out_path'] . "/" . $filename_pt . '.tab',
-					$config['out_path'] . "/" . $filename_bbox . '.dat',
-					$config['out_path'] . "/" . $filename_bbox . '.id',
-					$config['out_path'] . "/" . $filename_bbox . '.map',
-					$config['out_path'] . "/" . $filename_bbox . '.tab');
-				$filename_pt = $filename_pt . '.tab';
-				$filename_bbox = $filename_bbox . '.tab';
-				$ext = '.tab';
-				$driver = 'MapInfo file';
-				break;
-			case 'dgn':
-				$filename_pt = $filename_pt . '.dgn';
-				$filename_bbox = $filename_bbox . '.dgn';
-				$driver = 'DGN';
-				$sp_outfiles = array(
-					$config['out_path'] . "/" . $filename_pt,
-					$config['out_path'] . "/" .  $filename_bbox
-					);
-				break;
-			case 'dxf':
-				$filename_pt = $filename_pt . '.dxf';
-				$filename_bbox = $filename_bbox . '.dxf';
-				$sp_outfiles = array(
-					$config['out_path'] . "/" .  $filename_pt,
-					$config['out_path'] . "/" .  $filename_bbox
-					);
-				$driver = 'DXF';
-				$ext = '.dxf';
-				break;
-			case 'kml':
-				$filename_pt = $filename_pt . '.kml';
-				$filename_bbox = $filename_bbox . '.kml';
-				$sp_outfiles = array(
-					$config['out_path'] . "/" .  $filename_pt,
-					$config['out_path'] . "/" .  $filename_bbox);
-				$driver = 'KML';
-				$ext = '.kml';
-				break;
-			case 'gml':
-				$sp_outfiles = array(
-					$config['out_path'] .  "/" . $filename_pt . '.gml',
-					$config['out_path'] . "/" .  $filename_pt . '.xsd'
-					);
-				$filename_pt = $filename_pt . '.gml';
-				$filename_bbox = $filename_bbox . '.gml';
-				$driver = 'GML';
-				$ext = '.gml';
-				break;
-			default:
-				echo "write: spatial format " . $output['format'] . " not implemented";
-				break;
+			} else {
+				$str = "SELECT t.* FROM gpdd.main m, gpdd.taxon t 
+				WHERE m.\"TaxonID\" = t.\"TaxonID\"
+				AND t.\"TaxonID\" IS NOT NULL";
 			}
-		
-		$db_connect = ' PG:"host=' . $config['host'] . ' user=' . $config['user'] .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
-		
-		# LOCATION POINTS
-		# Fix for fieldname captialisation problem with ogr2ogr - sql statement
-		$str = "SELECT l.locationid
-			 FROM gpdd.location_pt l, gpdd.main m
-			 WHERE m.\"LocationID\" = l.locationid
-			 AND m.\"MainID\" = ANY($midsarr)";
-		$res = pg_query($db_handle, $str);
-		$arr = array_to_postgresql(pg_fetch_all_columns($res),'numeric');
-		$str = "SELECT * FROM gpdd.location_pt WHERE locationid = ANY($arr)";		
-		
-		$write_file = $config['out_path'] . "/$filename_pt";
-		if (file_exists($write_file)) unlink($write_file);
-		//array_push($output['outfiles'],$write_file);
-		$cmdstr = "\"\"C:\FWTools2.4.7\bin\ogr2ogr\" -f \"$driver\"";
-		$cmdstr = $cmdstr . " $write_file";
-		$cmdstr = $cmdstr . $db_connect;
-		$cmdstr = $cmdstr . ' -sql "' . $str . '"';
-		$cmdstr = $cmdstr . ' 2>&1"';
-		//echo "<BR>$cmdstr<br>";
-		$out = shell_exec($cmdstr);
-		//echo "out: $out<br>";
-		
-		# LOCATION BBOX
-		# Fix for fieldname captialisation problem with ogr2ogr - sql statement
-		$str = "SELECT l.locationid
-			 FROM gpdd.location_bbox l, gpdd.main m
-			 WHERE m.\"LocationID\" = l.locationid
-			 AND m.\"MainID\" = ANY($midsarr)";
-		$res = pg_query($db_handle, $str);
-		$arr = array_to_postgresql(pg_fetch_all_columns($res),'numeric');
-		$str = "SELECT * FROM gpdd.location_bbox WHERE locationid = ANY($arr)";		
-		
-		$write_file = $config['out_path'] . "/$filename_bbox";
-		if (file_exists($write_file)) unlink($write_file);
-		//array_push($output['outfiles'],$write_file);
-		$cmdstr = "\"\"C:\FWTools2.4.7\bin\ogr2ogr\" -f \"$driver\"";
-		$cmdstr = $cmdstr . " $write_file";
-		$cmdstr = $cmdstr . $db_connect;
-		$cmdstr = $cmdstr . ' -sql "' . $str . '"';
-		$cmdstr = $cmdstr . ' 2>&1"';
-		//echo "<BR>$cmdstr<br>";
-		$out = shell_exec($cmdstr);
-		//echo "out: $out<br>";
-		foreach ($sp_outfiles as $file) array_push($output['outfiles'], $file);
-		//array_merge($output['outfiles'], $sp_outfiles);
-		//print_r($output['outfiles']);
-		//echo "<br>";
+			
+			$res = pg_query($db_handle, $str);
+			$cols = get_column_names ($db_handle, 'gpdd.taxon');
+			$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_taxon_$oid";
+			write_delineated_gpdd($config, $cols, $res, $output);
+			
+			# 3 DATASOURCE
+			if ($midsarr) {
+				$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d
+					WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
+					AND m.\"MainID\" = ANY($midsarr)";
+			} else {
+				$str = "SELECT d.* FROM gpdd.main m, gpdd.datasource d, gpdd.taxon t
+					WHERE  m.\"DataSourceID\" = d.\"DataSourceID\"
+					AND m.\"TaxonID\" = t.\"TaxonID\"
+					AND t.binomial IS NOT NULL";
+			}
+			$res = pg_query($db_handle, $str);
+			$cols = get_column_names ($db_handle, 'gpdd.datasource');
+			$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_datasource_$oid";
+			write_delineated_gpdd($config, $cols, $res, $output);
+			
+			# 4 LOCATION
+			if ($midsarr) {
+				$str = "SELECT l.* FROM gpdd.main m, gpdd.location l
+				WHERE m.\"LocationID\" = l.\"LocationID\"
+				AND m.\"MainID\" = ANY($midsarr)";
+			} else {
+				$str = "SELECT l.* FROM gpdd.main m, gpdd.location l, gpdd.taxon t
+				WHERE m.\"LocationID\" = l.\"LocationID\"
+				AND m.\"TaxonID\" = t.\"TaxonID\"
+				AND t.binomial IS NOT NULL";
+			}
+	
+			$res = pg_query($db_handle, $str);
+			$cols = get_column_names ($db_handle, 'gpdd.location');
+			$output['filename'] = str_replace(" ","_",$output['name']) . "_gpdd_location_$oid";
+			write_delineated_gpdd($config, $cols, $res, $output);
+			
+			# 5 DATA
+			
+			# Temporal limits
+			if ($midsarr) {
+				$str = "SELECT d.\"DataID\",
+					d.\"MainID\",
+					d.\"Population\",
+					d.\"PopulationUntransformed\",
+					d.\"SampleYear\",
+					t.\"TimePeriod\",
+					d.\"Generation\",
+					d.\"SeriesStep\",
+					d.\"DecimalYearBegin\",
+					d.\"DecimalYearEnd\"
+					FROM gpdd.data d, gpdd.timeperiod t
+					WHERE d.\"TimePeriodID\" = t.\"TimePeriodID\"
+					AND d.\"MainID\" = ANY($midsarr)";
+			} else {
+				$str = "SELECT d.\"DataID\",
+					d.\"MainID\",
+					d.\"Population\",
+					d.\"PopulationUntransformed\",
+					d.\"SampleYear\",
+					tp.\"TimePeriod\",
+					d.\"Generation\",
+					d.\"SeriesStep\",
+					d.\"DecimalYearBegin\",
+					d.\"DecimalYearEnd\"
+					FROM gpdd.data d, gpdd.timeperiod tp, gpdd.main m, gpdd.taxon t
+					WHERE d.\"TimePeriodID\" = tp.\"TimePeriodID\"
+					AND d.\"MainID\" = m.\"MainID\"
+					AND m.\"TaxonID\" = t.\"TaxonID\"
+					AND t.binomial IS NOT NULL";
+			}
+			//echo "$str<br>";
+			$res = pg_query($db_handle, $str);
+			$cols = array('DataID',"MainID", "Population","PopulationUntransformed","SampleYear","TimePeriod",
+				"Generation","SeriesStep","DecimalYearBegin","DecimalYearEnd");
+			$output['filename'] =  str_replace(" ","_",$output['name']) . "_gpdd_data_$oid";
+			write_delineated_gpdd($config, $cols, $res, $output);
+			
+			# LOCATION GEOGRAPHIC
+			$filename_pt = str_replace(" ","_",$output['name']) . "_gpdd_location_pt$oid";
+			$filename_bbox = str_replace(" ","_",$output['name']). "_gpdd_location_bbox$oid";
+			#$outfilename_pt = $filename_pt ;
+			#$outfilename_bbox = $filename_bbox ;
+			
+			$sp_format = $output['sp_format'];
+			//print_r($output);
+			//echo "<br>spformat: $sp_format<br>";
+			
+			switch ($sp_format) {
+				case 'shapefile' :
+					
+					$sp_outfiles = array(
+						$config['out_path'] . "/" . $filename_pt . '.shp',
+						$config['out_path'] . "/" . $filename_pt . '.shx',
+						$config['out_path'] . "/" . $filename_pt . '.dbf',
+						$config['out_path'] . "/" . $filename_bbox . '.shp',
+						$config['out_path'] . "/" . $filename_bbox . '.shx',
+						$config['out_path'] . "/" . $filename_bbox . '.dbf'
+						);
+					$filename_pt = $filename_pt . '.shp';
+					$filename_bbox = $filename_bbox . '.shp';
+					$driver = 'ESRI Shapefile';
+					$ext = '.shp';
+					break;
+				case 'mapinfo':
+					$sp_outfiles = array(
+						$config['out_path'] . "/" . $filename_pt . '.dat',
+						$config['out_path'] . "/" . $filename_pt . '.id',
+						$config['out_path'] . "/" . $filename_pt . '.map',
+						$config['out_path'] . "/" . $filename_pt . '.tab',
+						$config['out_path'] . "/" . $filename_bbox . '.dat',
+						$config['out_path'] . "/" . $filename_bbox . '.id',
+						$config['out_path'] . "/" . $filename_bbox . '.map',
+						$config['out_path'] . "/" . $filename_bbox . '.tab');
+					$filename_pt = $filename_pt . '.tab';
+					$filename_bbox = $filename_bbox . '.tab';
+					$ext = '.tab';
+					$driver = 'MapInfo file';
+					break;
+				case 'dgn':
+					$filename_pt = $filename_pt . '.dgn';
+					$filename_bbox = $filename_bbox . '.dgn';
+					$driver = 'DGN';
+					$sp_outfiles = array(
+						$config['out_path'] . "/" . $filename_pt,
+						$config['out_path'] . "/" .  $filename_bbox
+						);
+					break;
+				case 'dxf':
+					$filename_pt = $filename_pt . '.dxf';
+					$filename_bbox = $filename_bbox . '.dxf';
+					$sp_outfiles = array(
+						$config['out_path'] . "/" .  $filename_pt,
+						$config['out_path'] . "/" .  $filename_bbox
+						);
+					$driver = 'DXF';
+					$ext = '.dxf';
+					break;
+				case 'kml':
+					$filename_pt = $filename_pt . '.kml';
+					$filename_bbox = $filename_bbox . '.kml';
+					$sp_outfiles = array(
+						$config['out_path'] . "/" .  $filename_pt,
+						$config['out_path'] . "/" .  $filename_bbox);
+					$driver = 'KML';
+					$ext = '.kml';
+					break;
+				case 'gml':
+					$sp_outfiles = array(
+						$config['out_path'] .  "/" . $filename_pt . '.gml',
+						$config['out_path'] . "/" .  $filename_pt . '.xsd'
+						);
+					$filename_pt = $filename_pt . '.gml';
+					$filename_bbox = $filename_bbox . '.gml';
+					$driver = 'GML';
+					$ext = '.gml';
+					break;
+				default:
+					echo "write: spatial format " . $output['format'] . " not implemented";
+					break;
+				}
+			
+			$db_connect = ' PG:"host=' . $config['host'] . ' user=' . $config['user'] .	' dbname=' . $config['dbname'] . ' password=' . $config['password'] . '" ';
+			
+			# LOCATION POINTS
+			# Fix for fieldname captialisation problem with ogr2ogr - sql statement
+			$str = "SELECT l.locationid
+				 FROM gpdd.location_pt l, gpdd.main m
+				 WHERE m.\"LocationID\" = l.locationid
+				 AND m.\"MainID\" = ANY($midsarr)";
+			$res = pg_query($db_handle, $str);
+			$arr = array_to_postgresql(pg_fetch_all_columns($res),'numeric');
+			$str = "SELECT * FROM gpdd.location_pt WHERE locationid = ANY($arr)";		
+			
+			$write_file = $config['out_path'] . "/$filename_pt";
+			if (file_exists($write_file)) unlink($write_file);
+			//array_push($output['outfiles'],$write_file);
+			$cmdstr = "\"\"C:\FWTools2.4.7\bin\ogr2ogr\" -f \"$driver\"";
+			$cmdstr = $cmdstr . " $write_file";
+			$cmdstr = $cmdstr . $db_connect;
+			$cmdstr = $cmdstr . ' -sql "' . $str . '"';
+			$cmdstr = $cmdstr . ' 2>&1"';
+			//echo "<BR>$cmdstr<br>";
+			$out = shell_exec($cmdstr);
+			//echo "out: $out<br>";
+			
+			# LOCATION BBOX
+			# Fix for fieldname captialisation problem with ogr2ogr - sql statement
+			$str = "SELECT l.locationid
+				 FROM gpdd.location_bbox l, gpdd.main m
+				 WHERE m.\"LocationID\" = l.locationid
+				 AND m.\"MainID\" = ANY($midsarr)";
+			$res = pg_query($db_handle, $str);
+			$arr = array_to_postgresql(pg_fetch_all_columns($res),'numeric');
+			$str = "SELECT * FROM gpdd.location_bbox WHERE locationid = ANY($arr)";		
+			
+			$write_file = $config['out_path'] . "/$filename_bbox";
+			if (file_exists($write_file)) unlink($write_file);
+	
+			$cmdstr = "\"\"C:\FWTools2.4.7\bin\ogr2ogr\" -f \"$driver\"";
+			$cmdstr = $cmdstr . " $write_file";
+			$cmdstr = $cmdstr . $db_connect;
+			$cmdstr = $cmdstr . ' -sql "' . $str . '"';
+			$cmdstr = $cmdstr . ' 2>&1"';
+			$out = shell_exec($cmdstr);
+			foreach ($sp_outfiles as $file) array_push($output['outfiles'], $file);
+		}
 	}
 	
 #=================================================================================================================
