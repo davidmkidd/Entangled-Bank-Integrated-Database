@@ -120,7 +120,7 @@ function html_entangled_bank_footer() {
 	echo "<div id='ebfooter'>";
 	echo '<i>Open source powered: PostrgreSQL, PostGIS, BioSQL/PhyloDB, PHP/Javascript, BioPerl/Bio::Phylo, GDAL/OGR2 and Apache.</a></i><br>';
 	echo '&copy NERC Center for Population Biology & Division of Biology, Imperial College London, 2011.';
-	echo " <i><a href='mailto:d.kidd@imperial.ac.uk'>Contact: David Kidd</a></i>";
+	echo " <i><a href='mailto:d.kidd@kingston.ac.uk'>Contact: David Kidd</a></i>";
 	echo "</div>";
 	
 }
@@ -2805,7 +2805,7 @@ function html_entangled_bank_sources($db_handle) {
 	echo "<td class='google_blurb'>";
 	echo "Configured for <img src='./image/google-chrome-beta-icon.png' alt='Google Chrome Icon'/> Google Chrome";
 	echo " (<a href='http://www.google.co.uk/chrome'>win</a>, <a href='https://www.google.com/chrome?platform=linux'>linux</a>).";
-	echo " Other browsers have not been tested.";
+	echo " Other browsers have not been tested. <a href='./doc/eb_database.php#status'><font color='red'>Known Bugs</font><a>";
 	echo "</td>";
 	echo "</tr>";
 	echo "</table>";

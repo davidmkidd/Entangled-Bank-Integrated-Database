@@ -467,11 +467,10 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 	
 	
 	$columns = $output['fields'];
-	//array_unshift($columns, $namefield);
+
 	$colstr = array_dbcols($columns, null, true);
 	$str = "SELECT $colstr FROM $dbloc";
 	if ($names) $str = $str . " WHERE $namefield = ANY($names_arr)";
-	//echo "$str<br>";
 	$res = pg_query($str);
 	
 	switch ($db_format) {
@@ -486,6 +485,7 @@ function write_biotable ($db_handle, $config, &$output, $sources, $names) {
 			echo "write_biotable: database format not recognised";
 			break;
 	}
+
 }
  
  #=================================================================================================================

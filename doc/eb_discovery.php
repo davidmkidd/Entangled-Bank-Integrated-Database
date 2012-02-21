@@ -30,7 +30,7 @@ include("./contents.html");
 <p>
 Entangled Bank Discovery (EBDD): a web-based tool for discovering and preserving data. 
 Search for datasets by taxonomy, space, time and type. Enter metadata and upload data to the Microsoft Azurus cloud.
-For further information on the EBD contact Microsoft Research <a href = "mailto:ricw@microsoft.com">??email??</a>.
+For further information on the EBD email <a href = "mailto:rdpurves@microsoft.com">Drew Purvis, Microsoft Research</a>.
 </p>
 <center>
 <a href="./image/ebdd.gif"><img src="./image/ebdd.gif" height=350px/></a><br>

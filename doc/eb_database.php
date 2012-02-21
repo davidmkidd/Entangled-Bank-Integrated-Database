@@ -32,6 +32,7 @@ $stage = html_entangled_bank_header('ebdb', '../');
 <LI><a href="eb_database.php#data">Data</a></LI>
 <LI><a href="eb_database.php#status">Status</a></LI>
 <LI><a href="eb_database.php#architecture">Architecture</a></LI>
+<LI><a href="eb_database.php#bugs">Bugs</a></LI>
 <LI><a href="eb_database.php#install">Installation</a></LI>
 <LI><a href="eb_database.php#imagery">Metaphor and Imagery</a></LI>
 </OL>
@@ -90,6 +91,10 @@ Flat files may be imported using normal PostgreSQL tools, geographic tables with
 The eb_import_tree.pl PERL scirpt imports trees . 
 No tools are provided to import additional time-series into the GPDD, but import can be undertaken with the PostgreSQL and PostGIS tools.
 </p>
+<p>
+While considerable effort has been made to ensure that queries and data returns operate as expected, users should always check to make sure and follow the priciple of <a href='http://en.wikipedia.org/wiki/Caveat_emptor'><i>Caveat emptor</i></a>.
+</p>
+
 
 <h4><a name="architecture">Architecture</a></h4>
 <p>The EBDB is a <a href="http://www.postgresql.org/">PostgreSQL</a> database which implements a variety of schemas that support various data types.
@@ -111,12 +116,17 @@ Geographic I/O is through <a href="http://www.gdal.org/ogr2ogr.html">GDAL/OGR2OG
 <p class='legend'>Entangled Bank Architecture</p>
 </center>
 
+<h4><a name="bugs">Bugs</a></h4>
+The following are known bugs;
+<OL>
+<LI>Errors occur when a data download is requested for a dataset that contains none of the selected names. 
+Despite the error messages the download should work correctly.</LI>
+</OL>
+
 <h4><a name="install">Installation</a></h4>
 <p>
 The EBDB is open-source and code can be downlaoded from 
-<a href="https://github.com/davidmkidd/Entangled-Bank-Integrated-Database">Github</a>.</p>
-<p>
-Instructions are limited, so contact with the development team is stongly encouraged.
+<a href="https://github.com/davidmkidd/Entangled-Bank-Integrated-Database">Github</a>. Instructions are limited, so contact with the development team is stongly encouraged.
 </p>
 
 <h4><a name="imagery">Metaphor and Imagery</a></h4>

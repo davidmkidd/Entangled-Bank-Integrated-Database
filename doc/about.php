@@ -28,26 +28,26 @@ $stage = html_entangled_bank_header('doc', '../');
 <a name='#problem'></a><h3>The Entangled Bank Project</h3>
 
 <p>
-<i>Science that spans wide geographical areas or attempts to integrate across and study
+<b>Science that spans wide geographical areas or attempts to integrate across and study
 feedbacks between the multiple levels of biological organization from individual
 organisms to ecosystems is vital to developing the kind
 of understanding of the natural world necessary to deal with the pressures
-it faces in the 21<sup>st</sup> Century.</i></p>
+it faces in the 21<sup>st</sup> Century.</b>
+</p>
 <img alt="data cycle" src="./image/datacycle.png" width='260px' style="border:1px solid grey; float: right;">
 <p>
-Such <a href='http://onlinelibrary.wiley.com/doi/10.1111/j.1558-5646.2009.00892.x/abstract'>synthetic</a> studies that 
+Such <a href='http://onlinelibrary.wiley.com/doi/10.1111/j.1558-5646.2009.00892.x/abstract'>synthetic studies</a> that 
 re-purpose existing information are particularly problematic in ecology as;
 </p>
 
 <UL>
-<LI>Data is inherently heterogenous and widely distributed among organisations.</LI>
-<LI>Archives are few, and where exist have limited structure and metadata.</LI>
-<LI>Data and metadata are often poorly exposed.</LI>
-<LI>Analytical tools are isolated by data format and discipline.</LI>
+<LI>data is inherently heterogenous and widely distributed among organisations;</LI>
+<LI>archives are few, and where exist have limited structure and metadata;</LI>
+<LI>data and metadata are often poorly exposed;</LI>
+<LI>analytical tools are isolated by data format and discipline.</LI>
 </UL>
 <p>
-The Entangled Bank Project developed two systems tothat help mobilise ecological data by removing friction
-from the data cycle.
+The Entangled Bank Project developed two systems that remove friction from the data cycle, enhancing ecological data mobilisation.
 </p>
 <br>
 <center>
@@ -72,7 +72,7 @@ The Entangled Bank project was a joint undertaking by the <a href="http://www3.i
 Population Biology</a>, Biology Division, Imperial College London, and
 the <a href="http://research.microsoft.com/en-us/groups/ecology/default.aspx">
  Computational Ecology and Environmental Science Group</a>, Microsoft Research, Cambridge.
-The Entangled Bank Integrated Database was developed at Imperial College while Entangled Bank Discovery by Microsoft.
+The Entangled Bank Integrated Database was developed at Imperial College, while Entangled Bank Discovery by Microsoft.
 <p>
  
 <p>
@@ -80,9 +80,8 @@ The team at Imperial  were <a href="http://www3.imperial.ac.uk/people/t.coulson"
  <a href="http://www3.imperial.ac.uk/people/g.mace">Prof. Georgina Mace FRS</a>,
  <a href="http://www3.imperial.ac.uk/people/a.purvis">Prof. Andy Purvis</a>,
  <a href="http://www3.imperial.ac.uk/people/d.orme">Dr. David Orme</a>, and
- <a href="http://entangled-bank.org/davidkidd/">Dr. David Kidd (Developer)</a>. 
- The Microsoft Research team were Rich Williams 
- and <a href="mailto:i-anrobe@microsoft.com?Subject=Entangled%20Bank%20aDiscovery">Andy Roberts (Developer)</a>.
+ <a href="http://evoviz.org">Dr. David Kidd (Developer)</a>. 
+ The Microsoft team included Rich Williams, Andy Roberts (Developer) and <a href='http://research.microsoft.com/en-us/people/dpurves/'>Drew Purvis</a>.
 </p>
 
  <center>
